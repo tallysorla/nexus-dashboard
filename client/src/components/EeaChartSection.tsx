@@ -17,7 +17,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Area, AreaChart, CartesianGrid, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ReferenceArea, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import type { PontoEea } from "@/lib/mock-colaboradores";
 
@@ -43,7 +43,6 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
 
   const dias = range === "all" ? data.length : Math.min(Number(range), data.length);
   const visibleData = data.slice(-dias);
-  const media = Math.round(data.reduce((sum, p) => sum + p.eea, 0) / data.length);
   const chartWidth = Math.max(MIN_CHART_WIDTH, visibleData.length * PX_PER_DAY);
 
   // Ao trocar de periodo, comeca mostrando os dias mais recentes (extremidade
@@ -66,7 +65,7 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-64">
-                Teste diário. A linha tracejada é a média do próprio histórico deste colaborador.
+                Teste diário. As faixas coloridas indicam as zonas de baixo, médio e alto risco.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -134,13 +133,6 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
               />
               <YAxis domain={[0, 100]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
               <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-              <ReferenceLine
-                y={media}
-                stroke="var(--color-eea)"
-                strokeDasharray="4 4"
-                strokeOpacity={0.6}
-                label={{ value: `média: ${media}`, position: "insideTopRight", fontSize: 11, fill: "var(--color-eea)" }}
-              />
               <Area
                 type="monotone"
                 dataKey="eea"

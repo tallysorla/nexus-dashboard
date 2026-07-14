@@ -15,7 +15,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import type { PontoDt } from "@/lib/mock-colaboradores";
 
@@ -57,6 +57,30 @@ export function DtChartSection({ data }: DtChartSectionProps) {
       <CardContent className="px-6 pb-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
           <BarChart data={data} margin={{ left: 0, right: 8, top: 8 }}>
+            <ReferenceArea
+              y1={525}
+              y2={750}
+              fill="#dc2626"
+              fillOpacity={0.07}
+              ifOverflow="visible"
+              label={{ value: "Alto risco", position: "insideTopRight", fontSize: 10, fill: "#dc2626" }}
+            />
+            <ReferenceArea
+              y1={300}
+              y2={525}
+              fill="#d97706"
+              fillOpacity={0.07}
+              ifOverflow="visible"
+              label={{ value: "Médio risco", position: "insideTopRight", fontSize: 10, fill: "#d97706" }}
+            />
+            <ReferenceArea
+              y1={0}
+              y2={300}
+              fill="#059669"
+              fillOpacity={0.07}
+              ifOverflow="visible"
+              label={{ value: "Baixo risco", position: "insideBottomRight", fontSize: 10, fill: "#059669" }}
+            />
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
             <YAxis domain={[0, 750]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
