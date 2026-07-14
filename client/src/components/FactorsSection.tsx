@@ -10,21 +10,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  AlertCircle,
-  Minus,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
-  statusDoFator,
-  tendenciaDoFator,
-  variacaoLabel,
   type Fator,
-  type Tendencia,
 } from "@/lib/mock-colaboradores";
 
 type FactorsSectionProps = {
@@ -32,22 +23,8 @@ type FactorsSectionProps = {
   fatoresAdicionais: Fator[];
 };
 
-const TENDENCIA_ICON: Record<Tendencia, typeof TrendingUp> = {
-  subindo: TrendingUp,
-  estavel: Minus,
-  descendo: TrendingDown,
-};
-
-const TENDENCIA_CLASS: Record<Tendencia, string> = {
-  subindo: "text-red-600",
-  estavel: "text-muted-foreground",
-  descendo: "text-emerald-600",
-};
-
 function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolean }) {
-  const tendencia = tendenciaDoFator(factor.variacaoPercentual);
   const risco = classificarRisco(factor.nota);
-  const TendenciaIcon = TENDENCIA_ICON[tendencia];
 
   return (
     <div className="flex items-center gap-3">
@@ -68,14 +45,7 @@ function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolea
             {RISCO_LABEL[risco]}
           </Badge>
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-          <span>nota {factor.nota}/100</span>
-          <span className="text-border">·</span>
-          <span className={`inline-flex items-center gap-1 ${TENDENCIA_CLASS[tendencia]}`}>
-            <TendenciaIcon className="size-3" />
-            {variacaoLabel(factor.variacaoPercentual)} · {statusDoFator(tendencia)}
-          </span>
-        </div>
+        <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/100</p>
       </div>
     </div>
   );
@@ -105,9 +75,8 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
             Cada fator mostra sua nota atual (0–100, quanto maior pior) e a classificação de
-            risco (Alto/Médio/Baixo), com base no teste mais recente do colaborador. O destaque
-            no topo é o fator com maior variação no período, mesmo que ainda não esteja em
-            risco alto.
+            risco (Alto/Médio/Baixo), com base no teste mais recente do colaborador. Os
+            fatores em destaque no topo são os de maior nota de risco.
           </TooltipContent>
         </Tooltip>
       </CardHeader>
@@ -115,7 +84,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
       <CardContent className="space-y-5 px-6 pb-6">
         <div className="space-y-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Maior variação no período
+            Maior risco no momento
           </p>
           {principal && (
             <div className="rounded-xl border bg-muted/30 p-4">

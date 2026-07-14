@@ -26,6 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquarePlus } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { Tratativa } from "@/lib/mock-colaboradores";
 
 const TIPOS_TRATATIVA = ["Conversa", "Feedback", "Encaminhamento"] as const;
@@ -33,9 +34,10 @@ const TIPOS_TRATATIVA = ["Conversa", "Feedback", "Encaminhamento"] as const;
 type TratativaDialogProps = {
   colaboradorNome: string;
   onRegistrar: (tratativa: Tratativa) => void;
+  className?: string;
 };
 
-export function TratativaDialog({ colaboradorNome, onRegistrar }: TratativaDialogProps) {
+export function TratativaDialog({ colaboradorNome, onRegistrar, className }: TratativaDialogProps) {
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState<string>("");
   const [observacao, setObservacao] = useState("");
@@ -65,7 +67,7 @@ export function TratativaDialog({ colaboradorNome, onRegistrar }: TratativaDialo
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-11 rounded-xl">
+        <Button className={cn("h-11 rounded-xl", className)}>
           <MessageSquarePlus className="size-4" />
           Registrar tratativa
         </Button>

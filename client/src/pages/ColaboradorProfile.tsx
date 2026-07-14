@@ -9,7 +9,8 @@ import { TestHistoryTable } from "@/components/TestHistoryTable";
 import { TratativaDialog } from "@/components/TratativaDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, MapPin } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
@@ -48,45 +49,52 @@ export default function ColaboradorProfile() {
         Voltar para colaboradores
       </Link>
 
-      <Card className="w-full py-0 shadow-sm">
-        <CardContent className="flex flex-col gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar className="size-14 ring-2 ring-primary/10">
-              <AvatarImage
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${colaborador.avatarSeed}`}
-              />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold leading-tight">
-                  {colaborador.nome}
-                </h2>
-                <Badge
-                  variant="outline"
-                  className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[colaborador.risco]}`}
-                >
-                  {RISCO_LABEL[colaborador.risco]}
-                </Badge>
-              </div>
-              <p className="text-sm font-medium text-primary">{colaborador.cargo}</p>
-              <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <MapPin className="size-3.5 shrink-0" />
-                <span>
-                  {colaborador.setor} · {colaborador.local}
-                </span>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          <MetricsCards colaborador={colaborador} />
+        </div>
+
+        <Card className="h-full justify-between overflow-hidden py-0 shadow-sm lg:col-span-1">
+          <CardHeader className="px-4 pt-4">
+            <div className="flex items-center gap-3">
+              <Avatar className="size-12 shrink-0 ring-2 ring-primary/10">
+                <AvatarImage
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${colaborador.avatarSeed}`}
+                />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <h2 className="truncate font-semibold leading-tight">{colaborador.nome}</h2>
+                <p className="mt-1 truncate text-sm font-medium leading-tight text-primary">
+                  {colaborador.cargo}
+                </p>
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="size-3.5 shrink-0" />
+                  <span className="truncate">
+                    {colaborador.setor} · {colaborador.local}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+            <Badge
+              variant="outline"
+              className={`mt-3 w-fit rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[colaborador.risco]}`}
+            >
+              {RISCO_LABEL[colaborador.risco]}
+            </Badge>
+          </CardHeader>
 
-          <TratativaDialog
-            colaboradorNome={colaborador.nome}
-            onRegistrar={(t) => setTratativas((prev) => [t, ...prev])}
-          />
-        </CardContent>
-      </Card>
+          <Separator />
 
-      <MetricsCards colaborador={colaborador} />
+          <CardFooter className="px-4 pb-4">
+            <TratativaDialog
+              colaboradorNome={colaborador.nome}
+              onRegistrar={(t) => setTratativas((prev) => [t, ...prev])}
+              className="w-full justify-center"
+            />
+          </CardFooter>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(340px,0.95fr)_minmax(0,1.45fr)]">
         <FactorsSection
