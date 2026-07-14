@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Card,
   CardContent,
@@ -27,7 +27,8 @@ type EeaChartSectionProps = {
 
 type Range = "7" | "30" | "90" | "all";
 
-const RANGE_POINTS: Record<Range, number> = { "7": 2, "30": 5, "90": 10, all: 10 };
+const PX_PER_DAY = 42;
+const MIN_CHART_WIDTH = 600;
 
 const chartConfig = {
   eea: {
@@ -38,9 +39,19 @@ const chartConfig = {
 
 export function EeaChartSection({ data }: EeaChartSectionProps) {
   const [range, setRange] = useState<Range>("90");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const visibleData = data.slice(-RANGE_POINTS[range]);
+  const dias = range === "all" ? data.length : Math.min(Number(range), data.length);
+  const visibleData = data.slice(-dias);
   const media = Math.round(data.reduce((sum, p) => sum + p.eea, 0) / data.length);
+  const chartWidth = Math.max(MIN_CHART_WIDTH, visibleData.length * PX_PER_DAY);
+
+  // Ao trocar de periodo, comeca mostrando os dias mais recentes (extremidade
+  // direita), ja que sao os mais relevantes para o gestor.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, [range, dias]);
 
   return (
     <Card className="w-full py-0 shadow-sm">
@@ -73,35 +84,46 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
-        <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
-          <AreaChart data={visibleData} margin={{ left: 0, right: 8, top: 8 }}>
-            <defs>
-              <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-eea)" stopOpacity={0.28} />
-                <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
-            <YAxis domain={[0, 100]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
-            <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-            <ReferenceLine
-              y={media}
-              stroke="var(--color-eea)"
-              strokeDasharray="4 4"
-              strokeOpacity={0.6}
-              label={{ value: `média: ${media}`, position: "insideTopRight", fontSize: 11, fill: "var(--color-eea)" }}
-            />
-            <Area
-              type="monotone"
-              dataKey="eea"
-              stroke="var(--color-eea)"
-              strokeWidth={2.5}
-              fillOpacity={1}
-              fill="url(#colorEea)"
-            />
-          </AreaChart>
-        </ChartContainer>
+        <div ref={scrollRef} className="overflow-x-auto">
+          <ChartContainer config={chartConfig} className="aspect-auto h-64" style={{ width: chartWidth }}>
+            <AreaChart data={visibleData} margin={{ left: 0, right: 24, top: 8 }}>
+              <defs>
+                <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-eea)" stopOpacity={0.28} />
+                  <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                interval={0}
+                angle={dias > 14 ? -45 : 0}
+                textAnchor={dias > 14 ? "end" : "middle"}
+                height={dias > 14 ? 40 : 24}
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis domain={[0, 100]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
+              <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+              <ReferenceLine
+                y={media}
+                stroke="var(--color-eea)"
+                strokeDasharray="4 4"
+                strokeOpacity={0.6}
+                label={{ value: `média: ${media}`, position: "insideTopRight", fontSize: 11, fill: "var(--color-eea)" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="eea"
+                stroke="var(--color-eea)"
+                strokeWidth={2.5}
+                fillOpacity={1}
+                fill="url(#colorEea)"
+              />
+            </AreaChart>
+          </ChartContainer>
+        </div>
       </CardContent>
     </Card>
   );
