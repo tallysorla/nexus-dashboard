@@ -19,7 +19,7 @@ export function UserCard({ colaborador }: UserCardProps) {
     .toUpperCase();
 
   return (
-    <Card className="h-full justify-between overflow-hidden py-0 shadow-sm">
+    <Card className="h-full justify-between gap-2 overflow-hidden py-0 shadow-sm">
       <CardHeader className="px-4 pt-4">
         <div className="flex items-center gap-3">
           <Avatar className="size-12 shrink-0 rounded-2xl ring-2 ring-primary/10">

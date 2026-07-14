@@ -7,10 +7,10 @@ import { EeaChartSection } from "@/components/EeaChartSection";
 import { DtChartSection } from "@/components/DtChartSection";
 import { TestHistoryTable } from "@/components/TestHistoryTable";
 import { TratativaDialog } from "@/components/TratativaDialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserCard } from "@/components/UserCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { getColaboradorById, type Tratativa } from "@/lib/mock-colaboradores";
 import NotFound from "@/pages/NotFound";
 
@@ -25,13 +25,6 @@ export default function ColaboradorProfile() {
   if (!colaborador) {
     return <NotFound />;
   }
-
-  const initials = colaborador.nome
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 
   return (
     <Layout title={colaborador.nome} subtitle={colaborador.cargo}>
@@ -57,28 +50,7 @@ export default function ColaboradorProfile() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiMiniCards colaborador={colaborador} />
 
-        <Card className="gap-2 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <Avatar className="size-12 shrink-0 ring-2 ring-primary/10">
-              <AvatarImage
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${colaborador.avatarSeed}`}
-              />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <h2 className="truncate font-semibold leading-tight">{colaborador.nome}</h2>
-              <p className="mt-1 truncate text-sm font-medium leading-tight text-primary">
-                {colaborador.cargo}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <MapPin className="size-3.5 shrink-0" />
-            <span className="truncate">
-              {colaborador.setor} · {colaborador.local}
-            </span>
-          </div>
-        </Card>
+        <UserCard colaborador={colaborador} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(340px,0.95fr)_minmax(0,1.45fr)]">
