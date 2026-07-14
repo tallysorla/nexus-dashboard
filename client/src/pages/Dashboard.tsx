@@ -21,7 +21,7 @@ export default function Dashboard() {
           <MetricsCards colaborador={colaborador} />
         </div>
         <div className="lg:col-span-1">
-          <UserCard colaborador={colaborador} label="Colaborador em destaque" />
+          <UserCard colaborador={colaborador} />
         </div>
       </div>
 

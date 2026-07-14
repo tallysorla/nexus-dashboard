@@ -9,10 +9,9 @@ import { RISCO_BADGE_CLASS, RISCO_LABEL, type Colaborador } from "@/lib/mock-col
 
 type UserCardProps = {
   colaborador: Colaborador;
-  label?: string;
 };
 
-export function UserCard({ colaborador, label }: UserCardProps) {
+export function UserCard({ colaborador }: UserCardProps) {
   const initials = colaborador.nome
     .split(" ")
     .map((part) => part[0])
@@ -23,11 +22,6 @@ export function UserCard({ colaborador, label }: UserCardProps) {
   return (
     <Card className="h-full justify-between overflow-hidden py-0 shadow-sm">
       <CardHeader className="px-4 pt-4">
-        {label && (
-          <p className="w-full text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {label}
-          </p>
-        )}
         <div className="flex items-center gap-3">
           <Avatar className="size-12 shrink-0 ring-2 ring-primary/10">
             <AvatarImage
