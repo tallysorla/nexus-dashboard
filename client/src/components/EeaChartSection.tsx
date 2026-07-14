@@ -85,7 +85,11 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
 
       <CardContent className="px-6 pb-6">
         <div ref={scrollRef} className="overflow-x-auto">
-          <ChartContainer config={chartConfig} className="aspect-auto h-64" style={{ width: chartWidth }}>
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-64 w-full"
+            style={{ minWidth: chartWidth }}
+          >
             <AreaChart data={visibleData} margin={{ left: 0, right: 24, top: 8 }}>
               <defs>
                 <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
