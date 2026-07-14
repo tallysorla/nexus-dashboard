@@ -104,7 +104,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
             Maior risco no momento
           </p>
           {principal && (
-            <div className="rounded-xl border bg-muted/30 p-4">
+            <div className="-mx-4 rounded-xl border bg-muted/30 p-4">
               <FatorRow factor={principal} />
             </div>
           )}
