@@ -8,12 +8,16 @@ import {
 import {
   BarChart3,
   Info,
-  TrendingDown,
-  TrendingUp,
+  ShieldAlert,
   Users,
   type LucideIcon,
 } from "lucide-react";
-import type { Colaborador } from "@/lib/mock-colaboradores";
+import {
+  RISCO_BADGE_CLASS,
+  RISCO_LABEL,
+  type Colaborador,
+  type RiskLevel,
+} from "@/lib/mock-colaboradores";
 
 type MetricsCardsProps = {
   colaborador: Colaborador;
@@ -27,6 +31,12 @@ type KpiCardProps = {
   valueSuffix?: string;
   badge: string;
   sublabel?: string;
+};
+
+const RISCO_ICON_CLASS: Record<RiskLevel, string> = {
+  alto: "bg-red-500/10 text-red-600",
+  medio: "bg-amber-500/10 text-amber-600",
+  baixo: "bg-emerald-500/10 text-emerald-600",
 };
 
 export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, sublabel }: KpiCardProps) {
@@ -54,7 +64,6 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   const eeaBadge = colaborador.eea >= 70 ? "Nível alto" : colaborador.eea >= 40 ? "Nível moderado" : "Nível baixo";
   const dtProgress = Math.round((colaborador.dt / 750) * 100);
   const dtBadge = dtProgress >= 70 ? "Monitorar de perto" : dtProgress >= 40 ? "Monitorar" : "Estável";
-  const isPositive = colaborador.evolucao >= 0;
 
   return (
     <>
@@ -76,13 +85,21 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         badge={dtBadge}
         sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
       />
-      <KpiCard
-        icon={isPositive ? TrendingUp : TrendingDown}
-        iconClassName={isPositive ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"}
-        label="Evolução geral"
-        value={`${isPositive ? "+" : ""}${colaborador.evolucao}`}
-        badge={`${isPositive ? "Melhora" : "Queda"} nos últimos 3 testes`}
-      />
+      <Card className="gap-3 rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${RISCO_ICON_CLASS[colaborador.risco]}`}>
+            <ShieldAlert className="size-4" />
+          </div>
+          <p className="text-xs font-medium text-muted-foreground">Status de risco</p>
+        </div>
+        <Badge
+          variant="outline"
+          className={`w-fit rounded-lg px-3 py-1.5 text-base font-semibold ${RISCO_BADGE_CLASS[colaborador.risco]}`}
+        >
+          {RISCO_LABEL[colaborador.risco]}
+        </Badge>
+        <p className="text-xs text-muted-foreground">Classificação com base no teste mais recente</p>
+      </Card>
     </>
   );
 }

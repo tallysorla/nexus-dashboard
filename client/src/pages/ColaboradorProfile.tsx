@@ -11,12 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, MapPin } from "lucide-react";
-import {
-  RISCO_BADGE_CLASS,
-  RISCO_LABEL,
-  getColaboradorById,
-  type Tratativa,
-} from "@/lib/mock-colaboradores";
+import { getColaboradorById, type Tratativa } from "@/lib/mock-colaboradores";
 import NotFound from "@/pages/NotFound";
 
 export default function ColaboradorProfile() {
@@ -83,12 +78,6 @@ export default function ColaboradorProfile() {
               {colaborador.setor} · {colaborador.local}
             </span>
           </div>
-          <Badge
-            variant="outline"
-            className={`w-fit rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[colaborador.risco]}`}
-          >
-            {RISCO_LABEL[colaborador.risco]}
-          </Badge>
         </Card>
       </div>
 
