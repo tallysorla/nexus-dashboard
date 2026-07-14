@@ -36,16 +36,33 @@ function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolea
         {factor.rank}
       </div>
       <div className="min-w-0 flex-1">
-        <div className={compact ? "flex items-center justify-between gap-3" : "flex flex-wrap items-start justify-between gap-x-3 gap-y-1"}>
-          <p className={compact ? "truncate text-sm font-medium" : "font-medium"}>{factor.nome}</p>
-          <Badge
-            variant="outline"
-            className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
-          >
-            {RISCO_LABEL[risco]}
-          </Badge>
-        </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/100</p>
+        {compact ? (
+          <>
+            <div className="flex items-center justify-between gap-3">
+              <p className="truncate text-sm font-medium">{factor.nome}</p>
+              <Badge
+                variant="outline"
+                className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
+              >
+                {RISCO_LABEL[risco]}
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/100</p>
+          </>
+        ) : (
+          <>
+            <p className="font-medium">{factor.nome}</p>
+            <div className="mt-0.5 flex items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">nota {factor.nota}/100</p>
+              <Badge
+                variant="outline"
+                className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
+              >
+                {RISCO_LABEL[risco]}
+              </Badge>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
