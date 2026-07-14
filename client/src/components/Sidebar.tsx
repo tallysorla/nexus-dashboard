@@ -37,11 +37,11 @@ export function Sidebar() {
       <SidebarHeader className="p-5">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm">
-            EM
+            NX
           </div>
           <div>
             <p className="font-semibold leading-none text-foreground">
-              EMOVISION
+              NEXUS
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               People analytics
