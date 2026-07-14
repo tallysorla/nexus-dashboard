@@ -1,10 +1,11 @@
 import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, MapPin } from "lucide-react";
 import { Link } from "wouter";
-import type { Colaborador } from "@/lib/mock-colaboradores";
+import { RISCO_BADGE_CLASS, RISCO_LABEL, type Colaborador } from "@/lib/mock-colaboradores";
 
 type UserCardProps = {
   colaborador: Colaborador;
@@ -48,6 +49,12 @@ export function UserCard({ colaborador, label }: UserCardProps) {
             </div>
           </div>
         </div>
+        <Badge
+          variant="outline"
+          className={`mt-3 w-fit rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[colaborador.risco]}`}
+        >
+          {RISCO_LABEL[colaborador.risco]}
+        </Badge>
       </CardHeader>
 
       <Separator />
