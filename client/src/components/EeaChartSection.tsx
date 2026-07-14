@@ -17,7 +17,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import type { PontoEea } from "@/lib/mock-colaboradores";
 
@@ -97,6 +97,30 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                   <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
+              <ReferenceArea
+                y1={70}
+                y2={100}
+                fill="#dc2626"
+                fillOpacity={0.07}
+                ifOverflow="visible"
+                label={{ value: "Alto risco", position: "insideTopRight", fontSize: 10, fill: "#dc2626" }}
+              />
+              <ReferenceArea
+                y1={40}
+                y2={70}
+                fill="#d97706"
+                fillOpacity={0.07}
+                ifOverflow="visible"
+                label={{ value: "Médio risco", position: "insideTopRight", fontSize: 10, fill: "#d97706" }}
+              />
+              <ReferenceArea
+                y1={0}
+                y2={40}
+                fill="#059669"
+                fillOpacity={0.07}
+                ifOverflow="visible"
+                label={{ value: "Baixo risco", position: "insideBottomRight", fontSize: 10, fill: "#059669" }}
+              />
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"

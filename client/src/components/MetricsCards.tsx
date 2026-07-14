@@ -15,6 +15,7 @@ import {
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
+  classificarRisco,
   type Colaborador,
   type RiskLevel,
 } from "@/lib/mock-colaboradores";
@@ -30,6 +31,7 @@ type KpiCardProps = {
   value: string;
   valueSuffix?: string;
   badge: string;
+  badgeClassName?: string;
   sublabel?: string;
 };
 
@@ -39,7 +41,7 @@ const RISCO_ICON_CLASS: Record<RiskLevel, string> = {
   baixo: "bg-emerald-500/10 text-emerald-600",
 };
 
-export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, sublabel }: KpiCardProps) {
+export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, badgeClassName, sublabel }: KpiCardProps) {
   return (
     <Card className="gap-3 rounded-2xl p-4 shadow-sm">
       <div className="flex items-center gap-2">
@@ -52,7 +54,10 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
         {value}
         {valueSuffix && <span className="text-sm font-medium text-muted-foreground">{valueSuffix}</span>}
       </p>
-      <Badge variant="secondary" className="w-fit rounded-lg px-2 py-0.5 text-xs">
+      <Badge
+        variant={badgeClassName ? "outline" : "secondary"}
+        className={`w-fit rounded-lg px-2 py-0.5 text-xs ${badgeClassName ?? ""}`}
+      >
         {badge}
       </Badge>
       {sublabel && <p className="text-xs text-muted-foreground">{sublabel}</p>}
@@ -61,9 +66,9 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
 }
 
 export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
-  const eeaBadge = colaborador.eea >= 70 ? "Nível alto" : colaborador.eea >= 40 ? "Nível moderado" : "Nível baixo";
+  const eeaRisco = classificarRisco(colaborador.eea);
   const dtProgress = Math.round((colaborador.dt / 750) * 100);
-  const dtBadge = dtProgress >= 70 ? "Monitorar de perto" : dtProgress >= 40 ? "Monitorar" : "Estável";
+  const dtRisco = classificarRisco(dtProgress);
 
   return (
     <>
@@ -73,7 +78,8 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         label="EEA atual"
         value={String(colaborador.eea)}
         valueSuffix="/100"
-        badge={eeaBadge}
+        badge={RISCO_LABEL[eeaRisco]}
+        badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
         sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
       />
       <KpiCard
@@ -82,7 +88,8 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         label="DT atual"
         value={String(colaborador.dt)}
         valueSuffix="/750"
-        badge={dtBadge}
+        badge={RISCO_LABEL[dtRisco]}
+        badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
         sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
       />
       <Card className="gap-3 rounded-2xl p-4 shadow-sm">
@@ -98,7 +105,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         >
           {RISCO_LABEL[colaborador.risco]}
         </Badge>
-        <p className="text-xs text-muted-foreground">Classificação com base no teste mais recente</p>
+        <p className="text-xs text-muted-foreground">Com base no teste DT (mais aprofundado)</p>
       </Card>
     </>
   );
