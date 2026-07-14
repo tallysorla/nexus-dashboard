@@ -21,28 +21,28 @@ export function UserCard({ colaborador, label }: UserCardProps) {
 
   return (
     <Card className="h-full justify-between overflow-hidden py-0 shadow-sm">
-      <CardHeader className="items-center px-4 pt-4 text-center">
+      <CardHeader className="px-4 pt-4">
         {label && (
           <p className="w-full text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {label}
           </p>
         )}
-        <div className="flex flex-col items-center gap-2">
-          <Avatar className="size-12 ring-2 ring-primary/10">
+        <div className="flex items-center gap-3">
+          <Avatar className="size-12 shrink-0 ring-2 ring-primary/10">
             <AvatarImage
               src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${colaborador.avatarSeed}`}
             />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
 
-          <div>
-            <h3 className="font-semibold leading-tight">{colaborador.nome}</h3>
-            <p className="mt-1 text-sm font-medium leading-tight text-primary">
+          <div className="min-w-0">
+            <h3 className="truncate font-semibold leading-tight">{colaborador.nome}</h3>
+            <p className="mt-1 truncate text-sm font-medium leading-tight text-primary">
               {colaborador.cargo}
             </p>
-            <div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <MapPin className="size-3.5 shrink-0" />
-              <span>
+              <span className="truncate">
                 {colaborador.setor} · {colaborador.local}
               </span>
             </div>

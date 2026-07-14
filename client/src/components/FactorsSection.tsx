@@ -69,9 +69,6 @@ function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolea
           </Badge>
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-          <Badge variant="outline" className="rounded px-1.5 py-0 text-[10px] font-medium">
-            {factor.origem}
-          </Badge>
           <span>nota {factor.nota}/100</span>
           <span className="text-border">·</span>
           <span className={`inline-flex items-center gap-1 ${TENDENCIA_CLASS[tendencia]}`}>
@@ -93,7 +90,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
         <div className="space-y-1">
           <CardTitle className="text-lg">Principais fatores em atenção</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Os 10 fatores acompanhados, com nota, origem e classificação de risco
+            Os 10 fatores acompanhados, com nota e classificação de risco
           </p>
         </div>
         <Tooltip>
@@ -107,10 +104,10 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
-            Cada fator mostra sua nota atual (0–100, quanto maior pior), a classificação de
-            risco (Alto/Médio/Baixo) e se foi detectado no EEA (teste diário) ou confirmado
-            no DT (teste mais aprofundado, usado quando a nota é alta). O destaque no topo é
-            o fator com maior variação no período, mesmo que ainda não esteja em risco alto.
+            Cada fator mostra sua nota atual (0–100, quanto maior pior) e a classificação de
+            risco (Alto/Médio/Baixo), com base no teste mais recente do colaborador. O destaque
+            no topo é o fator com maior variação no período, mesmo que ainda não esteja em
+            risco alto.
           </TooltipContent>
         </Tooltip>
       </CardHeader>
