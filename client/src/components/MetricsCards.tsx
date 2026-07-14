@@ -29,7 +29,7 @@ type KpiCardProps = {
   sublabel?: string;
 };
 
-function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, sublabel }: KpiCardProps) {
+export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, sublabel }: KpiCardProps) {
   return (
     <Card className="gap-3 rounded-2xl p-4 shadow-sm">
       <div className="flex items-center gap-2">
@@ -50,12 +50,44 @@ function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, 
   );
 }
 
-export function MetricsCards({ colaborador }: MetricsCardsProps) {
+export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   const eeaBadge = colaborador.eea >= 70 ? "Nível alto" : colaborador.eea >= 40 ? "Nível moderado" : "Nível baixo";
   const dtProgress = Math.round((colaborador.dt / 750) * 100);
   const dtBadge = dtProgress >= 70 ? "Monitorar de perto" : dtProgress >= 40 ? "Monitorar" : "Estável";
   const isPositive = colaborador.evolucao >= 0;
 
+  return (
+    <>
+      <KpiCard
+        icon={Users}
+        iconClassName="bg-primary/10 text-primary"
+        label="EEA atual"
+        value={String(colaborador.eea)}
+        valueSuffix="/100"
+        badge={eeaBadge}
+        sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
+      />
+      <KpiCard
+        icon={BarChart3}
+        iconClassName="bg-amber-500/10 text-amber-600"
+        label="DT atual"
+        value={String(colaborador.dt)}
+        valueSuffix="/750"
+        badge={dtBadge}
+        sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
+      />
+      <KpiCard
+        icon={isPositive ? TrendingUp : TrendingDown}
+        iconClassName={isPositive ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"}
+        label="Evolução geral"
+        value={`${isPositive ? "+" : ""}${colaborador.evolucao}`}
+        badge={`${isPositive ? "Melhora" : "Queda"} nos últimos 3 testes`}
+      />
+    </>
+  );
+}
+
+export function MetricsCards({ colaborador }: MetricsCardsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
@@ -81,31 +113,7 @@ export function MetricsCards({ colaborador }: MetricsCardsProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <KpiCard
-          icon={Users}
-          iconClassName="bg-primary/10 text-primary"
-          label="EEA atual"
-          value={String(colaborador.eea)}
-          valueSuffix="/100"
-          badge={eeaBadge}
-          sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
-        />
-        <KpiCard
-          icon={BarChart3}
-          iconClassName="bg-amber-500/10 text-amber-600"
-          label="DT atual"
-          value={String(colaborador.dt)}
-          valueSuffix="/750"
-          badge={dtBadge}
-          sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
-        />
-        <KpiCard
-          icon={isPositive ? TrendingUp : TrendingDown}
-          iconClassName={isPositive ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"}
-          label="Evolução geral"
-          value={`${isPositive ? "+" : ""}${colaborador.evolucao}`}
-          badge={`${isPositive ? "Melhora" : "Queda"} nos últimos 3 testes`}
-        />
+        <KpiMiniCards colaborador={colaborador} />
       </div>
     </div>
   );
