@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +39,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { FileText, Search } from "lucide-react";
+import { FileText } from "lucide-react";
 import { RISCO_BADGE_CLASS, type RiskLevel, type TesteHistorico, type TipoTeste } from "@/lib/mock-colaboradores";
 
 const PAGE_SIZE = 5;
@@ -51,34 +50,22 @@ type TestHistoryTableProps = {
 
 export function TestHistoryTable({ tests }: TestHistoryTableProps) {
   const [page, setPage] = useState(1);
-  const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<RiskLevel | "todos">("todos");
   const [tipoFilter, setTipoFilter] = useState<TipoTeste | "todos">("todos");
   const [selectedTest, setSelectedTest] = useState<TesteHistorico | null>(null);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return tests.filter((test) => {
-      const matchesQuery =
-        !q ||
-        test.data.toLowerCase().includes(q) ||
-        test.classificacao.toLowerCase().includes(q) ||
-        test.fatores.toLowerCase().includes(q);
       const matchesStatus = statusFilter === "todos" || test.status === statusFilter;
       const matchesTipo = tipoFilter === "todos" || test.tipo === tipoFilter;
-      return matchesQuery && matchesStatus && matchesTipo;
+      return matchesStatus && matchesTipo;
     });
-  }, [tests, query, statusFilter, tipoFilter]);
+  }, [tests, statusFilter, tipoFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * PAGE_SIZE;
   const visibleTests = filtered.slice(start, start + PAGE_SIZE);
-
-  function updateQuery(value: string) {
-    setQuery(value);
-    setPage(1);
-  }
 
   function updateStatusFilter(value: RiskLevel | "todos") {
     setStatusFilter(value);
@@ -115,17 +102,7 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
       </CardHeader>
 
       <CardContent className="space-y-5 px-6 pb-6">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative w-full lg:max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              className="h-11 rounded-xl pl-9"
-              placeholder="Buscar por data, classificação ou fator..."
-              value={query}
-              onChange={(e) => updateQuery(e.target.value)}
-            />
-          </div>
-
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
           <Select value={statusFilter} onValueChange={(v) => updateStatusFilter(v as RiskLevel | "todos")}>
             <SelectTrigger className="h-11 w-full rounded-xl bg-card lg:w-48">
               <SelectValue placeholder="Status" />
@@ -176,7 +153,7 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-4 text-muted-foreground">
-                    {test.fatores}
+                    {test.status === "baixo" ? "Nenhum fator em atenção" : test.fatores}
                   </TableCell>
                   <TableCell className="px-4 py-4 text-right">
                     <Button
@@ -276,7 +253,9 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Principais fatores</p>
-                <p className="text-sm">{selectedTest.fatores}</p>
+                <p className="text-sm">
+                  {selectedTest.status === "baixo" ? "Nenhum fator em atenção" : selectedTest.fatores}
+                </p>
               </div>
             </div>
           )}
