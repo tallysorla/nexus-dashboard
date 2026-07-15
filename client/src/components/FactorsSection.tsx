@@ -47,13 +47,13 @@ function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolea
                 {RISCO_LABEL[risco]}
               </Badge>
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/750</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/75</p>
           </>
         ) : (
           <>
             <p className="font-medium">{factor.nome}</p>
             <div className="mt-0.5 flex items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">nota {factor.nota}/750</p>
+              <p className="text-xs text-muted-foreground">nota {factor.nota}/75</p>
               <Badge
                 variant="outline"
                 className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
@@ -91,10 +91,10 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
-            Cada fator mostra sua nota (0–750, mesma escala do teste DT, quanto maior pior) e
-            a classificação de risco (Alto/Médio/Baixo), apuradas com base no último DT
-            realizado pelo funcionário — o teste mais aprofundado. Os fatores em destaque no
-            topo são os de maior nota de risco.
+            Cada fator mostra sua nota (0–75, quanto maior pior) e a classificação de risco
+            (Alto/Médio/Baixo), apuradas com base no último DT realizado pelo funcionário — o
+            teste mais aprofundado. A soma dos 10 fatores totaliza os 750 pontos do teste DT.
+            Os fatores em destaque no topo são os de maior nota de risco.
           </TooltipContent>
         </Tooltip>
       </CardHeader>
