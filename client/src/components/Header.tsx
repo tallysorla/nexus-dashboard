@@ -17,26 +17,23 @@ import {
 } from "@/components/ui/tooltip";
 
 type HeaderProps = {
-  title: string;
-  subtitle?: string;
   children?: React.ReactNode;
 };
 
-export function Header({ title, subtitle, children }: HeaderProps) {
+export function Header({ children }: HeaderProps) {
   return (
     <header className="border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <SidebarTrigger className="mt-1 size-9 rounded-xl border bg-card md:hidden" />
-          <div className="min-w-0">
-            <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-            )}
-          </div>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <SidebarTrigger
+              variant="outline"
+              aria-label="Recolher ou expandir menu lateral"
+              className="size-11 rounded-xl bg-card"
+            />
+          </TooltipTrigger>
+          <TooltipContent>Recolher menu</TooltipContent>
+        </Tooltip>
 
         <div className="flex items-center gap-2">
           {children}

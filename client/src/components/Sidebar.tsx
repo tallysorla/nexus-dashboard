@@ -34,10 +34,16 @@ export function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <SidebarPrimitive collapsible="offcanvas" className="border-r">
-      <SidebarHeader className="items-center p-5">
-        <img src="/nexus-logo.svg" alt="Nexus" className="h-14 w-auto" />
-        <p className="text-xs text-muted-foreground">People analytics</p>
+    <SidebarPrimitive collapsible="icon" className="border-r">
+      <SidebarHeader className="items-center p-5 group-data-[collapsible=icon]:p-2">
+        <img
+          src="/nexus-logo.svg"
+          alt="Nexus"
+          className="h-14 w-auto group-data-[collapsible=icon]:h-8"
+        />
+        <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+          People analytics
+        </p>
       </SidebarHeader>
 
       <SidebarContent>
@@ -59,8 +65,11 @@ export function Sidebar() {
                         className="cursor-not-allowed rounded-xl px-3 text-sm font-medium text-muted-foreground"
                       >
                         <item.icon className="size-4" />
-                        <span dangerouslySetInnerHTML={{ __html: item.label }} />
-                        <Lock className="ml-auto size-3.5 shrink-0" />
+                        <span
+                          className="group-data-[collapsible=icon]:hidden"
+                          dangerouslySetInnerHTML={{ __html: item.label }}
+                        />
+                        <Lock className="ml-auto size-3.5 shrink-0 group-data-[collapsible=icon]:hidden" />
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
@@ -76,7 +85,10 @@ export function Sidebar() {
                     >
                       <Link href={item.href}>
                         <item.icon className="size-4" />
-                        <span dangerouslySetInnerHTML={{ __html: item.label }} />
+                        <span
+                          className="group-data-[collapsible=icon]:hidden"
+                          dangerouslySetInnerHTML={{ __html: item.label }}
+                        />
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -90,7 +102,7 @@ export function Sidebar() {
       <SidebarFooter className="p-3">
         <SidebarMenuButton className="h-11 rounded-xl px-3 text-muted-foreground hover:text-destructive">
           <LogOut className="size-4" />
-          Logout
+          <span className="group-data-[collapsible=icon]:hidden">Logout</span>
         </SidebarMenuButton>
       </SidebarFooter>
     </SidebarPrimitive>

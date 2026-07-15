@@ -11,10 +11,14 @@ export default function Dashboard() {
   const colaborador = colaboradorDestaque;
 
   return (
-    <Layout
-      title="Dashboard"
-      subtitle="Visão geral de saúde emocional e testes recentes"
-    >
+    <Layout>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          Visão geral de saúde emocional e testes recentes
+        </p>
+      </div>
+
       {/* Top Section: Metrics Cards + Colaborador em destaque */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         <div className="lg:col-span-3">

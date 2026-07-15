@@ -31,10 +31,14 @@ export default function Colaboradores() {
   }, [query]);
 
   return (
-    <Layout
-      title="Colaboradores"
-      subtitle="Listagem de colaboradores e classificação de risco atual"
-    >
+    <Layout>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Colaboradores</h1>
+        <p className="text-sm text-muted-foreground">
+          Listagem de colaboradores e classificação de risco atual
+        </p>
+      </div>
+
       <Card className="w-full py-0 shadow-sm">
         <CardContent className="space-y-5 px-6 py-6">
           <div className="relative w-full lg:max-w-sm">
