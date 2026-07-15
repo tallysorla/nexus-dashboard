@@ -10,7 +10,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { AlertCircle } from "lucide-react";
+import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
@@ -85,9 +85,9 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
             <button
               type="button"
               aria-label="Sobre os fatores em atenção"
-              className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600"
+              className="text-muted-foreground hover:text-foreground"
             >
-              <AlertCircle className="size-5" />
+              <Info className="size-4" />
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
