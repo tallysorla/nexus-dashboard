@@ -141,13 +141,28 @@ function serieEea(valorAtual: number): PontoEea[] {
 }
 
 // DT e feito raramente (cerca de uma vez por mes ou durante uma tratativa) ->
-// poucos pontos espacados, para nao forcar uma linha continua onde nao ha dado.
-function serieDt(base: number): PontoDt[] {
-  const dates = ["04/04", "02/05", "30/05", "06/07"];
-  return dates.map((date, i) => ({
-    date,
-    dt: Math.round(base + i * 45),
-  }));
+// 12 pontos mensais (para permitir o filtro de 3/6/12 meses), terminando
+// exatamente no valor atual (colaborador.dt) para nao destoar do KPI "DT
+// atual" mostrado no topo da tela.
+const MESES_SERIE_DT = 12;
+const DATA_FINAL_SERIE_DT = new Date(2026, 6, 6);
+
+function serieDt(valorAtual: number): PontoDt[] {
+  const valorInicial = Math.max(40, valorAtual - 260);
+
+  return Array.from({ length: MESES_SERIE_DT }, (_, i) => {
+    const mes = new Date(DATA_FINAL_SERIE_DT);
+    mes.setMonth(mes.getMonth() - (MESES_SERIE_DT - 1 - i));
+    const date = `${String(mes.getDate()).padStart(2, "0")}/${String(mes.getMonth() + 1).padStart(2, "0")}`;
+
+    const progresso = i / (MESES_SERIE_DT - 1);
+    const tendencia = valorInicial + (valorAtual - valorInicial) * progresso;
+    const ehUltimoMes = i === MESES_SERIE_DT - 1;
+    const ruido = ehUltimoMes ? 0 : Math.sin(i * 1.3) * 30 + Math.sin(i * 0.6) * 18;
+    const dt = Math.max(0, Math.min(750, Math.round(tendencia + ruido)));
+
+    return { date, dt };
+  });
 }
 
 // Os 10 fatores de risco psicossocial acompanhados pelo Nexus.
@@ -214,7 +229,7 @@ export const colaboradores: Colaborador[] = [
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Inquietação", "Cansaço", "Insegurança"]),
     serieEea: serieEea(74),
-    serieDt: serieDt(300),
+    serieDt: serieDt(527),
     historicoTestes: [
       { id: "t1", data: "03/07/2026", tipo: "DT", pontuacao: 82, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Inquietação, Cansaço, Preocupação excessiva" },
       { id: "t2", data: "26/06/2026", tipo: "EEA", pontuacao: 75, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Inquietação, Cansaço" },
@@ -258,7 +273,7 @@ export const colaboradores: Colaborador[] = [
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Preocupação excessiva", "Cansaço", "Insegurança"]),
     serieEea: serieEea(58),
-    serieDt: serieDt(200),
+    serieDt: serieDt(340),
     historicoTestes: [
       { id: "t1", data: "01/07/2026", tipo: "DT", pontuacao: 58, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva, Cansaço" },
       { id: "t2", data: "24/06/2026", tipo: "EEA", pontuacao: 52, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
@@ -294,7 +309,7 @@ export const colaboradores: Colaborador[] = [
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Raiva ou irritabilidade", "Preocupação excessiva", "Cansaço"]),
     serieEea: serieEea(76),
-    serieDt: serieDt(420),
+    serieDt: serieDt(610),
     historicoTestes: [
       { id: "t1", data: "05/07/2026", tipo: "DT", pontuacao: 88, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Preocupação excessiva" },
       { id: "t2", data: "28/06/2026", tipo: "EEA", pontuacao: 84, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Cansaço" },
@@ -345,7 +360,7 @@ export const colaboradores: Colaborador[] = [
     ],
     fatoresAdicionais: gerarFatoresAdicionais("baixo", ["Cansaço", "Insegurança", "Qualidade do sono"]),
     serieEea: serieEea(32),
-    serieDt: serieDt(150),
+    serieDt: serieDt(210),
     historicoTestes: [
       { id: "t1", data: "02/07/2026", tipo: "EEA", pontuacao: 30, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
       { id: "t2", data: "25/06/2026", tipo: "EEA", pontuacao: 27, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
@@ -381,7 +396,7 @@ export const colaboradores: Colaborador[] = [
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Cansaço", "Cansaço mental", "Insegurança"]),
     serieEea: serieEea(69),
-    serieDt: serieDt(280),
+    serieDt: serieDt(480),
     historicoTestes: [
       { id: "t1", data: "04/07/2026", tipo: "EEA", pontuacao: 66, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço, Cansaço mental" },
       { id: "t2", data: "27/06/2026", tipo: "DT", pontuacao: 63, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço" },

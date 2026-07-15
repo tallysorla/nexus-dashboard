@@ -1,9 +1,11 @@
+import { useState } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +25,8 @@ type DtChartSectionProps = {
   data: PontoDt[];
 };
 
+type Range = "3" | "6" | "12";
+
 const chartConfig = {
   dt: {
     label: "DT",
@@ -31,32 +35,46 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function DtChartSection({ data }: DtChartSectionProps) {
-  const media = Math.round(data.reduce((sum, p) => sum + p.dt, 0) / data.length);
+  const [range, setRange] = useState<Range>("6");
+
+  const meses = Math.min(Number(range), data.length);
+  const visibleData = data.slice(-meses);
+  const media = Math.round(visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length);
 
   return (
     <Card className="w-full py-0 shadow-sm">
-      <CardHeader className="px-6 pt-6">
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-lg">Evolução do DT</CardTitle>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button type="button" aria-label="Sobre o DT" className="text-muted-foreground hover:text-foreground">
-                <Info className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-64">
-              Teste mais aprofundado, aplicado com menor frequência — por isso aparece como
-              ocorrências pontuais, não como uma linha contínua. A linha tracejada é a média
-              do próprio histórico deste funcionário.
-            </TooltipContent>
-          </Tooltip>
+      <CardHeader className="flex flex-col gap-4 px-6 pt-6 xl:flex-row xl:items-center xl:justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg">Evolução do DT</CardTitle>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label="Sobre o DT" className="text-muted-foreground hover:text-foreground">
+                  <Info className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-64">
+                Teste mais aprofundado, aplicado com menor frequência — por isso aparece como
+                ocorrências pontuais, não como uma linha contínua. A linha tracejada é a média
+                do próprio histórico deste funcionário no período selecionado.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <p className="text-sm text-muted-foreground">Aplicado mensalmente ou em tratativas</p>
         </div>
-        <p className="text-sm text-muted-foreground">Aplicado mensalmente ou em tratativas</p>
+
+        <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="w-full xl:w-auto">
+          <TabsList className="grid h-11 w-full grid-cols-3 rounded-xl xl:w-auto">
+            <TabsTrigger value="3" className="rounded-lg px-3 text-xs">3 meses</TabsTrigger>
+            <TabsTrigger value="6" className="rounded-lg px-3 text-xs">6 meses</TabsTrigger>
+            <TabsTrigger value="12" className="rounded-lg px-3 text-xs">12 meses</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
-          <BarChart data={data} margin={{ left: 0, right: 8, top: 8 }}>
+          <BarChart data={visibleData} margin={{ left: 0, right: 8, top: 8 }}>
             <ReferenceArea
               y1={525}
               y2={750}
