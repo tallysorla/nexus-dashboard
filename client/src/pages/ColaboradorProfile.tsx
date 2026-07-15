@@ -28,11 +28,6 @@ export default function ColaboradorProfile() {
 
   return (
     <Layout>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{colaborador.nome}</h1>
-        <p className="text-sm text-muted-foreground">{colaborador.cargo}</p>
-      </div>
-
       <Link
         href="/colaboradores"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
