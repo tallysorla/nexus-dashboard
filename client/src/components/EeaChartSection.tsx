@@ -83,66 +83,84 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
-        <div ref={scrollRef} className="overflow-x-auto">
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-64 w-full"
-            style={{ minWidth: chartWidth }}
-          >
-            <AreaChart data={visibleData} margin={{ left: 0, right: 24, top: 8 }}>
-              <defs>
-                <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-eea)" stopOpacity={0.28} />
-                  <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <ReferenceArea
-                y1={70}
-                y2={100}
-                fill="#dc2626"
-                fillOpacity={0.07}
-                ifOverflow="visible"
-                label={{ value: "Alto risco", position: "insideTopRight", fontSize: 10, fill: "#dc2626" }}
-              />
-              <ReferenceArea
-                y1={40}
-                y2={70}
-                fill="#d97706"
-                fillOpacity={0.07}
-                ifOverflow="visible"
-                label={{ value: "Médio risco", position: "insideTopRight", fontSize: 10, fill: "#d97706" }}
-              />
-              <ReferenceArea
-                y1={0}
-                y2={40}
-                fill="#059669"
-                fillOpacity={0.07}
-                ifOverflow="visible"
-                label={{ value: "Baixo risco", position: "insideBottomRight", fontSize: 10, fill: "#059669" }}
-              />
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
+        <div className="flex">
+          {/* Eixo Y fixo: nao pode rolar junto com os dados, senao os numeros
+              da lateral somem quando o grafico rola para os dias recentes. */}
+          <ChartContainer config={chartConfig} className="aspect-auto h-64 w-10 shrink-0">
+            <AreaChart data={visibleData} margin={{ left: 0, right: 0, top: 8, bottom: 0 }}>
+              <YAxis
+                domain={[0, 100]}
+                ticks={[0, 25, 50, 75, 100]}
+                interval={0}
                 axisLine={false}
                 tickLine={false}
-                interval={0}
-                angle={dias > 14 ? -45 : 0}
-                textAnchor={dias > 14 ? "end" : "middle"}
-                height={dias > 14 ? 40 : 24}
                 style={{ fontSize: "12px" }}
               />
-              <YAxis domain={[0, 100]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
-              <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-              <Area
-                type="monotone"
-                dataKey="eea"
-                stroke="var(--color-eea)"
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill="url(#colorEea)"
-              />
+              <XAxis dataKey="date" hide height={dias > 14 ? 40 : 24} />
             </AreaChart>
           </ChartContainer>
+
+          <div ref={scrollRef} className="min-w-0 flex-1 overflow-x-auto">
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-64 w-full"
+              style={{ minWidth: chartWidth }}
+            >
+              <AreaChart data={visibleData} margin={{ left: 0, right: 24, top: 8, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-eea)" stopOpacity={0.28} />
+                    <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <ReferenceArea
+                  y1={70}
+                  y2={100}
+                  fill="#dc2626"
+                  fillOpacity={0.07}
+                  ifOverflow="visible"
+                  label={{ value: "Alto risco", position: "insideTopRight", fontSize: 10, fill: "#dc2626" }}
+                />
+                <ReferenceArea
+                  y1={40}
+                  y2={70}
+                  fill="#d97706"
+                  fillOpacity={0.07}
+                  ifOverflow="visible"
+                  label={{ value: "Médio risco", position: "insideTopRight", fontSize: 10, fill: "#d97706" }}
+                />
+                <ReferenceArea
+                  y1={0}
+                  y2={40}
+                  fill="#059669"
+                  fillOpacity={0.07}
+                  ifOverflow="visible"
+                  label={{ value: "Baixo risco", position: "insideBottomRight", fontSize: 10, fill: "#059669" }}
+                />
+                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
+                  interval={0}
+                  angle={dias > 14 ? -45 : 0}
+                  textAnchor={dias > 14 ? "end" : "middle"}
+                  height={dias > 14 ? 40 : 24}
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis domain={[0, 100]} hide />
+                <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                <Area
+                  type="monotone"
+                  dataKey="eea"
+                  stroke="var(--color-eea)"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#colorEea)"
+                />
+              </AreaChart>
+            </ChartContainer>
+          </div>
         </div>
       </CardContent>
     </Card>
