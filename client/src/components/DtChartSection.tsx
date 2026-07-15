@@ -94,6 +94,40 @@ export function DtChartSection({ data }: DtChartSectionProps) {
       <CardContent className="px-6 pb-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
           <BarChart data={visibleData} margin={{ left: 0, right: 8, top: 8 }}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
+            <YAxis domain={[0, 750]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  indicator="dot"
+                  formatter={(value, _name, item) => {
+                    const origem = (item?.payload as PontoDt | undefined)?.origem;
+                    const cor = origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)";
+                    return (
+                      <div className="flex w-full items-center justify-between gap-3">
+                        <span className="flex items-center gap-1.5 text-muted-foreground">
+                          <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
+                          DT · {origem === "tratativa" ? "Tratativa" : "Ciclo mensal"}
+                        </span>
+                        <span className="font-medium text-foreground">{value}</span>
+                      </div>
+                    );
+                  }}
+                />
+              }
+            />
+            <Bar dataKey="dt" radius={[6, 6, 0, 0]} maxBarSize={48}>
+              {visibleData.map((ponto) => (
+                <Cell
+                  key={ponto.date}
+                  fill={ponto.origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)"}
+                />
+              ))}
+            </Bar>
+            {/* Faixas e linha de media desenhadas por ultimo (depois das
+                barras) para que o rotulo de cada uma nunca fique escondido
+                atras de uma barra alta. */}
             <ReferenceArea
               y1={525}
               y2={750}
@@ -118,29 +152,6 @@ export function DtChartSection({ data }: DtChartSectionProps) {
               ifOverflow="visible"
               label={{ value: "Baixo risco", position: "insideBottomRight", fontSize: 10, fill: "#059669" }}
             />
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
-            <YAxis domain={[0, 750]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  indicator="dot"
-                  formatter={(value, _name, item) => {
-                    const origem = (item?.payload as PontoDt | undefined)?.origem;
-                    const cor = origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)";
-                    return (
-                      <div className="flex w-full items-center justify-between gap-3">
-                        <span className="flex items-center gap-1.5 text-muted-foreground">
-                          <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
-                          DT · {origem === "tratativa" ? "Tratativa" : "Ciclo mensal"}
-                        </span>
-                        <span className="font-medium text-foreground">{value}</span>
-                      </div>
-                    );
-                  }}
-                />
-              }
-            />
             <ReferenceLine
               y={media}
               stroke="var(--color-dt)"
@@ -148,14 +159,6 @@ export function DtChartSection({ data }: DtChartSectionProps) {
               strokeOpacity={0.6}
               label={{ value: `média: ${media}`, position: "insideTopRight", fontSize: 11, fill: "var(--color-dt)" }}
             />
-            <Bar dataKey="dt" radius={[6, 6, 0, 0]} maxBarSize={48}>
-              {visibleData.map((ponto) => (
-                <Cell
-                  key={ponto.date}
-                  fill={ponto.origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)"}
-                />
-              ))}
-            </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>

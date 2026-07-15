@@ -114,6 +114,30 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                     <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
+                  interval={0}
+                  angle={dias > 14 ? -45 : 0}
+                  textAnchor={dias > 14 ? "end" : "middle"}
+                  height={dias > 14 ? 40 : 24}
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis domain={[0, 100]} hide />
+                <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                <Area
+                  type="monotone"
+                  dataKey="eea"
+                  stroke="var(--color-eea)"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#colorEea)"
+                />
+                {/* Faixas desenhadas por ultimo (depois da area) para que o
+                    rotulo de cada uma nunca fique escondido atras do
+                    preenchimento quando o EEA estiver alto. */}
                 <ReferenceArea
                   y1={70}
                   y2={100}
@@ -137,27 +161,6 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                   fillOpacity={0.07}
                   ifOverflow="visible"
                   label={{ value: "Baixo risco", position: "insideBottomRight", fontSize: 10, fill: "#059669" }}
-                />
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false}
-                  tickLine={false}
-                  interval={0}
-                  angle={dias > 14 ? -45 : 0}
-                  textAnchor={dias > 14 ? "end" : "middle"}
-                  height={dias > 14 ? 40 : 24}
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis domain={[0, 100]} hide />
-                <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                <Area
-                  type="monotone"
-                  dataKey="eea"
-                  stroke="var(--color-eea)"
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#colorEea)"
                 />
               </AreaChart>
             </ChartContainer>
