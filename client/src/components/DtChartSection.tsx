@@ -17,7 +17,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import type { PontoDt } from "@/lib/mock-colaboradores";
 
@@ -29,8 +29,12 @@ type Range = "3" | "6" | "12";
 
 const chartConfig = {
   dt: {
-    label: "DT",
+    label: "DT · ciclo mensal",
     color: "var(--chart-2)",
+  },
+  dtTratativa: {
+    label: "DT · tratativa",
+    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
@@ -55,12 +59,27 @@ export function DtChartSection({ data }: DtChartSectionProps) {
               </TooltipTrigger>
               <TooltipContent className="max-w-64">
                 Teste mais aprofundado, aplicado com menor frequência — por isso aparece como
-                ocorrências pontuais, não como uma linha contínua. A linha tracejada é a média
-                do próprio histórico deste funcionário no período selecionado.
+                ocorrências pontuais, não como uma linha contínua. As barras em{" "}
+                <span className="text-[var(--chart-3)]">azul</span> são DTs feitos como
+                tratativa (ex.: após uma sequência de EEA em alto risco), diferentes do ciclo
+                mensal normal. A linha tracejada é a média do próprio histórico deste
+                funcionário no período selecionado.
               </TooltipContent>
             </Tooltip>
           </div>
-          <p className="text-sm text-muted-foreground">Aplicado mensalmente ou em tratativas</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <p className="text-sm text-muted-foreground">Aplicado mensalmente ou em tratativas</p>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full" style={{ backgroundColor: "var(--chart-2)" }} />
+                Ciclo mensal
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full" style={{ backgroundColor: "var(--chart-3)" }} />
+                Tratativa
+              </span>
+            </div>
+          </div>
         </div>
 
         <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="w-full xl:w-auto">
@@ -110,7 +129,14 @@ export function DtChartSection({ data }: DtChartSectionProps) {
               strokeOpacity={0.6}
               label={{ value: `média: ${media}`, position: "insideTopRight", fontSize: 11, fill: "var(--color-dt)" }}
             />
-            <Bar dataKey="dt" fill="var(--color-dt)" radius={[6, 6, 0, 0]} maxBarSize={48} />
+            <Bar dataKey="dt" radius={[6, 6, 0, 0]} maxBarSize={48}>
+              {visibleData.map((ponto) => (
+                <Cell
+                  key={ponto.date}
+                  fill={ponto.origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)"}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>

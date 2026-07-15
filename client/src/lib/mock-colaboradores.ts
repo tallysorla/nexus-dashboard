@@ -40,9 +40,13 @@ export type PontoEea = {
   eea: number;
 };
 
+// origem distingue um DT feito no ciclo mensal normal de um DT antecipado
+// como tratativa (ex.: apos uma sequencia de EEA em alto risco) -- o gestor
+// precisa saber qual dos dois motivou aquele teste especifico.
 export type PontoDt = {
   date: string;
   dt: number;
+  origem: "mensal" | "tratativa";
 };
 
 export type TesteHistorico = {
@@ -148,7 +152,11 @@ function serieEea(valorAtual: number): PontoEea[] {
 const MESES_SERIE_DT = 12;
 const DATA_FINAL_SERIE_DT = new Date(2026, 6, 6);
 
-function serieDt(valorAtual: number): PontoDt[] {
+// pontosTratativa: indices (0 = ponto mais antigo, MESES_SERIE_DT - 1 = mais
+// recente) que correspondem a um DT antecipado como tratativa, e nao ao ciclo
+// mensal normal -- por exemplo, quando uma sequencia de EEA em alto risco leva
+// o gestor a pedir um DT antes do previsto.
+function serieDt(valorAtual: number, pontosTratativa: number[] = []): PontoDt[] {
   const valorInicial = Math.max(40, valorAtual - 260);
 
   return Array.from({ length: MESES_SERIE_DT }, (_, i) => {
@@ -161,8 +169,9 @@ function serieDt(valorAtual: number): PontoDt[] {
     const ehUltimoMes = i === MESES_SERIE_DT - 1;
     const ruido = ehUltimoMes ? 0 : Math.sin(i * 1.3) * 30 + Math.sin(i * 0.6) * 18;
     const dt = Math.max(0, Math.min(750, Math.round(tendencia + ruido)));
+    const origem: "mensal" | "tratativa" = pontosTratativa.includes(i) ? "tratativa" : "mensal";
 
-    return { date, dt };
+    return { date, dt, origem };
   });
 }
 
@@ -287,7 +296,7 @@ export const colaboradores: Colaborador[] = [
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Inquietação", "Cansaço", "Insegurança"]),
     serieEea: serieEea(74),
-    serieDt: serieDt(527),
+    serieDt: serieDt(527, [MESES_SERIE_DT - 1]),
     historicoTestes: [
       { id: "t1", data: "03/07/2026", tipo: "DT", pontuacao: 82, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Inquietação, Cansaço, Preocupação excessiva" },
       { id: "t2", data: "26/06/2026", tipo: "EEA", pontuacao: 75, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Inquietação, Cansaço" },
@@ -365,7 +374,7 @@ export const colaboradores: Colaborador[] = [
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Raiva ou irritabilidade", "Preocupação excessiva", "Cansaço"]),
     serieEea: serieEea(76),
-    serieDt: serieDt(610),
+    serieDt: serieDt(610, [MESES_SERIE_DT - 1]),
     historicoTestes: [
       { id: "t1", data: "05/07/2026", tipo: "DT", pontuacao: 88, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Preocupação excessiva" },
       { id: "t2", data: "28/06/2026", tipo: "EEA", pontuacao: 84, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Cansaço" },
