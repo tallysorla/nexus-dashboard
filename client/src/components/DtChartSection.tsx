@@ -47,7 +47,7 @@ export function DtChartSection({ data }: DtChartSectionProps) {
             <TooltipContent className="max-w-64">
               Teste mais aprofundado, aplicado com menor frequência — por isso aparece como
               ocorrências pontuais, não como uma linha contínua. A linha tracejada é a média
-              do próprio histórico deste colaborador.
+              do próprio histórico deste funcionário.
             </TooltipContent>
           </Tooltip>
         </div>

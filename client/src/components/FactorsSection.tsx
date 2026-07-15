@@ -92,7 +92,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
             Cada fator mostra sua nota atual (0–100, quanto maior pior) e a classificação de
-            risco (Alto/Médio/Baixo), com base no teste mais recente do colaborador. Os
+            risco (Alto/Médio/Baixo), com base no teste mais recente do funcionário. Os
             fatores em destaque no topo são os de maior nota de risco.
           </TooltipContent>
         </Tooltip>

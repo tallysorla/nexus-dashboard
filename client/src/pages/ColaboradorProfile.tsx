@@ -29,11 +29,11 @@ export default function ColaboradorProfile() {
   return (
     <Layout>
       <Link
-        href="/colaboradores"
+        href="/funcionarios"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Voltar para colaboradores
+        Voltar para funcionários
       </Link>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -68,14 +68,14 @@ export default function ColaboradorProfile() {
         <CardHeader className="px-6 pt-6">
           <CardTitle className="text-lg">Histórico de tratativas</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Conversas, feedbacks e encaminhamentos registrados para este colaborador
+            Conversas, feedbacks e encaminhamentos registrados para este funcionário
           </p>
         </CardHeader>
         <CardContent className="px-6 pb-6">
           {tratativas.length === 0 ? (
             <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
               Nenhuma tratativa registrada ainda. Use "Registrar tratativa" para
-              documentar a primeira ação com este colaborador.
+              documentar a primeira ação com este funcionário.
             </p>
           ) : (
             <ul className="space-y-4">

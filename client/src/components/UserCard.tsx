@@ -49,7 +49,7 @@ export function UserCard({ colaborador }: UserCardProps) {
           className="mx-auto h-10 rounded-xl px-3 text-base font-semibold text-primary"
           asChild
         >
-          <Link href={`/colaboradores/${colaborador.id}`}>
+          <Link href={`/funcionarios/${colaborador.id}`}>
             Ver mais informações
             <ArrowRight className="size-4" />
           </Link>

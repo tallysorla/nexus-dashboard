@@ -33,9 +33,9 @@ export default function Colaboradores() {
   return (
     <Layout>
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Colaboradores</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Funcionários</h1>
         <p className="text-sm text-muted-foreground">
-          Listagem de colaboradores e classificação de risco atual
+          Listagem de funcionários e classificação de risco atual
         </p>
       </div>
 
@@ -55,7 +55,7 @@ export default function Colaboradores() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40 hover:bg-muted/40">
-                  <TableHead className="h-12 px-4">Colaborador</TableHead>
+                  <TableHead className="h-12 px-4">Funcionário</TableHead>
                   <TableHead className="h-12 px-4">Setor</TableHead>
                   <TableHead className="h-12 px-4">EEA</TableHead>
                   <TableHead className="h-12 px-4">DT</TableHead>
@@ -112,7 +112,7 @@ export default function Colaboradores() {
                         className="rounded-xl text-primary"
                         asChild
                       >
-                        <Link href={`/colaboradores/${c.id}`}>
+                        <Link href={`/funcionarios/${c.id}`}>
                           Ver perfil
                           <ArrowRight className="size-4" />
                         </Link>
@@ -126,7 +126,7 @@ export default function Colaboradores() {
                       colSpan={6}
                       className="px-4 py-10 text-center text-sm text-muted-foreground"
                     >
-                      Nenhum colaborador encontrado para "{query}".
+                      Nenhum funcionário encontrado para "{query}".
                     </TableCell>
                   </TableRow>
                 )}

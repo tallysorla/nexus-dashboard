@@ -23,7 +23,7 @@ import {
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Vis&atilde;o geral", href: "/", disabled: true },
-  { icon: Users, label: "Funcion&aacute;rios", href: "/colaboradores", disabled: false },
+  { icon: Users, label: "Funcion&aacute;rios", href: "/funcionarios", disabled: false },
   { icon: UserCheck, label: "Avaliadores", href: "/avaliadores", disabled: true },
   { icon: FileText, label: "Testes", href: "/testes", disabled: true },
   { icon: BarChart3, label: "Relat&oacute;rios", href: "/relatorios", disabled: true },
