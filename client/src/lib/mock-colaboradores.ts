@@ -363,5 +363,3 @@ export const colaboradores: Colaborador[] = [
 export function getColaboradorById(id: string): Colaborador | undefined {
   return colaboradores.find((c) => c.id === id);
 }
-
-export const colaboradorDestaque = colaboradores[0];
