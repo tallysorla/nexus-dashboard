@@ -87,9 +87,7 @@ export function FuncionarioDetailsDialog({ colaborador, onSave }: FuncionarioDet
 
         <div className="flex items-center gap-3">
           <Avatar className="size-16 shrink-0 rounded-2xl ring-2 ring-primary/10">
-            <AvatarImage
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${colaborador.avatarSeed}`}
-            />
+            <AvatarImage src={colaborador.avatarUrl} className="object-cover" />
             <AvatarFallback className="rounded-2xl">{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">

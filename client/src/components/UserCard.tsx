@@ -24,9 +24,7 @@ export function UserCard({ colaborador }: UserCardProps) {
       <CardHeader className="px-4 pt-4">
         <div className="flex items-center gap-3">
           <Avatar className="size-12 shrink-0 rounded-2xl ring-2 ring-primary/10">
-            <AvatarImage
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${current.avatarSeed}`}
-            />
+            <AvatarImage src={current.avatarUrl} className="object-cover" />
             <AvatarFallback className="rounded-2xl">{initials}</AvatarFallback>
           </Avatar>
 

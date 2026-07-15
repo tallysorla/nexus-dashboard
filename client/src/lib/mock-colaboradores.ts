@@ -68,7 +68,7 @@ export type Colaborador = {
   cargo: string;
   setor: string;
   local: string;
-  avatarSeed: string;
+  avatarUrl: string;
   matricula: string;
   idade: number;
   dataAdmissao: string;
@@ -196,7 +196,8 @@ export const colaboradores: Colaborador[] = [
     cargo: "Técnica de Manutenção",
     setor: "Operações",
     local: "Matriz SP",
-    avatarSeed: "Patricia",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-10234",
     idade: 34,
     dataAdmissao: "12/03/2019",
@@ -239,7 +240,8 @@ export const colaboradores: Colaborador[] = [
     cargo: "Analista de Logística",
     setor: "Logística",
     local: "Matriz SP",
-    avatarSeed: "Carlos",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-10891",
     idade: 29,
     dataAdmissao: "04/07/2021",
@@ -274,7 +276,8 @@ export const colaboradores: Colaborador[] = [
     cargo: "Supervisora de Qualidade",
     setor: "Qualidade",
     local: "Filial Campinas",
-    avatarSeed: "Renata",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-09587",
     idade: 41,
     dataAdmissao: "22/09/2015",
@@ -324,7 +327,8 @@ export const colaboradores: Colaborador[] = [
     cargo: "Motorista",
     setor: "Logística",
     local: "Filial Guarulhos",
-    avatarSeed: "Joao",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-11042",
     idade: 26,
     dataAdmissao: "08/01/2023",
@@ -359,7 +363,8 @@ export const colaboradores: Colaborador[] = [
     cargo: "Assistente Administrativa",
     setor: "Administrativo",
     local: "Matriz SP",
-    avatarSeed: "Mariana",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-10456",
     idade: 37,
     dataAdmissao: "17/05/2018",

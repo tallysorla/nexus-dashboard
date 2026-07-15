@@ -69,9 +69,7 @@ export default function Colaboradores() {
                     <TableCell className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <Avatar className="size-8">
-                          <AvatarImage
-                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${c.avatarSeed}`}
-                          />
+                          <AvatarImage src={c.avatarUrl} className="object-cover" />
                           <AvatarFallback>
                             {c.nome
                               .split(" ")
