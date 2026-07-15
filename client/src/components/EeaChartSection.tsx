@@ -86,12 +86,13 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
         <div className="flex">
           {/* Eixo Y fixo: nao pode rolar junto com os dados, senao os numeros
               da lateral somem quando o grafico rola para os dias recentes. */}
-          <ChartContainer config={chartConfig} className="aspect-auto h-64 w-10 shrink-0">
-            <AreaChart data={visibleData} margin={{ left: 0, right: 0, top: 8, bottom: 0 }}>
+          <ChartContainer config={chartConfig} className="aspect-auto h-64 w-12 shrink-0">
+            <AreaChart data={visibleData} margin={{ left: 0, right: 4, top: 8, bottom: 0 }}>
               <YAxis
                 domain={[0, 100]}
                 ticks={[0, 25, 50, 75, 100]}
                 interval={0}
+                width={40}
                 axisLine={false}
                 tickLine={false}
                 style={{ fontSize: "12px" }}
