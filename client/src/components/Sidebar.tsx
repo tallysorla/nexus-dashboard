@@ -2,6 +2,7 @@ import {
   BarChart3,
   FileText,
   LayoutDashboard,
+  Lock,
   LogOut,
   Settings,
   UserCheck,
@@ -21,12 +22,12 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Vis&atilde;o geral", href: "/" },
-  { icon: Users, label: "Funcion&aacute;rios", href: "/colaboradores" },
-  { icon: UserCheck, label: "Avaliadores", href: "/avaliadores" },
-  { icon: FileText, label: "Testes", href: "/testes" },
-  { icon: BarChart3, label: "Relat&oacute;rios", href: "/relatorios" },
-  { icon: Settings, label: "Configura&ccedil;&otilde;es", href: "/configuracoes" },
+  { icon: LayoutDashboard, label: "Vis&atilde;o geral", href: "/", disabled: true },
+  { icon: Users, label: "Funcion&aacute;rios", href: "/colaboradores", disabled: false },
+  { icon: UserCheck, label: "Avaliadores", href: "/avaliadores", disabled: true },
+  { icon: FileText, label: "Testes", href: "/testes", disabled: true },
+  { icon: BarChart3, label: "Relat&oacute;rios", href: "/relatorios", disabled: true },
+  { icon: Settings, label: "Configura&ccedil;&otilde;es", href: "/configuracoes", disabled: true },
 ];
 
 export function Sidebar() {
@@ -34,20 +35,9 @@ export function Sidebar() {
 
   return (
     <SidebarPrimitive collapsible="offcanvas" className="border-r">
-      <SidebarHeader className="p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm">
-            NX
-          </div>
-          <div>
-            <p className="font-semibold leading-none text-foreground">
-              NEXUS
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              People analytics
-            </p>
-          </div>
-        </div>
+      <SidebarHeader className="items-center p-5">
+        <img src="/nexus-logo.svg" alt="Nexus" className="h-14 w-auto" />
+        <p className="text-xs text-muted-foreground">People analytics</p>
       </SidebarHeader>
 
       <SidebarContent>
@@ -59,6 +49,22 @@ export function Sidebar() {
                   item.href === "/"
                     ? location === "/"
                     : location.startsWith(item.href);
+
+                if (item.disabled) {
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        disabled
+                        size="lg"
+                        className="cursor-not-allowed rounded-xl px-3 text-sm font-medium text-muted-foreground"
+                      >
+                        <item.icon className="size-4" />
+                        <span dangerouslySetInnerHTML={{ __html: item.label }} />
+                        <Lock className="ml-auto size-3.5 shrink-0" />
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                }
 
                 return (
                   <SidebarMenuItem key={item.href}>
