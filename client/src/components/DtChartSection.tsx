@@ -29,11 +29,11 @@ type Range = "3" | "6" | "12";
 
 const chartConfig = {
   dt: {
-    label: "DT · ciclo mensal",
+    label: "DT",
     color: "var(--chart-2)",
   },
   dtTratativa: {
-    label: "DT · tratativa",
+    label: "DT",
     color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
@@ -121,7 +121,26 @@ export function DtChartSection({ data }: DtChartSectionProps) {
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
             <YAxis domain={[0, 750]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
-            <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  indicator="dot"
+                  formatter={(value, _name, item) => {
+                    const origem = (item?.payload as PontoDt | undefined)?.origem;
+                    const cor = origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)";
+                    return (
+                      <div className="flex w-full items-center justify-between gap-3">
+                        <span className="flex items-center gap-1.5 text-muted-foreground">
+                          <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
+                          DT · {origem === "tratativa" ? "Tratativa" : "Ciclo mensal"}
+                        </span>
+                        <span className="font-medium text-foreground">{value}</span>
+                      </div>
+                    );
+                  }}
+                />
+              }
+            />
             <ReferenceLine
               y={media}
               stroke="var(--color-dt)"
