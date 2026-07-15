@@ -67,6 +67,9 @@ export type Colaborador = {
   setor: string;
   local: string;
   avatarSeed: string;
+  matricula: string;
+  idade: number;
+  dataAdmissao: string;
   eea: number;
   dt: number;
   evolucao: number;
@@ -182,6 +185,9 @@ export const colaboradores: Colaborador[] = [
     setor: "Operações",
     local: "Matriz SP",
     avatarSeed: "Patricia",
+    matricula: "EMP-10234",
+    idade: 34,
+    dataAdmissao: "12/03/2019",
     eea: 74,
     dt: 527,
     evolucao: 13,
@@ -222,6 +228,9 @@ export const colaboradores: Colaborador[] = [
     setor: "Logística",
     local: "Matriz SP",
     avatarSeed: "Carlos",
+    matricula: "EMP-10891",
+    idade: 29,
+    dataAdmissao: "04/07/2021",
     eea: 58,
     dt: 340,
     evolucao: 4,
@@ -254,6 +263,9 @@ export const colaboradores: Colaborador[] = [
     setor: "Qualidade",
     local: "Filial Campinas",
     avatarSeed: "Renata",
+    matricula: "EMP-09587",
+    idade: 41,
+    dataAdmissao: "22/09/2015",
     eea: 76,
     dt: 610,
     evolucao: -9,
@@ -301,6 +313,9 @@ export const colaboradores: Colaborador[] = [
     setor: "Logística",
     local: "Filial Guarulhos",
     avatarSeed: "Joao",
+    matricula: "EMP-11042",
+    idade: 26,
+    dataAdmissao: "08/01/2023",
     eea: 32,
     dt: 210,
     evolucao: 6,
@@ -333,6 +348,9 @@ export const colaboradores: Colaborador[] = [
     setor: "Administrativo",
     local: "Matriz SP",
     avatarSeed: "Mariana",
+    matricula: "EMP-10456",
+    idade: 37,
+    dataAdmissao: "17/05/2018",
     eea: 69,
     dt: 480,
     evolucao: -2,
