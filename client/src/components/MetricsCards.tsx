@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -6,7 +7,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  AlertTriangle,
   BarChart3,
+  CheckCircle2,
+  Clock,
   Info,
   Minus,
   TrendingDown,
@@ -18,10 +22,13 @@ import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
+  confirmacaoDoDT,
   statusDoFator,
   tendenciaDoFator,
+  tendenciaEeaPercentual,
   variacaoLabel,
   type Colaborador,
+  type ConfirmacaoDT,
   type Tendencia,
 } from "@/lib/mock-colaboradores";
 
@@ -39,6 +46,7 @@ type KpiCardProps = {
   badgeClassName?: string;
   sublabel?: string;
   tooltip?: string;
+  extra?: ReactNode;
 };
 
 const TENDENCIA_ICON: Record<Tendencia, LucideIcon> = {
@@ -47,7 +55,19 @@ const TENDENCIA_ICON: Record<Tendencia, LucideIcon> = {
   estavel: Minus,
 };
 
-export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, badgeClassName, sublabel, tooltip }: KpiCardProps) {
+const CONFIRMACAO_ICON: Record<ConfirmacaoDT, LucideIcon> = {
+  confirma: CheckCircle2,
+  diverge: AlertTriangle,
+  aguardando: Clock,
+};
+
+const CONFIRMACAO_TEXTO: Record<ConfirmacaoDT, string> = {
+  confirma: "DT recente confirma essa direção",
+  diverge: "DT recente aponta direção diferente",
+  aguardando: "Sem DT recente para confirmar",
+};
+
+export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, badgeClassName, sublabel, tooltip, extra }: KpiCardProps) {
   return (
     <Card className="gap-3 rounded-2xl p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
@@ -83,6 +103,7 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
         {badge}
       </Badge>
       {sublabel && <p className="text-xs text-muted-foreground">{sublabel}</p>}
+      {extra}
     </Card>
   );
 }
@@ -91,7 +112,11 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   const eeaRisco = classificarRisco(colaborador.eea);
   const dtProgress = Math.round((colaborador.dt / 750) * 100);
   const dtRisco = classificarRisco(dtProgress);
-  const tendencia = tendenciaDoFator(colaborador.evolucao);
+
+  const tendenciaEeaValor = tendenciaEeaPercentual(colaborador.serieEea);
+  const tendencia = tendenciaDoFator(tendenciaEeaValor);
+  const confirmacao = confirmacaoDoDT(colaborador.historicoTestes, tendencia);
+  const ConfirmacaoIcon = CONFIRMACAO_ICON[confirmacao];
 
   return (
     <>
@@ -120,12 +145,18 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
       <KpiCard
         icon={TENDENCIA_ICON[tendencia]}
         iconClassName="bg-slate-500/10 text-slate-600"
-        label="Tendência"
-        value={variacaoLabel(colaborador.evolucao)}
+        label="Tendência (EEA)"
+        value={variacaoLabel(tendenciaEeaValor)}
         badge={statusDoFator(tendencia)}
         badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
-        sublabel="Comparado a 30 dias atrás"
-        tooltip="Mostra se o risco deste funcionário está piorando, melhorando ou estável, comparando a situação atual com a de 30 dias atrás. Não substitui o EEA e o DT: aqui o que importa é a direção da mudança, não o nível de risco."
+        sublabel="Últimos 30 dias vs. 30 dias anteriores"
+        tooltip="Calculada a partir do EEA (teste diário): média dos últimos 30 dias comparada com os 30 dias anteriores. O DT não entra nessa conta porque é aplicado com pouca frequência — em vez disso, mostramos abaixo se o DT mais recente confirma essa direção."
+        extra={
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <ConfirmacaoIcon className="size-3.5 shrink-0" />
+            <span>{CONFIRMACAO_TEXTO[confirmacao]}</span>
+          </div>
+        }
       />
     </>
   );

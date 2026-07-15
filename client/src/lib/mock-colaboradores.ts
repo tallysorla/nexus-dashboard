@@ -75,7 +75,6 @@ export type Colaborador = {
   dataAdmissao: string;
   eea: number;
   dt: number;
-  evolucao: number;
   risco: RiskLevel;
   totalTestesEea: number;
   totalTestesDt: number;
@@ -167,6 +166,64 @@ function serieDt(valorAtual: number): PontoDt[] {
   });
 }
 
+// Tendencia do EEA: media dos ultimos 30 dias vs. media dos 30 dias
+// anteriores. Usamos o EEA (nao o DT) como base do calculo porque ele e
+// diario -- o DT e raro demais (poucos pontos ao longo de meses) para uma
+// comparacao de 30 dias em 30 dias, o que faria uma unica reavaliacao pontual
+// virar "tendencia".
+export function tendenciaEeaPercentual(serie: PontoEea[]): number {
+  const ultimos30 = serie.slice(-30);
+  const anteriores30 = serie.slice(-60, -30);
+  if (anteriores30.length === 0) return 0;
+
+  const mediaUltimos = ultimos30.reduce((soma, p) => soma + p.eea, 0) / ultimos30.length;
+  const mediaAnteriores = anteriores30.reduce((soma, p) => soma + p.eea, 0) / anteriores30.length;
+  if (mediaAnteriores === 0) return 0;
+
+  return Math.round(((mediaUltimos - mediaAnteriores) / mediaAnteriores) * 100);
+}
+
+function parseDataBr(data: string): Date {
+  const [dia, mes, ano] = data.split("/").map(Number);
+  return new Date(ano, mes - 1, dia);
+}
+
+export type ConfirmacaoDT = "confirma" | "diverge" | "aguardando";
+
+const DIAS_JANELA_CONFIRMACAO_DT = 45;
+
+// O EEA (diario) costuma sinalizar uma mudanca antes do DT (mais aprofundado,
+// porem raro), entao o DT funciona como confirmacao, nao como base do calculo
+// de tendencia. So afirmamos confirmacao/divergencia quando ha um DT dentro
+// de uma janela recente o suficiente (45 dias) -- um DT antigo nao pode ser
+// usado para validar (ou contradizer) uma tendencia recente do EEA.
+export function confirmacaoDoDT(
+  historicoTestes: TesteHistorico[],
+  tendenciaEea: Tendencia,
+  hoje: Date = DATA_FINAL_SERIE_EEA,
+): ConfirmacaoDT {
+  const testesDt = historicoTestes
+    .filter((t) => t.tipo === "DT")
+    .map((t) => ({ ...t, dataObj: parseDataBr(t.data) }))
+    .sort((a, b) => b.dataObj.getTime() - a.dataObj.getTime());
+
+  const ultimoDt = testesDt[0];
+  if (!ultimoDt) return "aguardando";
+
+  const diasDesdeUltimoDt = Math.round((hoje.getTime() - ultimoDt.dataObj.getTime()) / 86_400_000);
+  if (diasDesdeUltimoDt > DIAS_JANELA_CONFIRMACAO_DT || testesDt.length < 2) return "aguardando";
+
+  const anteriorDt = testesDt[1];
+  const variacaoDt = Math.round(
+    ((ultimoDt.pontuacao - anteriorDt.pontuacao) / anteriorDt.pontuacao) * 100,
+  );
+  const tendenciaDt = tendenciaDoFator(variacaoDt);
+
+  if (tendenciaDt === tendenciaEea) return "confirma";
+  if (tendenciaDt === "estavel" || tendenciaEea === "estavel") return "aguardando";
+  return "diverge";
+}
+
 // Os 10 fatores de risco psicossocial acompanhados pelo Nexus.
 // Cada colaborador tem 3 "em destaque" (maior variacao) e os 7 restantes
 // ficam em "fatoresAdicionais", sem duplicar nomes.
@@ -220,7 +277,6 @@ export const colaboradores: Colaborador[] = [
     dataAdmissao: "12/03/2019",
     eea: 74,
     dt: 527,
-    evolucao: 13,
     risco: "alto",
     totalTestesEea: 86,
     totalTestesDt: 7,
@@ -264,7 +320,6 @@ export const colaboradores: Colaborador[] = [
     dataAdmissao: "04/07/2021",
     eea: 58,
     dt: 340,
-    evolucao: 4,
     risco: "medio",
     totalTestesEea: 102,
     totalTestesDt: 5,
@@ -300,7 +355,6 @@ export const colaboradores: Colaborador[] = [
     dataAdmissao: "22/09/2015",
     eea: 76,
     dt: 610,
-    evolucao: -9,
     risco: "alto",
     totalTestesEea: 74,
     totalTestesDt: 8,
@@ -351,7 +405,6 @@ export const colaboradores: Colaborador[] = [
     dataAdmissao: "08/01/2023",
     eea: 32,
     dt: 210,
-    evolucao: 6,
     risco: "baixo",
     totalTestesEea: 95,
     totalTestesDt: 4,
@@ -387,7 +440,6 @@ export const colaboradores: Colaborador[] = [
     dataAdmissao: "17/05/2018",
     eea: 69,
     dt: 480,
-    evolucao: -2,
     risco: "medio",
     totalTestesEea: 68,
     totalTestesDt: 6,
