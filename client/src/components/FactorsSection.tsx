@@ -14,7 +14,7 @@ import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRisco,
+  classificarRiscoDT,
   type Fator,
 } from "@/lib/mock-colaboradores";
 
@@ -24,7 +24,7 @@ type FactorsSectionProps = {
 };
 
 function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolean }) {
-  const risco = classificarRisco(factor.nota);
+  const risco = classificarRiscoDT(factor.nota);
 
   return (
     <div className="flex items-center gap-3">
@@ -47,13 +47,13 @@ function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolea
                 {RISCO_LABEL[risco]}
               </Badge>
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/100</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/750</p>
           </>
         ) : (
           <>
             <p className="font-medium">{factor.nome}</p>
             <div className="mt-0.5 flex items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">nota {factor.nota}/100</p>
+              <p className="text-xs text-muted-foreground">nota {factor.nota}/750</p>
               <Badge
                 variant="outline"
                 className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
@@ -77,7 +77,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
         <div className="space-y-1">
           <CardTitle className="text-lg">Principais fatores em atenção</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Os 10 fatores acompanhados, com nota e classificação de risco
+            Os 10 fatores acompanhados, com base no último DT realizado
           </p>
         </div>
         <Tooltip>
@@ -91,9 +91,10 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
-            Cada fator mostra sua nota atual (0–100, quanto maior pior) e a classificação de
-            risco (Alto/Médio/Baixo), com base no teste mais recente do funcionário. Os
-            fatores em destaque no topo são os de maior nota de risco.
+            Cada fator mostra sua nota (0–750, mesma escala do teste DT, quanto maior pior) e
+            a classificação de risco (Alto/Médio/Baixo), apuradas com base no último DT
+            realizado pelo funcionário — o teste mais aprofundado. Os fatores em destaque no
+            topo são os de maior nota de risco.
           </TooltipContent>
         </Tooltip>
       </CardHeader>

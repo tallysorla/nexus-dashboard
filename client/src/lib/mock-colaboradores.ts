@@ -4,10 +4,12 @@ export type Tendencia = "subindo" | "estavel" | "descendo";
 
 export type TipoTeste = "EEA" | "DT";
 
-// nota = 0-100, quanto maior pior (mesma escala do indice de risco geral).
-// variacaoPercentual = sinal indica a direcao real: positivo = piorando,
-// negativo = melhorando. tendencia e status sao sempre derivados dela, nunca
-// digitados a mao, para nao correr o risco de um "+4%" aparecer como "Melhorando".
+// nota = 0-750, mesma escala do teste DT (o mais aprofundado), ja que os
+// fatores em atencao sao apurados com base no ultimo DT realizado pelo
+// colaborador, quanto maior pior. variacaoPercentual = sinal indica a direcao
+// real: positivo = piorando, negativo = melhorando. tendencia e status sao
+// sempre derivados dela, nunca digitados a mao, para nao correr o risco de um
+// "+4%" aparecer como "Melhorando".
 export type Fator = {
   rank: number;
   nome: string;
@@ -105,6 +107,15 @@ export function classificarRisco(pontuacao: number): RiskLevel {
   return "baixo";
 }
 
+// Fatores em atencao usam a escala do proprio teste DT (0-750). As faixas sao
+// as mesmas proporcoes de classificarRisco (>=70%/40-69%/<40% de 750), para
+// que um fator e o indice geral classifiquem o mesmo numero da mesma forma.
+export function classificarRiscoDT(pontuacao: number): RiskLevel {
+  if (pontuacao >= 525) return "alto";
+  if (pontuacao >= 300) return "medio";
+  return "baixo";
+}
+
 // EEA e feito todo dia pelo colaborador -> um ponto por dia dos ultimos 90
 // dias, terminando exatamente no valor atual (colaborador.eea) para nao
 // destoar do KPI "EEA atual" mostrado no topo da tela.
@@ -155,18 +166,19 @@ const TODOS_FATORES = [
   "Desmotivação",
 ] as const;
 
-// Fatores com nota >= 70 (alto risco) partem do princípio de que já foram
-// confirmados por um teste DT (mais profundo); os demais são acompanhados
-// pelo EEA (diário), que é quem normalmente detecta a variação primeiro.
+// Fatores com nota >= 525 (70% de 750, alto risco) partem do princípio de que
+// já foram confirmados por um teste DT (mais profundo); os demais são
+// acompanhados pelo EEA (diário), que é quem normalmente detecta a variação
+// primeiro.
 function origemDaNota(nota: number): TipoTeste {
-  return nota >= 70 ? "DT" : "EEA";
+  return nota >= 525 ? "DT" : "EEA";
 }
 
 function gerarFatoresAdicionais(risco: RiskLevel, destaque: string[]): Fator[] {
-  const baseNota = risco === "alto" ? 42 : risco === "medio" ? 30 : 18;
+  const baseNota = risco === "alto" ? 315 : risco === "medio" ? 225 : 135;
   return TODOS_FATORES.filter((nome) => !destaque.includes(nome)).map((nome, i) => {
     const variacaoPercentual = i % 3 === 0 ? 1 : i % 3 === 1 ? -(2 + (i % 3)) : 3 + (i % 3);
-    const nota = Math.max(6, baseNota - i * 4);
+    const nota = Math.max(45, baseNota - i * 30);
     return {
       rank: 4 + i,
       nome,
@@ -195,9 +207,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 86,
     totalTestesDt: 7,
     fatoresDestaque: [
-      { rank: 1, nome: "Inquietação", nota: 88, variacaoPercentual: 12, origem: "DT" },
-      { rank: 2, nome: "Cansaço", nota: 64, variacaoPercentual: 2, origem: "EEA" },
-      { rank: 3, nome: "Insegurança", nota: 46, variacaoPercentual: -6, origem: "EEA" },
+      { rank: 1, nome: "Inquietação", nota: 660, variacaoPercentual: 12, origem: "DT" },
+      { rank: 2, nome: "Cansaço", nota: 480, variacaoPercentual: 2, origem: "EEA" },
+      { rank: 3, nome: "Insegurança", nota: 345, variacaoPercentual: -6, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Inquietação", "Cansaço", "Insegurança"]),
     serieEea: serieEea(74),
@@ -238,9 +250,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 102,
     totalTestesDt: 5,
     fatoresDestaque: [
-      { rank: 1, nome: "Preocupação excessiva", nota: 58, variacaoPercentual: 8, origem: "EEA" },
-      { rank: 2, nome: "Cansaço", nota: 40, variacaoPercentual: 1, origem: "EEA" },
-      { rank: 3, nome: "Insegurança", nota: 22, variacaoPercentual: -3, origem: "EEA" },
+      { rank: 1, nome: "Preocupação excessiva", nota: 435, variacaoPercentual: 8, origem: "EEA" },
+      { rank: 2, nome: "Cansaço", nota: 300, variacaoPercentual: 1, origem: "EEA" },
+      { rank: 3, nome: "Insegurança", nota: 165, variacaoPercentual: -3, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Preocupação excessiva", "Cansaço", "Insegurança"]),
     serieEea: serieEea(58),
@@ -273,9 +285,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 74,
     totalTestesDt: 8,
     fatoresDestaque: [
-      { rank: 1, nome: "Raiva ou irritabilidade", nota: 91, variacaoPercentual: 18, origem: "DT" },
-      { rank: 2, nome: "Preocupação excessiva", nota: 70, variacaoPercentual: 2, origem: "DT" },
-      { rank: 3, nome: "Cansaço", nota: 60, variacaoPercentual: 2, origem: "EEA" },
+      { rank: 1, nome: "Raiva ou irritabilidade", nota: 683, variacaoPercentual: 18, origem: "DT" },
+      { rank: 2, nome: "Preocupação excessiva", nota: 525, variacaoPercentual: 2, origem: "DT" },
+      { rank: 3, nome: "Cansaço", nota: 450, variacaoPercentual: 2, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Raiva ou irritabilidade", "Preocupação excessiva", "Cansaço"]),
     serieEea: serieEea(76),
@@ -323,9 +335,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 95,
     totalTestesDt: 4,
     fatoresDestaque: [
-      { rank: 1, nome: "Cansaço", nota: 30, variacaoPercentual: 2, origem: "EEA" },
-      { rank: 2, nome: "Insegurança", nota: 18, variacaoPercentual: -4, origem: "EEA" },
-      { rank: 3, nome: "Qualidade do sono", nota: 14, variacaoPercentual: -5, origem: "EEA" },
+      { rank: 1, nome: "Cansaço", nota: 225, variacaoPercentual: 2, origem: "EEA" },
+      { rank: 2, nome: "Insegurança", nota: 135, variacaoPercentual: -4, origem: "EEA" },
+      { rank: 3, nome: "Qualidade do sono", nota: 105, variacaoPercentual: -5, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("baixo", ["Cansaço", "Insegurança", "Qualidade do sono"]),
     serieEea: serieEea(32),
@@ -358,9 +370,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 68,
     totalTestesDt: 6,
     fatoresDestaque: [
-      { rank: 1, nome: "Cansaço", nota: 66, variacaoPercentual: 9, origem: "EEA" },
-      { rank: 2, nome: "Cansaço mental", nota: 54, variacaoPercentual: 2, origem: "EEA" },
-      { rank: 3, nome: "Insegurança", nota: 33, variacaoPercentual: 1, origem: "EEA" },
+      { rank: 1, nome: "Cansaço", nota: 495, variacaoPercentual: 9, origem: "EEA" },
+      { rank: 2, nome: "Cansaço mental", nota: 405, variacaoPercentual: 2, origem: "EEA" },
+      { rank: 3, nome: "Insegurança", nota: 248, variacaoPercentual: 1, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Cansaço", "Cansaço mental", "Insegurança"]),
     serieEea: serieEea(69),
