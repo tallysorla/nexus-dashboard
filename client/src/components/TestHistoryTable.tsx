@@ -51,14 +51,13 @@ type TestHistoryTableProps = {
 export function TestHistoryTable({ tests }: TestHistoryTableProps) {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<RiskLevel | "todos">("todos");
-  const [tipoFilter, setTipoFilter] = useState<TipoTeste | "todos">("todos");
+  const [tipoFilter, setTipoFilter] = useState<TipoTeste>("EEA");
   const [selectedTest, setSelectedTest] = useState<TesteHistorico | null>(null);
 
   const filtered = useMemo(() => {
     return tests.filter((test) => {
       const matchesStatus = statusFilter === "todos" || test.status === statusFilter;
-      const matchesTipo = tipoFilter === "todos" || test.tipo === tipoFilter;
-      return matchesStatus && matchesTipo;
+      return matchesStatus && test.tipo === tipoFilter;
     });
   }, [tests, statusFilter, tipoFilter]);
 
@@ -74,7 +73,7 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
 
   function updateTipoFilter(value: string) {
     if (!value) return; // radix toggle group emits "" when deselecting; keep current selection
-    setTipoFilter(value as TipoTeste | "todos");
+    setTipoFilter(value as TipoTeste);
     setPage(1);
   }
 
@@ -95,7 +94,6 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
           onValueChange={updateTipoFilter}
           className="h-11 rounded-xl bg-card"
         >
-          <ToggleGroupItem value="todos" className="px-4 text-xs">Todos</ToggleGroupItem>
           <ToggleGroupItem value="EEA" className="px-4 text-xs">EEA</ToggleGroupItem>
           <ToggleGroupItem value="DT" className="px-4 text-xs">DT</ToggleGroupItem>
         </ToggleGroup>
@@ -123,7 +121,6 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead className="h-12 px-4">Data do teste</TableHead>
-                <TableHead className="h-12 px-4">Tipo</TableHead>
                 <TableHead className="h-12 px-4">Índice de risco</TableHead>
                 <TableHead className="h-12 px-4">Classificação</TableHead>
                 <TableHead className="h-12 px-4">Principais fatores</TableHead>
@@ -135,11 +132,6 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
                 <TableRow key={test.id}>
                   <TableCell className="px-4 py-4 font-medium">
                     {test.data}
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Badge variant="outline" className="rounded px-1.5 py-0 text-[10px] font-medium">
-                      {test.tipo}
-                    </Badge>
                   </TableCell>
                   <TableCell className="px-4 py-4 font-semibold">
                     {test.pontuacao}/100
@@ -170,7 +162,7 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
               ))}
               {visibleTests.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     Nenhum teste encontrado para os filtros atuais.
                   </TableCell>
                 </TableRow>
