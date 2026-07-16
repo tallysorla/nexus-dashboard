@@ -1,4 +1,4 @@
-import { Bell, LogOut, Search, Settings, User } from "lucide-react";
+import { Bell, Check, ChevronDown, Eye, LogOut, Search, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -15,12 +16,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { PROFILES, useProfile, type ProfileKey } from "@/contexts/ProfileContext";
 
 type HeaderProps = {
   children?: React.ReactNode;
 };
 
 export function Header({ children }: HeaderProps) {
+  const { profileKey, profile, setProfile } = useProfile();
+
   return (
     <header className="border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex items-center justify-between gap-4">
@@ -45,6 +49,35 @@ export function Header({ children }: HeaderProps) {
               placeholder="Buscar..."
             />
           </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="hidden h-11 items-center gap-2 rounded-xl bg-card px-3 text-sm font-medium sm:flex"
+              >
+                <Eye className="size-4 text-muted-foreground" />
+                Ver como: {profile.label}
+                <ChevronDown className="size-3.5 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Pré-visualizar como</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(Object.keys(PROFILES) as ProfileKey[]).map((key) => {
+                const p = PROFILES[key];
+                return (
+                  <DropdownMenuItem key={key} onClick={() => setProfile(key)}>
+                    <Check className={`size-4 ${key === profileKey ? "opacity-100" : "opacity-0"}`} />
+                    <div className="flex min-w-0 flex-col">
+                      <span className="truncate">{p.label}</span>
+                      <span className="truncate text-xs text-muted-foreground">{p.scopeLabel}</span>
+                    </div>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Popover>
             <Tooltip>

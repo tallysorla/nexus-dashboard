@@ -44,7 +44,7 @@ type KpiCardProps = {
   label: string;
   value: string;
   valueSuffix?: string;
-  badge: string;
+  badge?: string;
   badgeClassName?: string;
   sublabel?: string;
   tooltip?: string;
@@ -98,12 +98,14 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
         {value}
         {valueSuffix && <span className="text-sm font-medium text-muted-foreground">{valueSuffix}</span>}
       </p>
-      <Badge
-        variant={badgeClassName ? "outline" : "secondary"}
-        className={`w-fit rounded-lg px-2 py-0.5 text-xs ${badgeClassName ?? ""}`}
-      >
-        {badge}
-      </Badge>
+      {badge && (
+        <Badge
+          variant={badgeClassName ? "outline" : "secondary"}
+          className={`w-fit rounded-lg px-2 py-0.5 text-xs ${badgeClassName ?? ""}`}
+        >
+          {badge}
+        </Badge>
+      )}
       {sublabel && <p className="text-xs text-muted-foreground">{sublabel}</p>}
       {extra}
     </Card>

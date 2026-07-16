@@ -75,6 +75,7 @@ export type Colaborador = {
   local: string;
   avatarUrl: string;
   matricula: string;
+  cpf: string;
   idade: number;
   dataAdmissao: string;
   eea: number;
@@ -207,7 +208,7 @@ export function tendenciaEeaPercentual(serie: PontoEea[]): number {
   return Math.round(((mediaUltimos - mediaAnteriores) / mediaAnteriores) * 100);
 }
 
-function parseDataBr(data: string): Date {
+export function parseDataBr(data: string): Date {
   const [dia, mes, ano] = data.split("/").map(Number);
   return new Date(ano, mes - 1, dia);
 }
@@ -297,6 +298,7 @@ export const colaboradores: Colaborador[] = [
     avatarUrl:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-10234",
+    cpf: "301.552.118-20",
     idade: 34,
     dataAdmissao: "12/03/2019",
     eea: 74,
@@ -340,6 +342,7 @@ export const colaboradores: Colaborador[] = [
     avatarUrl:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-10891",
+    cpf: "118.904.337-55",
     idade: 29,
     dataAdmissao: "04/07/2021",
     eea: 58,
@@ -375,6 +378,7 @@ export const colaboradores: Colaborador[] = [
     avatarUrl:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-09587",
+    cpf: "452.110.889-03",
     idade: 41,
     dataAdmissao: "22/09/2015",
     eea: 76,
@@ -425,6 +429,7 @@ export const colaboradores: Colaborador[] = [
     avatarUrl:
       "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-11042",
+    cpf: "770.223.145-61",
     idade: 26,
     dataAdmissao: "08/01/2023",
     eea: 32,
@@ -460,6 +465,7 @@ export const colaboradores: Colaborador[] = [
     avatarUrl:
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
     matricula: "EMP-10456",
+    cpf: "509.317.662-84",
     idade: 37,
     dataAdmissao: "17/05/2018",
     eea: 69,

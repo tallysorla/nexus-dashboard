@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
-import { Link } from "wouter";
+import { Link, useSearchParams } from "wouter";
 import { Layout } from "@/components/Layout";
+import { useProfile } from "@/contexts/ProfileContext";
+import { ANDRADE_ID } from "@/lib/mock-empresas";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,16 +27,25 @@ import {
 
 export default function Colaboradores() {
   const [query, setQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  const { profile } = useProfile();
+
+  // So a Transportadora Andrade tem funcionarios reais cadastrados neste
+  // protótipo. Se o escopo ativo (empresa selecionada na URL ou perfil fixo)
+  // for outra empresa, a lista fica vazia -- reaproveitando o mesmo empty
+  // state que já existe abaixo, sem alterar layout ou textos desta tela.
+  const empresaEscopo = searchParams.get("empresa") ?? profile.empresaId;
+  const baseColaboradores = !empresaEscopo || empresaEscopo === ANDRADE_ID ? colaboradores : [];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return colaboradores;
-    return colaboradores.filter((c) =>
+    if (!q) return baseColaboradores;
+    return baseColaboradores.filter((c) =>
       [c.nome, c.cargo, c.setor, c.local].some((field) =>
         field.toLowerCase().includes(q)
       )
     );
-  }, [query]);
+  }, [query, baseColaboradores]);
 
   return (
     <Layout>

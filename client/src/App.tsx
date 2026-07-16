@@ -4,17 +4,40 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import { ProfileProvider } from "./contexts/ProfileContext";
 import Colaboradores from "./pages/Colaboradores";
 import ColaboradorProfile from "./pages/ColaboradorProfile";
+import Empresas from "./pages/Empresas";
+import EmpresaOverview from "./pages/EmpresaOverview";
+import Filiais from "./pages/Filiais";
+import FilialDetail from "./pages/FilialDetail";
+import Testes from "./pages/Testes";
+import CombinacoesCriticas from "./pages/CombinacoesCriticas";
+import TratativaCombinacao from "./pages/TratativaCombinacao";
+import UsuariosAcessos from "./pages/UsuariosAcessos";
+import UsuarioDetail from "./pages/UsuarioDetail";
+import NovoUsuario from "./pages/NovoUsuario";
+import DadosEmpresa from "./pages/DadosEmpresa";
+import AplicarTeste from "./pages/AplicarTeste";
 
 
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={Empresas} />
       <Route path={"/funcionarios"} component={Colaboradores} />
       <Route path={"/funcionarios/:id"} component={ColaboradorProfile} />
+      <Route path={"/empresas/:cid/filiais/:fid"} component={FilialDetail} />
+      <Route path={"/empresas/:cid/filiais"} component={Filiais} />
+      <Route path={"/empresas/:cid/testes"} component={Testes} />
+      <Route path={"/empresas/:cid/combinacoes/:kid"} component={TratativaCombinacao} />
+      <Route path={"/empresas/:cid/combinacoes"} component={CombinacoesCriticas} />
+      <Route path={"/empresas/:cid/usuarios/novo"} component={NovoUsuario} />
+      <Route path={"/empresas/:cid/usuarios/:uid"} component={UsuarioDetail} />
+      <Route path={"/empresas/:cid/usuarios"} component={UsuariosAcessos} />
+      <Route path={"/empresas/:cid/dados"} component={DadosEmpresa} />
+      <Route path={"/empresas/:cid/aplicar-teste"} component={AplicarTeste} />
+      <Route path={"/empresas/:cid"} component={EmpresaOverview} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -36,7 +59,9 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <ProfileProvider>
+            <Router />
+          </ProfileProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

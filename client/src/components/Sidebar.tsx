@@ -1,12 +1,15 @@
 import {
-  BarChart3,
+  AlertTriangle,
+  Building,
+  Building2,
+  ChevronLeft,
+  ClipboardCheck,
   FileText,
   LayoutDashboard,
-  Lock,
   LogOut,
-  Settings,
-  UserCheck,
+  ShieldCheck,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -20,18 +23,27 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useProfile, type NavKey } from "@/contexts/ProfileContext";
+import { getEmpresaById } from "@/lib/mock-empresas";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Vis&atilde;o geral", href: "/", disabled: true },
-  { icon: Users, label: "Funcion&aacute;rios", href: "/funcionarios", disabled: false },
-  { icon: UserCheck, label: "Avaliadores", href: "/avaliadores", disabled: true },
-  { icon: FileText, label: "Testes", href: "/testes", disabled: true },
-  { icon: BarChart3, label: "Relat&oacute;rios", href: "/relatorios", disabled: true },
-  { icon: Settings, label: "Configura&ccedil;&otilde;es", href: "/configuracoes", disabled: true },
-];
+const NAV_META: Record<NavKey, { icon: LucideIcon; label: string; href: (cid: string) => string }> = {
+  overview: { icon: LayoutDashboard, label: "Visão geral", href: (cid) => `/empresas/${cid}` },
+  filiais: { icon: Building2, label: "Filiais / NOPs", href: (cid) => `/empresas/${cid}/filiais` },
+  func: { icon: Users, label: "Funcionários", href: (cid) => `/funcionarios?empresa=${cid}` },
+  testes: { icon: FileText, label: "Testes", href: (cid) => `/empresas/${cid}/testes` },
+  risco: { icon: AlertTriangle, label: "Combinações Críticas", href: (cid) => `/empresas/${cid}/combinacoes` },
+  aplicar: { icon: ClipboardCheck, label: "Aplicar teste", href: (cid) => `/empresas/${cid}/aplicar-teste` },
+  usuarios: { icon: ShieldCheck, label: "Usuários & acessos", href: (cid) => `/empresas/${cid}/usuarios` },
+  dados: { icon: Building, label: "Dados da empresa", href: (cid) => `/empresas/${cid}/dados` },
+};
 
 export function Sidebar() {
   const [location] = useLocation();
+  const { profile } = useProfile();
+
+  const cidNaUrl = location.match(/^\/empresas\/([^/]+)/)?.[1];
+  const cid = profile.empresaId ?? cidNaUrl ?? null;
+  const empresa = cid ? getEmpresaById(cid) : undefined;
 
   return (
     <SidebarPrimitive collapsible="icon" className="border-r">
@@ -46,54 +58,72 @@ export function Sidebar() {
         </p>
       </SidebarHeader>
 
+      {empresa && (
+        <div className="mx-3 mb-2 space-y-2 rounded-xl border bg-muted/30 p-3 group-data-[collapsible=icon]:hidden">
+          {profile.canExit && (
+            <Link
+              href="/"
+              className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              <ChevronLeft className="size-3.5" />
+              Empresas
+            </Link>
+          )}
+          <p className="truncate text-sm font-semibold leading-tight">{empresa.nome}</p>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span
+              className={`size-1.5 shrink-0 rounded-full ${
+                empresa.status === "ativo" ? "bg-emerald-500" : "bg-muted-foreground"
+              }`}
+            />
+            {profile.filialId ? profile.scopeLabel : empresa.status === "ativo" ? "Ativo" : "Inativo"}
+          </div>
+        </div>
+      )}
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {menuItems.map((item) => {
-                const isActive =
-                  item.href === "/"
-                    ? location === "/"
-                    : location.startsWith(item.href);
+              {!cid ? (
+                // Escopo global (diretorio de empresas): so existe um lugar
+                // pra ir, e ja estamos nele -- nao faz sentido mostrar o nav
+                // inteiro de uma empresa que ainda nao foi selecionada.
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive
+                    size="lg"
+                    className="rounded-xl px-3 text-sm font-medium data-[active=true]:bg-secondary"
+                  >
+                    <Building2 className="size-4" />
+                    <span className="group-data-[collapsible=icon]:hidden">Empresas</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : (
+                profile.nav.map((navKey) => {
+                  const meta = NAV_META[navKey];
+                  const href = meta.href(cid);
+                  const hrefPath = href.split("?")[0];
+                  const isActive =
+                    navKey === "overview" ? location === hrefPath : location.startsWith(hrefPath);
 
-                if (item.disabled) {
                   return (
-                    <SidebarMenuItem key={item.href}>
+                    <SidebarMenuItem key={navKey}>
                       <SidebarMenuButton
-                        disabled
+                        asChild
+                        isActive={isActive}
                         size="lg"
-                        className="cursor-not-allowed rounded-xl px-3 text-sm font-medium text-muted-foreground"
+                        className="rounded-xl px-3 text-sm font-medium data-[active=true]:bg-secondary"
                       >
-                        <item.icon className="size-4" />
-                        <span
-                          className="group-data-[collapsible=icon]:hidden"
-                          dangerouslySetInnerHTML={{ __html: item.label }}
-                        />
-                        <Lock className="ml-auto size-3.5 shrink-0 group-data-[collapsible=icon]:hidden" />
+                        <Link href={href}>
+                          <meta.icon className="size-4" />
+                          <span className="group-data-[collapsible=icon]:hidden">{meta.label}</span>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
-                }
-
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      size="lg"
-                      className="rounded-xl px-3 text-sm font-medium data-[active=true]:bg-secondary"
-                    >
-                      <Link href={item.href}>
-                        <item.icon className="size-4" />
-                        <span
-                          className="group-data-[collapsible=icon]:hidden"
-                          dangerouslySetInnerHTML={{ __html: item.label }}
-                        />
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+                })
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
