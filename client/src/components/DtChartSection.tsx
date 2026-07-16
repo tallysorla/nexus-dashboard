@@ -62,13 +62,16 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 ocorrências pontuais, não como uma linha contínua. As barras em{" "}
                 <span className="text-[var(--chart-3)]">azul</span> são DTs feitos como
                 tratativa (ex.: após uma sequência de EEA em alto risco), diferentes do ciclo
-                mensal normal. A linha tracejada é a média do próprio histórico deste
-                funcionário no período selecionado.
+                mensal normal. A faixa de fundo vermelha/âmbar/verde indica alto/médio/baixo
+                risco, e a linha tracejada é a média do próprio histórico deste funcionário no
+                período selecionado.
               </TooltipContent>
             </Tooltip>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <p className="text-sm text-muted-foreground">Aplicado mensalmente ou em tratativas</p>
+            <p className="text-sm text-muted-foreground">
+              Aplicado mensalmente ou em tratativas · Média do período: {media}
+            </p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <span className="size-2 rounded-full" style={{ backgroundColor: "var(--chart-2)" }} />
@@ -126,39 +129,15 @@ export function DtChartSection({ data }: DtChartSectionProps) {
               ))}
             </Bar>
             {/* Faixas e linha de media desenhadas por ultimo (depois das
-                barras) para que o rotulo de cada uma nunca fique escondido
-                atras de uma barra alta. */}
-            <ReferenceArea
-              y1={525}
-              y2={750}
-              fill="#dc2626"
-              fillOpacity={0.07}
-              ifOverflow="visible"
-              label={{ value: "Alto risco", position: "insideTopRight", fontSize: 10, fill: "#dc2626" }}
-            />
-            <ReferenceArea
-              y1={300}
-              y2={525}
-              fill="#d97706"
-              fillOpacity={0.07}
-              ifOverflow="visible"
-              label={{ value: "Médio risco", position: "insideTopRight", fontSize: 10, fill: "#d97706" }}
-            />
-            <ReferenceArea
-              y1={0}
-              y2={300}
-              fill="#059669"
-              fillOpacity={0.07}
-              ifOverflow="visible"
-              label={{ value: "Baixo risco", position: "insideBottomRight", fontSize: 10, fill: "#059669" }}
-            />
-            <ReferenceLine
-              y={media}
-              stroke="var(--color-dt)"
-              strokeDasharray="4 4"
-              strokeOpacity={0.6}
-              label={{ value: `média: ${media}`, position: "insideTopRight", fontSize: 11, fill: "var(--color-dt)" }}
-            />
+                barras) para nunca ficarem escondidas atras de uma barra alta.
+                Sem texto dentro do grafico: qualquer posicao fixa (canto da
+                faixa, altura da media) eventualmente coincide com alguma
+                barra alta e fica ilegivel -- a legenda de cor fica no
+                cabecalho do card e no tooltip, fora da area de plotagem. */}
+            <ReferenceArea y1={525} y2={750} fill="#dc2626" fillOpacity={0.07} ifOverflow="visible" />
+            <ReferenceArea y1={300} y2={525} fill="#d97706" fillOpacity={0.07} ifOverflow="visible" />
+            <ReferenceArea y1={0} y2={300} fill="#059669" fillOpacity={0.07} ifOverflow="visible" />
+            <ReferenceLine y={media} stroke="var(--color-dt)" strokeDasharray="4 4" strokeOpacity={0.6} />
           </BarChart>
         </ChartContainer>
       </CardContent>

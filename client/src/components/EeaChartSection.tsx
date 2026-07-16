@@ -65,7 +65,8 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-64">
-                Teste diário. As faixas coloridas indicam as zonas de baixo, médio e alto risco.
+                Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
+                verde baixo risco.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -135,33 +136,14 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                   fillOpacity={1}
                   fill="url(#colorEea)"
                 />
-                {/* Faixas desenhadas por ultimo (depois da area) para que o
-                    rotulo de cada uma nunca fique escondido atras do
-                    preenchimento quando o EEA estiver alto. */}
-                <ReferenceArea
-                  y1={70}
-                  y2={100}
-                  fill="#dc2626"
-                  fillOpacity={0.07}
-                  ifOverflow="visible"
-                  label={{ value: "Alto risco", position: "insideTopRight", fontSize: 10, fill: "#dc2626" }}
-                />
-                <ReferenceArea
-                  y1={40}
-                  y2={70}
-                  fill="#d97706"
-                  fillOpacity={0.07}
-                  ifOverflow="visible"
-                  label={{ value: "Médio risco", position: "insideTopRight", fontSize: 10, fill: "#d97706" }}
-                />
-                <ReferenceArea
-                  y1={0}
-                  y2={40}
-                  fill="#059669"
-                  fillOpacity={0.07}
-                  ifOverflow="visible"
-                  label={{ value: "Baixo risco", position: "insideBottomRight", fontSize: 10, fill: "#059669" }}
-                />
+                {/* Faixas desenhadas por ultimo (depois da area) para nunca
+                    ficarem escondidas atras do preenchimento. Sem texto
+                    dentro do grafico: qualquer posicao fixa eventualmente
+                    coincide com o traçado e fica ilegivel -- a legenda de
+                    cor fica no tooltip, fora da area de plotagem. */}
+                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.07} ifOverflow="visible" />
+                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.07} ifOverflow="visible" />
+                <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.07} ifOverflow="visible" />
               </AreaChart>
             </ChartContainer>
           </div>
