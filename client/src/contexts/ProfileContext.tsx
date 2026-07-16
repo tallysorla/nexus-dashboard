@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearchParams } from "wouter";
 import { ANDRADE_ID, FILIAL_MATRIZ_SP } from "@/lib/mock-empresas";
 
 export type ProfileKey = "wesafety" | "empresa" | "filial" | "avaliador";
@@ -162,12 +162,16 @@ export function useProfile() {
 
 // Empresa ativa no momento: perfis presos a uma empresa (empresa/filial/
 // avaliador) sempre usam a sua; o Admin WeSafety navega livremente, entao a
-// gente le o :cid da propria URL. null = ainda no diretorio global, sem
-// nenhuma empresa selecionada -- e o unico estado em que a sidebar completa
-// nao faz sentido (ver Layout.tsx).
+// gente le o cid da propria URL -- seja no path (/empresas/:cid/...) ou na
+// query (/funcionarios?empresa=:cid, unica rota que nao vive sob /empresas
+// porque o fluxo de funcionários é anterior a essa hierarquia). null = ainda
+// no diretorio global, sem nenhuma empresa selecionada -- e o unico estado em
+// que a sidebar completa nao faz sentido (ver Layout.tsx).
 export function useEmpresaScope(): string | null {
   const [location] = useLocation();
+  const [searchParams] = useSearchParams();
   const { profile } = useProfile();
   const cidNaUrl = location.match(/^\/empresas\/([^/]+)/)?.[1];
-  return profile.empresaId ?? cidNaUrl ?? null;
+  const cidNaQuery = searchParams.get("empresa");
+  return profile.empresaId ?? cidNaUrl ?? cidNaQuery ?? null;
 }

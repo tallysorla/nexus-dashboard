@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useSearchParams } from "wouter";
 import { Layout } from "@/components/Layout";
 import { KpiMiniCards } from "@/components/MetricsCards";
 import { FactorsSection } from "@/components/FactorsSection";
@@ -16,6 +16,7 @@ import NotFound from "@/pages/NotFound";
 
 export default function ColaboradorProfile() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const colaborador = getColaboradorById(id ?? "");
 
   const [tratativas, setTratativas] = useState<Tratativa[]>(
@@ -26,10 +27,13 @@ export default function ColaboradorProfile() {
     return <NotFound />;
   }
 
+  const empresaEscopo = searchParams.get("empresa");
+  const voltarHref = empresaEscopo ? `/funcionarios?empresa=${empresaEscopo}` : "/funcionarios";
+
   return (
     <Layout>
       <Link
-        href="/funcionarios"
+        href={voltarHref}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" />

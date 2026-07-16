@@ -127,7 +127,13 @@ export default function Colaboradores() {
                         className="rounded-xl text-primary"
                         asChild
                       >
-                        <Link href={`/funcionarios/${c.id}`}>
+                        <Link
+                          href={
+                            empresaEscopo
+                              ? `/funcionarios/${c.id}?empresa=${empresaEscopo}`
+                              : `/funcionarios/${c.id}`
+                          }
+                        >
                           Ver perfil
                           <ArrowRight className="size-4" />
                         </Link>
