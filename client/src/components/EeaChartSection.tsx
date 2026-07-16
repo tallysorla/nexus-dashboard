@@ -17,9 +17,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Badge } from "@/components/ui/badge";
 import { Area, AreaChart, CartesianGrid, ReferenceArea, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
-import type { PontoEea } from "@/lib/mock-colaboradores";
+import {
+  RISCO_BADGE_CLASS,
+  RISCO_LABEL,
+  classificarRisco,
+  type PontoEea,
+} from "@/lib/mock-colaboradores";
 
 type EeaChartSectionProps = {
   data: PontoEea[];
@@ -129,7 +135,30 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                   style={{ fontSize: "12px" }}
                 />
                 <YAxis domain={[0, 100]} hide />
-                <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      indicator="dot"
+                      formatter={(value) => {
+                        const risco = classificarRisco(Number(value));
+                        return (
+                          <div className="flex w-full flex-col gap-1">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-muted-foreground">EEA</span>
+                              <span className="font-medium text-foreground">{value}</span>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={`w-fit rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
+                            >
+                              {RISCO_LABEL[risco]}
+                            </Badge>
+                          </div>
+                        );
+                      }}
+                    />
+                  }
+                />
                 <Area
                   type="monotone"
                   dataKey="eea"

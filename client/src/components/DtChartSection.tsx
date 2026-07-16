@@ -17,9 +17,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Badge } from "@/components/ui/badge";
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
-import type { PontoDt } from "@/lib/mock-colaboradores";
+import {
+  RISCO_BADGE_CLASS,
+  RISCO_LABEL,
+  classificarRisco,
+  type PontoDt,
+} from "@/lib/mock-colaboradores";
 
 type DtChartSectionProps = {
   data: PontoDt[];
@@ -99,7 +105,14 @@ export function DtChartSection({ data }: DtChartSectionProps) {
           <BarChart data={visibleData} margin={{ left: 8, right: 20, top: 8, bottom: 8 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
             <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
-            <YAxis domain={[0, 750]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
+            <YAxis
+              domain={[0, 750]}
+              ticks={[0, 150, 300, 450, 600, 750]}
+              interval={0}
+              axisLine={false}
+              tickLine={false}
+              style={{ fontSize: "12px" }}
+            />
             <ChartTooltip
               content={
                 <ChartTooltipContent
@@ -107,13 +120,22 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                   formatter={(value, _name, item) => {
                     const origem = (item?.payload as PontoDt | undefined)?.origem;
                     const cor = origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)";
+                    const risco = classificarRisco(Math.round((Number(value) / 750) * 100));
                     return (
-                      <div className="flex w-full items-center justify-between gap-3">
-                        <span className="flex items-center gap-1.5 text-muted-foreground">
-                          <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
-                          DT · {origem === "tratativa" ? "Tratativa" : "Ciclo mensal"}
-                        </span>
-                        <span className="font-medium text-foreground">{value}</span>
+                      <div className="flex w-full flex-col gap-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="flex items-center gap-1.5 text-muted-foreground">
+                            <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
+                            DT · {origem === "tratativa" ? "Tratativa" : "Ciclo mensal"}
+                          </span>
+                          <span className="font-medium text-foreground">{value}</span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`w-fit rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
+                        >
+                          {RISCO_LABEL[risco]}
+                        </Badge>
                       </div>
                     );
                   }}
