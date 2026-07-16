@@ -21,8 +21,10 @@ import {
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRisco,
+  classificarRiscoPadrao,
   confirmacaoDoDT,
+  normalizarDt,
+  normalizarEea,
   statusDoFator,
   tendenciaDoFator,
   tendenciaEeaPercentual,
@@ -109,9 +111,10 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
 }
 
 export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
-  const eeaRisco = classificarRisco(colaborador.eea);
-  const dtProgress = Math.round((colaborador.dt / 750) * 100);
-  const dtRisco = classificarRisco(dtProgress);
+  const eeaNota = normalizarEea(colaborador.eea);
+  const dtNota = normalizarDt(colaborador.dt);
+  const eeaRisco = classificarRiscoPadrao(eeaNota);
+  const dtRisco = classificarRiscoPadrao(dtNota);
 
   const tendenciaEeaValor = tendenciaEeaPercentual(colaborador.serieEea);
   const tendencia = tendenciaDoFator(tendenciaEeaValor);
@@ -124,23 +127,23 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         icon={Users}
         iconClassName="bg-primary/10 text-primary"
         label="EEA atual"
-        value={String(colaborador.eea)}
-        valueSuffix="/100"
+        value={eeaNota.toFixed(2)}
+        valueSuffix="/10"
         badge={RISCO_LABEL[eeaRisco]}
         badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
         sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
-        tooltip="Resultado do EEA, o questionário de autoavaliação que o funcionário responde todos os dias. Vai de 0 a 100 — quanto maior, maior o risco psicossocial identificado no dia a dia."
+        tooltip="Resultado do EEA, o questionário de autoavaliação que o funcionário responde todos os dias. Normalizado para 0 a 10 — quanto maior, menor o risco psicossocial identificado no dia a dia."
       />
       <KpiCard
         icon={BarChart3}
         iconClassName="bg-amber-500/10 text-amber-600"
         label="DT atual"
-        value={String(colaborador.dt)}
-        valueSuffix="/750"
+        value={dtNota.toFixed(2)}
+        valueSuffix="/10"
         badge={RISCO_LABEL[dtRisco]}
         badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
         sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
-        tooltip="Resultado do último DT, o teste mais aprofundado, aplicado com menor frequência (periodicamente ou durante uma tratativa). Vai de 0 a 750 — quanto maior, maior o risco identificado."
+        tooltip="Resultado do último DT, o teste mais aprofundado, aplicado com menor frequência (periodicamente ou durante uma tratativa). Normalizado para 0 a 10 — quanto maior, menor o risco identificado."
       />
       <KpiCard
         icon={TENDENCIA_ICON[tendencia]}
@@ -181,8 +184,9 @@ export function MetricsCards({ colaborador }: MetricsCardsProps) {
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-64">
-            EEA é diário e DT é um teste mais aprofundado e periódico — as escalas são diferentes,
-            por isso aparecem separadas.
+            EEA é diário e DT é um teste mais aprofundado e periódico — por isso aparecem
+            separados, mas ambos na mesma escala padronizada de 0 a 10 (quanto maior, menor o
+            risco).
           </TooltipContent>
         </Tooltip>
       </div>

@@ -102,19 +102,34 @@ export const RISCO_BADGE_CLASS: Record<RiskLevel, string> = {
   baixo: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
-// Pontuacao/nota = indice de risco normalizado (0-100, quanto maior pior).
-// Faixas usadas de forma consistente em toda a aplicacao (indice geral e fatores):
-//   >= 70 -> alto risco, 40-69 -> medio risco, < 40 -> baixo risco
-export function classificarRisco(pontuacao: number): RiskLevel {
-  if (pontuacao >= 70) return "alto";
-  if (pontuacao >= 40) return "medio";
+// Padronizacao oficial (Regras de Negocio / SGR): EEA e DT sao convertidos
+// para uma escala unica de 0 a 10, com a convencao invertida em relacao as
+// escalas originais -- quanto MAIOR a nota, MENOR o risco (mais seguro). As
+// formulas sao as mesmas que o SGR usa para normalizar o mesmo teste, para
+// que o numero exibido no Nexus nunca destoe do numero exibido no SGR.
+// EEA (raw 0-100): (100 - raw) / 8. DT (raw 0-750): (750 - raw) / 60.
+export function normalizarEea(rawEea: number): number {
+  const normalizado = (100 - rawEea) / 8;
+  return Math.round(Math.min(10, Math.max(0, normalizado)) * 100) / 100;
+}
+
+export function normalizarDt(rawDt: number): number {
+  const normalizado = (750 - rawDt) / 60;
+  return Math.round(Math.min(10, Math.max(0, normalizado)) * 100) / 100;
+}
+
+// Classificacao oficial na escala 0-10 (quanto maior, menor o risco):
+// Alto risco < 6, Medio risco 6-8, Baixo risco >= 8.
+export function classificarRiscoPadrao(nota10: number): RiskLevel {
+  if (nota10 < 6) return "alto";
+  if (nota10 < 8) return "medio";
   return "baixo";
 }
 
 // Fatores em atencao usam 0-75 por fator (os 10 somados totalizam os 750 do
-// teste DT). As faixas sao as mesmas proporcoes de classificarRisco
-// (>=70%/40-69%/<40% de 75), para que um fator e o indice geral classifiquem
-// o mesmo numero da mesma forma.
+// teste DT antes da normalizacao) -- escala propria, ainda nao migrada para
+// o padrao 0-10 usado em classificarRiscoPadrao (nota alta = pior aqui,
+// diferente do EEA/DT normalizados). Faixas: >=70%/40-69%/<40% de 75.
 export function classificarRiscoDT(pontuacao: number): RiskLevel {
   if (pontuacao >= 52.5) return "alto";
   if (pontuacao >= 30) return "medio";
@@ -329,7 +344,7 @@ export const colaboradores: Colaborador[] = [
     dataAdmissao: "04/07/2021",
     eea: 58,
     dt: 340,
-    risco: "medio",
+    risco: "alto",
     totalTestesEea: 102,
     totalTestesDt: 5,
     fatoresDestaque: [
@@ -449,7 +464,7 @@ export const colaboradores: Colaborador[] = [
     dataAdmissao: "17/05/2018",
     eea: 69,
     dt: 480,
-    risco: "medio",
+    risco: "alto",
     totalTestesEea: 68,
     totalTestesDt: 6,
     fatoresDestaque: [

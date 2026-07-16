@@ -23,7 +23,8 @@ import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRisco,
+  classificarRiscoPadrao,
+  normalizarDt,
   type PontoDt,
 } from "@/lib/mock-colaboradores";
 
@@ -48,8 +49,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
   const [range, setRange] = useState<Range>("6");
 
   const meses = Math.min(Number(range), data.length);
-  const visibleData = data.slice(-meses);
-  const media = Math.round(visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length);
+  // Normalizado para 0-10 (padrao oficial): quanto maior, menor o risco.
+  const visibleData = data.slice(-meses).map((ponto) => ({ ...ponto, dt: normalizarDt(ponto.dt) }));
+  const media = Math.round((visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length) * 100) / 100;
 
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
@@ -68,9 +70,10 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 ocorrências pontuais, não como uma linha contínua. As barras em{" "}
                 <span className="text-[var(--chart-3)]">azul</span> são DTs feitos como
                 tratativa (ex.: após uma sequência de EEA em alto risco), diferentes do ciclo
-                mensal normal. A faixa de fundo vermelha/âmbar/verde indica alto/médio/baixo
-                risco, e a linha tracejada é a média do próprio histórico deste funcionário no
-                período selecionado.
+                mensal normal. Normalizado para a escala padrão de 0 a 10 (quanto maior, menor o
+                risco): a faixa de fundo vermelha/âmbar/verde indica alto/médio/baixo risco, e a
+                linha tracejada é a média do próprio histórico deste funcionário no período
+                selecionado.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -106,8 +109,8 @@ export function DtChartSection({ data }: DtChartSectionProps) {
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
             <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
             <YAxis
-              domain={[0, 750]}
-              ticks={[0, 150, 300, 450, 600, 750]}
+              domain={[0, 10]}
+              ticks={[0, 2, 4, 6, 8, 10]}
               interval={0}
               axisLine={false}
               tickLine={false}
@@ -120,7 +123,7 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                   formatter={(value, _name, item) => {
                     const origem = (item?.payload as PontoDt | undefined)?.origem;
                     const cor = origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)";
-                    const risco = classificarRisco(Math.round((Number(value) / 750) * 100));
+                    const risco = classificarRiscoPadrao(Number(value));
                     return (
                       <div className="flex w-full flex-col gap-1">
                         <div className="flex items-center justify-between gap-3">
@@ -128,7 +131,7 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                             <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
                             DT · {origem === "tratativa" ? "Tratativa" : "Ciclo mensal"}
                           </span>
-                          <span className="font-medium text-foreground">{value}</span>
+                          <span className="font-medium text-foreground">{Number(value).toFixed(2)}</span>
                         </div>
                         <Badge
                           variant="outline"
@@ -156,9 +159,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 faixa, altura da media) eventualmente coincide com alguma
                 barra alta e fica ilegivel -- a legenda de cor fica no
                 cabecalho do card e no tooltip, fora da area de plotagem. */}
-            <ReferenceArea y1={525} y2={750} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={300} y2={525} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={0} y2={300} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={0} y2={6} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={6} y2={8} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={8} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
             <ReferenceLine y={media} stroke="var(--color-dt)" strokeDasharray="4 4" strokeOpacity={0.6} />
           </BarChart>
         </ChartContainer>
