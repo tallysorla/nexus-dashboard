@@ -91,8 +91,8 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
-            Nota de 0 a 75 por fator (quanto maior, pior), com base no último DT realizado. Os
-            fatores no topo são os de maior risco.
+            Lista dos fatores com maior impacto no último teste DT, ordenados da maior para a
+            menor criticidade.
           </TooltipContent>
         </Tooltip>
       </CardHeader>

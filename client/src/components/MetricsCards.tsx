@@ -128,24 +128,24 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
       <KpiCard
         icon={Users}
         iconClassName="bg-primary/10 text-primary"
-        label="EEA atual"
+        label="Índice EEA"
         value={eeaNota.toFixed(2)}
         valueSuffix="/10"
         badge={RISCO_LABEL[eeaRisco]}
         badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
         sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
-        tooltip="Autoavaliação que o funcionário responde todos os dias. Escala de 0 a 10 — quanto maior, menor o risco."
+        tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
       />
       <KpiCard
         icon={BarChart3}
         iconClassName="bg-amber-500/10 text-amber-600"
-        label="DT atual"
+        label="Índice DT"
         value={dtNota.toFixed(2)}
         valueSuffix="/10"
         badge={RISCO_LABEL[dtRisco]}
         badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
         sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
-        tooltip="Teste mais aprofundado, aplicado periodicamente ou em tratativas. Escala de 0 a 10 — quanto maior, menor o risco."
+        tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
       />
       <KpiCard
         icon={TENDENCIA_ICON[tendencia]}
@@ -155,7 +155,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         badge={statusDoFator(tendencia)}
         badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
         sublabel="Últimos 30 dias vs. 30 dias anteriores"
-        tooltip="Compara a média do EEA nos últimos 30 dias com os 30 dias anteriores. Abaixo, mostramos se o DT mais recente confirma essa tendência."
+        tooltip="Compara o resultado mais recente do teste DT com o último ou últimos 3 testes DT's realizados. Valores positivos indicam aumento do índice; valores negativos indicam redução."
         extra={
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <ConfirmacaoIcon className="size-3.5 shrink-0" />
