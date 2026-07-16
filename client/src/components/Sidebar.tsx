@@ -54,9 +54,6 @@ export function Sidebar() {
           alt="Nexus"
           className="h-14 w-auto group-data-[collapsible=icon]:h-8"
         />
-        <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-          People analytics
-        </p>
       </SidebarHeader>
 
       {empresa && (
