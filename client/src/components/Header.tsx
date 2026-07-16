@@ -20,24 +20,29 @@ import { PROFILES, useProfile, type ProfileKey } from "@/contexts/ProfileContext
 
 type HeaderProps = {
   children?: React.ReactNode;
+  showSidebarTrigger?: boolean;
 };
 
-export function Header({ children }: HeaderProps) {
+export function Header({ children, showSidebarTrigger = true }: HeaderProps) {
   const { profileKey, profile, setProfile } = useProfile();
 
   return (
     <header className="border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex items-center justify-between gap-4">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <SidebarTrigger
-              variant="outline"
-              aria-label="Recolher ou expandir menu lateral"
-              className="size-11 rounded-xl bg-card"
-            />
-          </TooltipTrigger>
-          <TooltipContent>Recolher menu</TooltipContent>
-        </Tooltip>
+        {showSidebarTrigger ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SidebarTrigger
+                variant="outline"
+                aria-label="Recolher ou expandir menu lateral"
+                className="size-11 rounded-xl bg-card"
+              />
+            </TooltipTrigger>
+            <TooltipContent>Recolher menu</TooltipContent>
+          </Tooltip>
+        ) : (
+          <div />
+        )}
 
         <div className="flex items-center gap-2">
           {children}

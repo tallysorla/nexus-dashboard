@@ -23,7 +23,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useProfile, type NavKey } from "@/contexts/ProfileContext";
+import { useEmpresaScope, useProfile, type NavKey } from "@/contexts/ProfileContext";
 import { getEmpresaById } from "@/lib/mock-empresas";
 
 const NAV_META: Record<NavKey, { icon: LucideIcon; label: string; href: (cid: string) => string }> = {
@@ -37,12 +37,13 @@ const NAV_META: Record<NavKey, { icon: LucideIcon; label: string; href: (cid: st
   dados: { icon: Building, label: "Dados da empresa", href: (cid) => `/empresas/${cid}/dados` },
 };
 
+// So renderizado quando ha uma empresa no escopo (ver Layout.tsx) -- no
+// diretorio global (sem empresa escolhida) a sidebar inteira fica oculta,
+// entao este componente pode assumir cid sempre presente.
 export function Sidebar() {
   const [location] = useLocation();
   const { profile } = useProfile();
-
-  const cidNaUrl = location.match(/^\/empresas\/([^/]+)/)?.[1];
-  const cid = profile.empresaId ?? cidNaUrl ?? null;
+  const cid = useEmpresaScope();
   const empresa = cid ? getEmpresaById(cid) : undefined;
 
   return (
@@ -85,21 +86,7 @@ export function Sidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {!cid ? (
-                // Escopo global (diretorio de empresas): so existe um lugar
-                // pra ir, e ja estamos nele -- nao faz sentido mostrar o nav
-                // inteiro de uma empresa que ainda nao foi selecionada.
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive
-                    size="lg"
-                    className="rounded-xl px-3 text-sm font-medium data-[active=true]:bg-secondary"
-                  >
-                    <Building2 className="size-4" />
-                    <span className="group-data-[collapsible=icon]:hidden">Empresas</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ) : (
+              {cid &&
                 profile.nav.map((navKey) => {
                   const meta = NAV_META[navKey];
                   const href = meta.href(cid);
@@ -122,8 +109,7 @@ export function Sidebar() {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
-                })
-              )}
+                })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
