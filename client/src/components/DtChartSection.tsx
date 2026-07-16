@@ -66,14 +66,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-64">
-                Teste mais aprofundado, aplicado com menor frequência — por isso aparece como
-                ocorrências pontuais, não como uma linha contínua. As barras em{" "}
-                <span className="text-[var(--chart-3)]">azul</span> são DTs feitos como
-                tratativa (ex.: após uma sequência de EEA em alto risco), diferentes do ciclo
-                mensal normal. Normalizado para a escala padrão de 0 a 10 (quanto maior, menor o
-                risco): a faixa de fundo vermelha/âmbar/verde indica alto/médio/baixo risco, e a
-                linha tracejada é a média do próprio histórico deste funcionário no período
-                selecionado.
+                Teste mais aprofundado, aplicado periodicamente ou como{" "}
+                <span className="text-[var(--chart-3)]">tratativa</span> (barras azuis). Escala
+                de 0 a 10 — quanto maior, menor o risco. A linha tracejada é a média do período.
               </TooltipContent>
             </Tooltip>
           </div>

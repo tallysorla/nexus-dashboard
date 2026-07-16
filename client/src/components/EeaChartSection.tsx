@@ -73,9 +73,8 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-64">
-                Teste diário, normalizado para a escala padrão de 0 a 10 (quanto maior, menor o
-                risco). A faixa de fundo vermelha indica alto risco, âmbar médio risco e verde
-                baixo risco.
+                Teste diário, de 0 a 10 — quanto maior, menor o risco. Vermelho = alto, âmbar =
+                médio, verde = baixo.
               </TooltipContent>
             </Tooltip>
           </div>

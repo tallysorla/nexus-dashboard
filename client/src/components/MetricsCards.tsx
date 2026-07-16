@@ -132,7 +132,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         badge={RISCO_LABEL[eeaRisco]}
         badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
         sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
-        tooltip="Resultado do EEA, o questionário de autoavaliação que o funcionário responde todos os dias. Normalizado para 0 a 10 — quanto maior, menor o risco psicossocial identificado no dia a dia."
+        tooltip="Autoavaliação que o funcionário responde todos os dias. Escala de 0 a 10 — quanto maior, menor o risco."
       />
       <KpiCard
         icon={BarChart3}
@@ -143,7 +143,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         badge={RISCO_LABEL[dtRisco]}
         badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
         sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
-        tooltip="Resultado do último DT, o teste mais aprofundado, aplicado com menor frequência (periodicamente ou durante uma tratativa). Normalizado para 0 a 10 — quanto maior, menor o risco identificado."
+        tooltip="Teste mais aprofundado, aplicado periodicamente ou em tratativas. Escala de 0 a 10 — quanto maior, menor o risco."
       />
       <KpiCard
         icon={TENDENCIA_ICON[tendencia]}
@@ -153,7 +153,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         badge={statusDoFator(tendencia)}
         badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
         sublabel="Últimos 30 dias vs. 30 dias anteriores"
-        tooltip="Calculada a partir do EEA (teste diário): média dos últimos 30 dias comparada com os 30 dias anteriores. O DT não entra nessa conta porque é aplicado com pouca frequência — em vez disso, mostramos abaixo se o DT mais recente confirma essa direção."
+        tooltip="Compara a média do EEA nos últimos 30 dias com os 30 dias anteriores. Abaixo, mostramos se o DT mais recente confirma essa tendência."
         extra={
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <ConfirmacaoIcon className="size-3.5 shrink-0" />
@@ -184,9 +184,8 @@ export function MetricsCards({ colaborador }: MetricsCardsProps) {
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-64">
-            EEA é diário e DT é um teste mais aprofundado e periódico — por isso aparecem
-            separados, mas ambos na mesma escala padronizada de 0 a 10 (quanto maior, menor o
-            risco).
+            EEA (diário) e DT (mais aprofundado) aparecem separados, mas os dois usam a mesma
+            escala: 0 a 10, quanto maior, menor o risco.
           </TooltipContent>
         </Tooltip>
       </div>

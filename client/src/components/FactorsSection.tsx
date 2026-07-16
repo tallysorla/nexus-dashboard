@@ -91,10 +91,8 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
-            Cada fator mostra sua nota (0–75, quanto maior pior) e a classificação de risco
-            (Alto/Médio/Baixo), apuradas com base no último DT realizado pelo funcionário — o
-            teste mais aprofundado. A soma dos 10 fatores totaliza os 750 pontos do teste DT.
-            Os fatores em destaque no topo são os de maior nota de risco.
+            Nota de 0 a 75 por fator (quanto maior, pior), com base no último DT realizado. Os
+            fatores no topo são os de maior risco.
           </TooltipContent>
         </Tooltip>
       </CardHeader>
