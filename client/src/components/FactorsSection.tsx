@@ -72,9 +72,9 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
   const [principal, ...resto] = fatoresDestaque;
 
   return (
-    <Card className="w-full py-0 shadow-sm">
+    <Card className="w-full gap-4 py-0 shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between gap-4 px-6 pt-6">
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <CardTitle className="text-lg">Principais fatores em atenção</CardTitle>
           <p className="text-sm text-muted-foreground">
             Os 10 fatores acompanhados, com base no último DT realizado

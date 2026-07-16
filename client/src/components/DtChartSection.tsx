@@ -46,9 +46,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
   const media = Math.round(visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length);
 
   return (
-    <Card className="w-full py-0 shadow-sm">
-      <CardHeader className="flex flex-col gap-4 px-6 pt-6 xl:flex-row xl:items-center xl:justify-between">
-        <div className="space-y-1">
+    <Card className="w-full gap-4 py-0 shadow-sm">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 pt-6">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <CardTitle className="text-lg">Evolução do DT</CardTitle>
             <Tooltip>
@@ -68,7 +68,7 @@ export function DtChartSection({ data }: DtChartSectionProps) {
               </TooltipContent>
             </Tooltip>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <p className="text-sm text-muted-foreground">
               Aplicado mensalmente ou em tratativas · Média do período: {media}
             </p>
@@ -85,8 +85,8 @@ export function DtChartSection({ data }: DtChartSectionProps) {
           </div>
         </div>
 
-        <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="w-full xl:w-auto">
-          <TabsList className="grid h-11 w-full grid-cols-3 rounded-xl xl:w-auto">
+        <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="shrink-0">
+          <TabsList className="inline-grid h-10 grid-cols-3 rounded-xl">
             <TabsTrigger value="3" className="rounded-lg px-3 text-xs">3 meses</TabsTrigger>
             <TabsTrigger value="6" className="rounded-lg px-3 text-xs">6 meses</TabsTrigger>
             <TabsTrigger value="12" className="rounded-lg px-3 text-xs">12 meses</TabsTrigger>
@@ -95,9 +95,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
-        <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">
-          <BarChart data={visibleData} margin={{ left: 0, right: 8, top: 8 }}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+        <ChartContainer config={chartConfig} className="aspect-auto h-72 w-full">
+          <BarChart data={visibleData} margin={{ left: 8, right: 20, top: 8, bottom: 8 }}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
             <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
             <YAxis domain={[0, 750]} axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
             <ChartTooltip
@@ -134,9 +134,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 faixa, altura da media) eventualmente coincide com alguma
                 barra alta e fica ilegivel -- a legenda de cor fica no
                 cabecalho do card e no tooltip, fora da area de plotagem. */}
-            <ReferenceArea y1={525} y2={750} fill="#dc2626" fillOpacity={0.07} ifOverflow="visible" />
-            <ReferenceArea y1={300} y2={525} fill="#d97706" fillOpacity={0.07} ifOverflow="visible" />
-            <ReferenceArea y1={0} y2={300} fill="#059669" fillOpacity={0.07} ifOverflow="visible" />
+            <ReferenceArea y1={525} y2={750} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={300} y2={525} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={0} y2={300} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
             <ReferenceLine y={media} stroke="var(--color-dt)" strokeDasharray="4 4" strokeOpacity={0.6} />
           </BarChart>
         </ChartContainer>

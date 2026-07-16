@@ -53,9 +53,9 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
   }, [range, dias]);
 
   return (
-    <Card className="w-full py-0 shadow-sm">
-      <CardHeader className="flex flex-col gap-4 px-6 pt-6 xl:flex-row xl:items-center xl:justify-between">
-        <div className="space-y-1">
+    <Card className="w-full gap-4 py-0 shadow-sm">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 pt-6">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <CardTitle className="text-lg">Evolução do EEA</CardTitle>
             <Tooltip>
@@ -73,8 +73,8 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
           <p className="text-sm text-muted-foreground">Aplicado todos os dias</p>
         </div>
 
-        <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="w-full xl:w-auto">
-          <TabsList className="grid h-11 w-full grid-cols-4 rounded-xl xl:w-auto">
+        <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="shrink-0">
+          <TabsList className="inline-grid h-10 grid-cols-4 rounded-xl">
             <TabsTrigger value="7" className="rounded-lg px-3 text-xs">7 dias</TabsTrigger>
             <TabsTrigger value="30" className="rounded-lg px-3 text-xs">30 dias</TabsTrigger>
             <TabsTrigger value="90" className="rounded-lg px-3 text-xs">90 dias</TabsTrigger>
@@ -86,9 +86,11 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
       <CardContent className="px-6 pb-6">
         <div className="flex">
           {/* Eixo Y fixo: nao pode rolar junto com os dados, senao os numeros
-              da lateral somem quando o grafico rola para os dias recentes. */}
-          <ChartContainer config={chartConfig} className="aspect-auto h-64 w-12 shrink-0">
-            <AreaChart data={visibleData} margin={{ left: 0, right: 4, top: 8, bottom: 0 }}>
+              da lateral somem quando o grafico rola para os dias recentes.
+              top/bottom precisam ser identicos aos do grafico principal ao
+              lado, senao os dois ficam desalinhados verticalmente. */}
+          <ChartContainer config={chartConfig} className="aspect-auto h-72 w-14 shrink-0">
+            <AreaChart data={visibleData} margin={{ left: 8, right: 4, top: 8, bottom: 8 }}>
               <YAxis
                 domain={[0, 100]}
                 ticks={[0, 25, 50, 75, 100]}
@@ -105,17 +107,17 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
           <div ref={scrollRef} className="min-w-0 flex-1 overflow-x-auto">
             <ChartContainer
               config={chartConfig}
-              className="aspect-auto h-64 w-full"
+              className="aspect-auto h-72 w-full"
               style={{ minWidth: chartWidth }}
             >
-              <AreaChart data={visibleData} margin={{ left: 0, right: 24, top: 8, bottom: 0 }}>
+              <AreaChart data={visibleData} margin={{ left: 0, right: 24, top: 8, bottom: 8 }}>
                 <defs>
                   <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-eea)" stopOpacity={0.28} />
                     <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
                 <XAxis
                   dataKey="date"
                   axisLine={false}
@@ -141,9 +143,9 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                     dentro do grafico: qualquer posicao fixa eventualmente
                     coincide com o traçado e fica ilegivel -- a legenda de
                     cor fica no tooltip, fora da area de plotagem. */}
-                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.07} ifOverflow="visible" />
-                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.07} ifOverflow="visible" />
-                <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.07} ifOverflow="visible" />
+                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
               </AreaChart>
             </ChartContainer>
           </div>
