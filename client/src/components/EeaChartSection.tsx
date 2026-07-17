@@ -68,7 +68,7 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
           ajuste), deixando os filtros em alturas inconsistentes entre os
           dois cards. Com a mesma largura, ou os dois cabem na linha do
           titulo, ou os dois quebram juntos -- nunca um sem o outro. */}
-      <CardHeader className="flex flex-col gap-2 px-6 pt-6">
+      <CardHeader className="flex flex-col items-stretch gap-2 px-6 pt-6">
         <div className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="flex items-center gap-2">
             <CardTitle className="text-lg">Evolução do EEA</CardTitle>
