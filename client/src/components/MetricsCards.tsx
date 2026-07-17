@@ -21,10 +21,8 @@ import {
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRiscoPadrao,
+  classificarRisco,
   confirmacaoDoDT,
-  normalizarDt,
-  normalizarEea,
   statusDoFator,
   tendenciaDoFator,
   tendenciaEeaPercentual,
@@ -113,10 +111,9 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
 }
 
 export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
-  const eeaNota = normalizarEea(colaborador.eea);
-  const dtNota = normalizarDt(colaborador.dt);
-  const eeaRisco = classificarRiscoPadrao(eeaNota);
-  const dtRisco = classificarRiscoPadrao(dtNota);
+  const eeaRisco = classificarRisco(colaborador.eea);
+  const dtProgress = Math.round((colaborador.dt / 750) * 100);
+  const dtRisco = classificarRisco(dtProgress);
 
   const tendenciaEeaValor = tendenciaEeaPercentual(colaborador.serieEea);
   const tendencia = tendenciaDoFator(tendenciaEeaValor);
@@ -129,8 +126,8 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         icon={Users}
         iconClassName="bg-primary/10 text-primary"
         label="Índice EEA"
-        value={eeaNota.toFixed(2)}
-        valueSuffix="/10"
+        value={String(colaborador.eea)}
+        valueSuffix="/100"
         badge={RISCO_LABEL[eeaRisco]}
         badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
         sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
@@ -140,8 +137,8 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         icon={BarChart3}
         iconClassName="bg-amber-500/10 text-amber-600"
         label="Índice DT"
-        value={dtNota.toFixed(2)}
-        valueSuffix="/10"
+        value={String(colaborador.dt)}
+        valueSuffix="/750"
         badge={RISCO_LABEL[dtRisco]}
         badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
         sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
@@ -186,8 +183,8 @@ export function MetricsCards({ colaborador }: MetricsCardsProps) {
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-64">
-            EEA (diário) e DT (mais aprofundado) aparecem separados, mas os dois usam a mesma
-            escala: 0 a 10, quanto maior, menor o risco.
+            EEA é diário e DT é um teste mais aprofundado e periódico — as escalas são diferentes,
+            por isso aparecem separadas.
           </TooltipContent>
         </Tooltip>
       </div>

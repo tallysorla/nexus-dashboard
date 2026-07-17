@@ -23,8 +23,7 @@ import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRiscoPadrao,
-  normalizarEea,
+  classificarRisco,
   type PontoEea,
 } from "@/lib/mock-colaboradores";
 
@@ -49,8 +48,7 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const dias = range === "all" ? data.length : Math.min(Number(range), data.length);
-  // Normalizado para 0-10 (padrao oficial): quanto maior, menor o risco.
-  const visibleData = data.slice(-dias).map((ponto) => ({ ...ponto, eea: normalizarEea(ponto.eea) }));
+  const visibleData = data.slice(-dias);
   const chartWidth = Math.max(MIN_CHART_WIDTH, visibleData.length * PX_PER_DAY);
 
   // Ao trocar de periodo, comeca mostrando os dias mais recentes (extremidade
@@ -73,8 +71,8 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-64">
-                Teste diário, de 0 a 10 — quanto maior, menor o risco. Vermelho = alto, âmbar =
-                médio, verde = baixo.
+                Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
+                verde baixo risco.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -100,8 +98,8 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
           <ChartContainer config={chartConfig} className="aspect-auto h-72 w-14 shrink-0">
             <AreaChart data={visibleData} margin={{ left: 8, right: 4, top: 8, bottom: 8 }}>
               <YAxis
-                domain={[0, 10]}
-                ticks={[0, 2, 4, 6, 8, 10]}
+                domain={[0, 100]}
+                ticks={[0, 25, 50, 75, 100]}
                 interval={0}
                 width={40}
                 axisLine={false}
@@ -136,18 +134,18 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                   height={dias > 14 ? 40 : 24}
                   style={{ fontSize: "12px" }}
                 />
-                <YAxis domain={[0, 10]} hide />
+                <YAxis domain={[0, 100]} hide />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
                       indicator="dot"
                       formatter={(value) => {
-                        const risco = classificarRiscoPadrao(Number(value));
+                        const risco = classificarRisco(Number(value));
                         return (
                           <div className="flex w-full flex-col gap-1">
                             <div className="flex items-center justify-between gap-3">
                               <span className="text-muted-foreground">EEA</span>
-                              <span className="font-medium text-foreground">{Number(value).toFixed(2)}</span>
+                              <span className="font-medium text-foreground">{value}</span>
                             </div>
                             <Badge
                               variant="outline"
@@ -174,9 +172,9 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                     dentro do grafico: qualquer posicao fixa eventualmente
                     coincide com o traçado e fica ilegivel -- a legenda de
                     cor fica no tooltip, fora da area de plotagem. */}
-                <ReferenceArea y1={0} y2={6} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={6} y2={8} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={8} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
               </AreaChart>
             </ChartContainer>
           </div>

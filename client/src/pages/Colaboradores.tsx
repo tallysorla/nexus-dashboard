@@ -17,13 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowRight, Search } from "lucide-react";
-import {
-  RISCO_BADGE_CLASS,
-  RISCO_LABEL,
-  colaboradores,
-  normalizarDt,
-  normalizarEea,
-} from "@/lib/mock-colaboradores";
+import { RISCO_BADGE_CLASS, RISCO_LABEL, colaboradores } from "@/lib/mock-colaboradores";
 
 export default function Colaboradores() {
   const [query, setQuery] = useState("");
@@ -107,10 +101,10 @@ export default function Colaboradores() {
                       {c.setor} · {c.local}
                     </TableCell>
                     <TableCell className="px-4 py-4 font-medium">
-                      {normalizarEea(c.eea).toFixed(2)}/10
+                      {c.eea}/100
                     </TableCell>
                     <TableCell className="px-4 py-4 font-medium">
-                      {normalizarDt(c.dt).toFixed(2)}/10
+                      {c.dt}/750
                     </TableCell>
                     <TableCell className="px-4 py-4">
                       <Badge
