@@ -53,38 +53,40 @@ export function DtChartSection({ data }: DtChartSectionProps) {
 
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
-      {/* Tabs de periodo sempre em linha propria, abaixo do titulo -- nunca
-          na mesma linha que o titulo. O EEA tem 4 opcoes de periodo e o DT
-          tem 3, entao um flex-wrap dividindo a mesma linha quebraria em
-          larguras diferentes para cada grafico (o de mais opcoes quebra
-          primeiro), deixando os filtros em alturas diferentes entre os dois
-          cards. Empilhando sempre do mesmo jeito, a posicao fica identica
-          nos dois, independente da largura da tela ou da quantidade de
-          opcoes. */}
-      <CardHeader className="gap-3 px-6 pt-6">
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-lg">Evolução do DT</CardTitle>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button type="button" aria-label="Sobre o DT" className="text-muted-foreground hover:text-foreground">
-                <Info className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-64">
-              Teste mais aprofundado, aplicado periodicamente ou como{" "}
-              <span className="text-[var(--chart-3)]">tratativa</span> (barras azuis). A linha
-              tracejada é a média do período.
-            </TooltipContent>
-          </Tooltip>
-        </div>
+      {/* Titulo e Tabs na mesma linha, com o subtitulo isolado abaixo (livre
+          pra quebrar sem empurrar os Tabs). O TabsList tem largura fixa
+          (w-96) igual nos dois graficos -- o EEA tem 4 opcoes de periodo e o
+          DT so 3, entao sem essa largura compartilhada os dois quebrariam de
+          linha em pontos diferentes (ver EeaChartSection para o mesmo
+          ajuste), deixando os filtros em alturas inconsistentes entre os
+          dois cards. Com a mesma largura, ou os dois cabem na linha do
+          titulo, ou os dois quebram juntos -- nunca um sem o outro. */}
+      <CardHeader className="flex flex-col gap-2 px-6 pt-6">
+        <div className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg">Evolução do DT</CardTitle>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label="Sobre o DT" className="text-muted-foreground hover:text-foreground">
+                  <Info className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-64">
+                Teste mais aprofundado, aplicado periodicamente ou como{" "}
+                <span className="text-[var(--chart-3)]">tratativa</span> (barras azuis). A linha
+                tracejada é a média do período.
+              </TooltipContent>
+            </Tooltip>
+          </div>
 
-        <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
-          <TabsList className="inline-grid h-10 grid-cols-3 rounded-xl">
-            <TabsTrigger value="3" className="rounded-lg px-3 text-xs">3 meses</TabsTrigger>
-            <TabsTrigger value="6" className="rounded-lg px-3 text-xs">6 meses</TabsTrigger>
-            <TabsTrigger value="12" className="rounded-lg px-3 text-xs">12 meses</TabsTrigger>
-          </TabsList>
-        </Tabs>
+          <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="shrink-0">
+            <TabsList className="grid h-9 w-96 grid-cols-3 rounded-xl">
+              <TabsTrigger value="3" className="rounded-lg px-2 text-xs">3 meses</TabsTrigger>
+              <TabsTrigger value="6" className="rounded-lg px-2 text-xs">6 meses</TabsTrigger>
+              <TabsTrigger value="12" className="rounded-lg px-2 text-xs">12 meses</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <p className="text-sm text-muted-foreground">
