@@ -104,9 +104,9 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
         </Tooltip>
       </CardHeader>
 
-      <CardContent className="px-6 pb-6">
+      <CardContent className="flex flex-1 flex-col px-6 pb-6">
         {semFatorEmAtencao ? (
-          <div className="flex flex-col items-center gap-4 py-4 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
             <div className="flex size-24 items-center justify-center rounded-full bg-primary/10">
               <ClipboardCheck className="size-11 text-primary" />
             </div>
