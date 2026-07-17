@@ -71,6 +71,13 @@ function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolea
 export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSectionProps) {
   const [principal, ...resto] = fatoresDestaque;
 
+  // Se nenhum dos 10 fatores acompanhados chegou a risco medio/alto, nao ha
+  // nada pra destacar -- mostra um estado vazio positivo em vez das duas
+  // secoes (que ficariam cheias de badges "Baixo risco" repetidos).
+  const semFatorEmAtencao = [...fatoresDestaque, ...fatoresAdicionais].every(
+    (factor) => classificarRiscoDT(factor.nota) === "baixo",
+  );
+
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between gap-4 px-6 pt-6">
@@ -97,33 +104,49 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
         </Tooltip>
       </CardHeader>
 
-      <CardContent className="space-y-5 px-6 pb-6">
-        <div className="space-y-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Maior risco no momento
-          </p>
-          {principal && (
-            <div className="-mx-4 rounded-xl border bg-muted/30 p-4">
-              <FatorRow factor={principal} />
+      <CardContent className="px-6 pb-6">
+        {semFatorEmAtencao ? (
+          <div className="flex flex-col items-center gap-1 py-4 text-center">
+            <img
+              src="/empty-state-fatores.svg"
+              alt=""
+              className="mb-2 h-40 w-auto"
+            />
+            <p className="font-medium">Nenhum fator em atenção</p>
+            <p className="max-w-xs text-sm text-muted-foreground">
+              Muito bem! Esse funcionário não tem nenhum fator em atenção no momento.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Maior risco no momento
+              </p>
+              {principal && (
+                <div className="-mx-4 rounded-xl border bg-muted/30 p-4">
+                  <FatorRow factor={principal} />
+                </div>
+              )}
+              <div className="space-y-4">
+                {resto.map((factor) => (
+                  <FatorRow key={factor.rank} factor={factor} compact />
+                ))}
+              </div>
             </div>
-          )}
-          <div className="space-y-4">
-            {resto.map((factor) => (
-              <FatorRow key={factor.rank} factor={factor} compact />
-            ))}
-          </div>
-        </div>
 
-        <div className="space-y-3 border-t pt-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Outros fatores acompanhados
-          </p>
-          <div className="space-y-4">
-            {fatoresAdicionais.map((factor) => (
-              <FatorRow key={factor.rank} factor={factor} compact />
-            ))}
+            <div className="space-y-3 border-t pt-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Outros fatores acompanhados
+              </p>
+              <div className="space-y-4">
+                {fatoresAdicionais.map((factor) => (
+                  <FatorRow key={factor.rank} factor={factor} compact />
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
