@@ -140,7 +140,9 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
           </span>
         }
         badge={statusDoFator(tendencia)}
-        badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
+        badgeClassName={
+          tendencia === "subindo" ? RISCO_BADGE_CLASS.alto : "border-slate-200 bg-slate-50 text-slate-700"
+        }
         sublabel="Último DT realizado Vs Dt's realizados nos últimos 60 dias"
         tooltip="Compara o resultado mais recente do teste DT com o último ou últimos 3 testes DT's realizados. Valores positivos indicam aumento do índice; valores negativos indicam redução."
       />
