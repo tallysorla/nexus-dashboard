@@ -10,7 +10,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Award, ClipboardCheck, Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
@@ -106,16 +106,31 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais }: FactorsSe
 
       <CardContent className="px-6 pb-6">
         {semFatorEmAtencao ? (
-          <div className="flex flex-col items-center gap-1 py-4 text-center">
-            <img
-              src="/empty-state-fatores.svg"
-              alt=""
-              className="mb-2 h-40 w-auto"
-            />
-            <p className="font-medium">Nenhum fator em atenção</p>
-            <p className="max-w-xs text-sm text-muted-foreground">
-              Muito bem! Esse funcionário não tem nenhum fator em atenção no momento.
-            </p>
+          <div className="flex flex-col items-center gap-4 py-4 text-center">
+            <div className="flex size-24 items-center justify-center rounded-full bg-primary/10">
+              <ClipboardCheck className="size-11 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <div className="space-y-1.5">
+                <p className="text-lg font-semibold">Nenhum fator em atenção</p>
+                <div className="mx-auto h-0.5 w-10 rounded-full bg-primary" />
+              </div>
+              <p className="mx-auto max-w-xs text-sm text-muted-foreground">
+                Muito bem! Esse funcionário não tem nenhum fator em atenção no momento.
+              </p>
+            </div>
+            <div className="flex w-full items-center gap-3 rounded-xl bg-primary/5 p-4 text-left">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <Award className="size-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Tudo em dia!</p>
+                <p className="text-xs text-muted-foreground">
+                  Continue acompanhando os próximos testes para manter os resultados sempre
+                  positivos.
+                </p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-5">
