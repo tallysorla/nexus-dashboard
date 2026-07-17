@@ -35,7 +35,7 @@ type KpiCardProps = {
   icon: LucideIcon;
   iconClassName: string;
   label: string;
-  value: string;
+  value: ReactNode;
   valueSuffix?: string;
   badge?: string;
   badgeClassName?: string;
@@ -48,6 +48,15 @@ const TENDENCIA_ICON: Record<Tendencia, LucideIcon> = {
   subindo: TrendingUp,
   descendo: TrendingDown,
   estavel: Minus,
+};
+
+// Subir e piorar aqui (nota mais alta de EEA/DT normalizado = mais risco),
+// entao a seta de tendencia usa vermelho pra "subindo" e verde pra
+// "descendo" -- o oposto do que "seta pra cima = bom" sugeriria a olho nu.
+const TENDENCIA_VALOR_CLASSE: Record<Tendencia, string> = {
+  subindo: "text-red-600",
+  descendo: "text-emerald-600",
+  estavel: "text-muted-foreground",
 };
 
 export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, badgeClassName, sublabel, tooltip, extra }: KpiCardProps) {
@@ -100,6 +109,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
 
   const tendenciaEeaValor = tendenciaEeaPercentual(colaborador.serieEea);
   const tendencia = tendenciaDoFator(tendenciaEeaValor);
+  const TendenciaValorIcon = TENDENCIA_ICON[tendencia];
 
   return (
     <>
@@ -129,7 +139,12 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         icon={TENDENCIA_ICON[tendencia]}
         iconClassName="bg-slate-500/10 text-slate-600"
         label="Tendência (EEA)"
-        value={variacaoLabel(tendenciaEeaValor)}
+        value={
+          <span className="inline-flex items-center gap-1.5">
+            <TendenciaValorIcon className={`size-6 ${TENDENCIA_VALOR_CLASSE[tendencia]}`} />
+            {variacaoLabel(tendenciaEeaValor)}
+          </span>
+        }
         badge={statusDoFator(tendencia)}
         badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
         sublabel="Último DT realizado Vs Dt's realizados nos últimos 60 dias"
