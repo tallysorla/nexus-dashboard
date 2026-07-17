@@ -7,12 +7,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  BarChart3,
   Info,
   Minus,
   TrendingDown,
   TrendingUp,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -32,8 +30,8 @@ type MetricsCardsProps = {
 };
 
 type KpiCardProps = {
-  icon: LucideIcon;
-  iconClassName: string;
+  icon?: LucideIcon;
+  iconClassName?: string;
   label: string;
   value: ReactNode;
   valueSuffix?: string;
@@ -64,9 +62,11 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
     <Card className="gap-3 rounded-2xl p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${iconClassName}`}>
-            <Icon className="size-4" />
-          </div>
+          {Icon && (
+            <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${iconClassName ?? ""}`}>
+              <Icon className="size-4" />
+            </div>
+          )}
           <p className="text-xs font-medium text-muted-foreground">{label}</p>
         </div>
         {tooltip && (
@@ -114,8 +114,6 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   return (
     <>
       <KpiCard
-        icon={Users}
-        iconClassName="bg-primary/10 text-primary"
         label="Índice EEA"
         value={String(colaborador.eea)}
         valueSuffix="/100"
@@ -125,8 +123,6 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
       />
       <KpiCard
-        icon={BarChart3}
-        iconClassName="bg-amber-500/10 text-amber-600"
         label="Índice DT"
         value={String(colaborador.dt)}
         valueSuffix="/750"
@@ -136,8 +132,6 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
       />
       <KpiCard
-        icon={TENDENCIA_ICON[tendencia]}
-        iconClassName="bg-slate-500/10 text-slate-600"
         label="Tendência (EEA)"
         value={
           <span className="inline-flex items-center gap-1.5">
