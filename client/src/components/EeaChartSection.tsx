@@ -60,26 +60,31 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
 
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
-      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 pt-6">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-lg">Evolução do EEA</CardTitle>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" aria-label="Sobre o EEA" className="text-muted-foreground hover:text-foreground">
-                  <Info className="size-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-64">
-                Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
-                verde baixo risco.
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <p className="text-sm text-muted-foreground">Aplicado todos os dias</p>
+      {/* Tabs de periodo sempre em linha propria, abaixo do titulo -- nunca
+          na mesma linha que o titulo. O EEA tem 4 opcoes de periodo e o DT
+          tem 3, entao um flex-wrap dividindo a mesma linha quebraria em
+          larguras diferentes para cada grafico (o de mais opcoes quebra
+          primeiro), deixando os filtros em alturas diferentes entre os dois
+          cards. Empilhando sempre do mesmo jeito, a posicao fica identica
+          nos dois, independente da largura da tela ou da quantidade de
+          opcoes. */}
+      <CardHeader className="gap-3 px-6 pt-6">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-lg">Evolução do EEA</CardTitle>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button type="button" aria-label="Sobre o EEA" className="text-muted-foreground hover:text-foreground">
+                <Info className="size-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-64">
+              Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
+              verde baixo risco.
+            </TooltipContent>
+          </Tooltip>
         </div>
 
-        <Tabs value={range} onValueChange={(v) => setRange(v as Range)} className="shrink-0">
+        <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
           <TabsList className="inline-grid h-10 grid-cols-4 rounded-xl">
             <TabsTrigger value="7" className="rounded-lg px-3 text-xs">7 dias</TabsTrigger>
             <TabsTrigger value="30" className="rounded-lg px-3 text-xs">30 dias</TabsTrigger>
@@ -87,6 +92,8 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
             <TabsTrigger value="all" className="rounded-lg px-3 text-xs">Todo período</TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <p className="text-sm text-muted-foreground">Aplicado todos os dias</p>
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
