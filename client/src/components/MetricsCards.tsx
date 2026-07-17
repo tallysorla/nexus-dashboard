@@ -7,10 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  AlertTriangle,
   BarChart3,
-  CheckCircle2,
-  Clock,
   Info,
   Minus,
   TrendingDown,
@@ -22,13 +19,11 @@ import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
-  confirmacaoDoDT,
   statusDoFator,
   tendenciaDoFator,
   tendenciaEeaPercentual,
   variacaoLabel,
   type Colaborador,
-  type ConfirmacaoDT,
   type Tendencia,
 } from "@/lib/mock-colaboradores";
 
@@ -53,18 +48,6 @@ const TENDENCIA_ICON: Record<Tendencia, LucideIcon> = {
   subindo: TrendingUp,
   descendo: TrendingDown,
   estavel: Minus,
-};
-
-const CONFIRMACAO_ICON: Record<ConfirmacaoDT, LucideIcon> = {
-  confirma: CheckCircle2,
-  diverge: AlertTriangle,
-  aguardando: Clock,
-};
-
-const CONFIRMACAO_TEXTO: Record<ConfirmacaoDT, string> = {
-  confirma: "DT recente confirma essa direção",
-  diverge: "DT recente aponta direção diferente",
-  aguardando: "Sem DT recente para confirmar",
 };
 
 export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, badgeClassName, sublabel, tooltip, extra }: KpiCardProps) {
@@ -117,8 +100,6 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
 
   const tendenciaEeaValor = tendenciaEeaPercentual(colaborador.serieEea);
   const tendencia = tendenciaDoFator(tendenciaEeaValor);
-  const confirmacao = confirmacaoDoDT(colaborador.historicoTestes, tendencia);
-  const ConfirmacaoIcon = CONFIRMACAO_ICON[confirmacao];
 
   return (
     <>
@@ -151,14 +132,8 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         value={variacaoLabel(tendenciaEeaValor)}
         badge={statusDoFator(tendencia)}
         badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
-        sublabel="Últimos 30 dias vs. 30 dias anteriores"
+        sublabel="Último DT realizado Vs Dt's realizados nos últimos 60 dias"
         tooltip="Compara o resultado mais recente do teste DT com o último ou últimos 3 testes DT's realizados. Valores positivos indicam aumento do índice; valores negativos indicam redução."
-        extra={
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <ConfirmacaoIcon className="size-3.5 shrink-0" />
-            <span>{CONFIRMACAO_TEXTO[confirmacao]}</span>
-          </div>
-        }
       />
     </>
   );

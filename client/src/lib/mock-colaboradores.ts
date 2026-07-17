@@ -198,42 +198,6 @@ export function parseDataBr(data: string): Date {
   return new Date(ano, mes - 1, dia);
 }
 
-export type ConfirmacaoDT = "confirma" | "diverge" | "aguardando";
-
-const DIAS_JANELA_CONFIRMACAO_DT = 45;
-
-// O EEA (diario) costuma sinalizar uma mudanca antes do DT (mais aprofundado,
-// porem raro), entao o DT funciona como confirmacao, nao como base do calculo
-// de tendencia. So afirmamos confirmacao/divergencia quando ha um DT dentro
-// de uma janela recente o suficiente (45 dias) -- um DT antigo nao pode ser
-// usado para validar (ou contradizer) uma tendencia recente do EEA.
-export function confirmacaoDoDT(
-  historicoTestes: TesteHistorico[],
-  tendenciaEea: Tendencia,
-  hoje: Date = DATA_FINAL_SERIE_EEA,
-): ConfirmacaoDT {
-  const testesDt = historicoTestes
-    .filter((t) => t.tipo === "DT")
-    .map((t) => ({ ...t, dataObj: parseDataBr(t.data) }))
-    .sort((a, b) => b.dataObj.getTime() - a.dataObj.getTime());
-
-  const ultimoDt = testesDt[0];
-  if (!ultimoDt) return "aguardando";
-
-  const diasDesdeUltimoDt = Math.round((hoje.getTime() - ultimoDt.dataObj.getTime()) / 86_400_000);
-  if (diasDesdeUltimoDt > DIAS_JANELA_CONFIRMACAO_DT || testesDt.length < 2) return "aguardando";
-
-  const anteriorDt = testesDt[1];
-  const variacaoDt = Math.round(
-    ((ultimoDt.pontuacao - anteriorDt.pontuacao) / anteriorDt.pontuacao) * 100,
-  );
-  const tendenciaDt = tendenciaDoFator(variacaoDt);
-
-  if (tendenciaDt === tendenciaEea) return "confirma";
-  if (tendenciaDt === "estavel" || tendenciaEea === "estavel") return "aguardando";
-  return "diverge";
-}
-
 // Os 10 fatores de risco psicossocial acompanhados pelo Nexus.
 // Cada colaborador tem 3 "em destaque" (maior variacao) e os 7 restantes
 // ficam em "fatoresAdicionais", sem duplicar nomes.
