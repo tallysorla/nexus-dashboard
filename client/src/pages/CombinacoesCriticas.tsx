@@ -7,6 +7,14 @@ import { KpiCard } from "@/components/MetricsCards";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertTriangle, Download, Search, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Download, HelpCircle, Search, ShieldCheck } from "lucide-react";
 import { getColaboradorById } from "@/lib/mock-colaboradores";
 import {
   COMBINACOES_CRITICAS,
@@ -106,14 +114,54 @@ export default function CombinacoesCriticas() {
           </h1>
           <p className="text-sm text-muted-foreground">Protocolo de Direcionamento · Fluxo EEA → DT</p>
         </div>
-        <Button
-          variant="outline"
-          className="rounded-xl"
-          onClick={() => toast("Protótipo: relatório exportado")}
-        >
-          <Download className="size-4" />
-          Exportar relatório
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="rounded-xl">
+                <HelpCircle className="size-4" />
+                Ver referência de combinações
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>9 combinações definidas — Referência</DialogTitle>
+                <DialogDescription>
+                  Qualquer combinação de risco médio nos fatores abaixo aciona encaminhamento ao DT
+                </DialogDescription>
+              </DialogHeader>
+              <div className="max-h-[70vh] overflow-y-auto">
+                <div className="divide-y rounded-xl border">
+                  {COMBINACOES_CRITICAS.map((def) => (
+                    <div key={def.id} className="p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${NIVEL_BADGE_CLASS[def.nivel]}`}>
+                          {NIVEL_LABEL[def.nivel]}
+                        </Badge>
+                        <p className="font-medium">{def.nome}</p>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {def.fatores.map((f) => (
+                          <Badge key={f} variant="secondary" className="rounded-lg px-2 py-0.5 text-xs">
+                            {f}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">{def.protocolo}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button
+            variant="outline"
+            className="rounded-xl"
+            onClick={() => toast("Protótipo: relatório exportado")}
+          >
+            <Download className="size-4" />
+            Exportar relatório
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -263,37 +311,6 @@ export default function CombinacoesCriticas() {
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="px-6 pt-6">
-          <CardTitle className="text-lg">9 combinações definidas — Referência</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Qualquer combinação de risco médio nos fatores abaixo aciona encaminhamento ao DT
-          </p>
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          <div className="divide-y rounded-xl border">
-            {COMBINACOES_CRITICAS.map((def) => (
-              <div key={def.id} className="p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${NIVEL_BADGE_CLASS[def.nivel]}`}>
-                    {NIVEL_LABEL[def.nivel]}
-                  </Badge>
-                  <p className="font-medium">{def.nome}</p>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {def.fatores.map((f) => (
-                    <Badge key={f} variant="secondary" className="rounded-lg px-2 py-0.5 text-xs">
-                      {f}
-                    </Badge>
-                  ))}
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">{def.protocolo}</p>
-              </div>
-            ))}
-          </div>
         </CardContent>
       </Card>
     </Layout>

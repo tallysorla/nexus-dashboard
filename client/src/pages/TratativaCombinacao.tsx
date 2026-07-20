@@ -1,39 +1,13 @@
 import { useState } from "react";
 import { Link, useParams } from "wouter";
-import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { TratativaDialog } from "@/components/TratativaDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldContent, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Toggle } from "@/components/ui/toggle";
-import {
-  AlertTriangle,
-  ArrowLeft,
-  CheckCircle2,
-  ClipboardList,
-  Clock,
-  Microscope,
-  Phone,
-  Radar,
-  ShieldAlert,
-  Stethoscope,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
-import { getColaboradorById, parseDataBr } from "@/lib/mock-colaboradores";
+import { ArrowLeft, Microscope, ShieldAlert } from "lucide-react";
+import { getColaboradorById, parseDataBr, type Tratativa } from "@/lib/mock-colaboradores";
 import {
   combinacoesCasos,
   diasDesde,
@@ -42,60 +16,25 @@ import {
   NIVEL_BADGE_CLASS,
   NIVEL_LABEL,
   SLA_DIAS_TRATATIVA,
-  usuariosDaEmpresa,
 } from "@/lib/mock-empresas";
 import NotFound from "@/pages/NotFound";
-
-type AcaoEncaminhamento = { id: string; label: string; icon: LucideIcon };
-
-// A Triade (nivel ESPECIAL, o mais severo do protocolo) troca os 2
-// encaminhamentos genericos pelos 3 proprios, conforme o criterio de aceite.
-const ENCAMINHAMENTOS_PADRAO: AcaoEncaminhamento[] = [
-  { id: "dt", label: "Encaminhar ao DT", icon: ClipboardList },
-  { id: "clinico", label: "Encaminhamento clínico", icon: Stethoscope },
-];
-
-const ENCAMINHAMENTOS_ESPECIAL: AcaoEncaminhamento[] = [
-  { id: "wesafety", label: "Contato com a WeSafety", icon: Phone },
-  { id: "rh", label: "Consulta com RH", icon: Users },
-  { id: "especializado", label: "Encaminhamento especializado", icon: Stethoscope },
-];
-
-const ACOES_OPERACIONAIS = [
-  { id: "suspender", label: "Suspender operação", icon: ShieldAlert },
-  { id: "monitorar", label: "Monitoramento", icon: Radar },
-  { id: "liberar", label: "Liberar para atividade", icon: CheckCircle2 },
-] as const;
 
 export default function TratativaCombinacao() {
   const { cid, kid } = useParams<{ cid: string; kid: string }>();
   const empresa = getEmpresaById(cid ?? "");
   const caso = combinacoesCasos.find((c) => c.id === kid);
-  const [status, setStatus] = useState(caso?.status);
-  const [acaoOperacional, setAcaoOperacional] = useState("");
-  const [encaminhamentos, setEncaminhamentos] = useState<Set<string>>(new Set());
-  const [cienteContrarioProtocolo, setCienteContrarioProtocolo] = useState(false);
-  const [responsavelId, setResponsavelId] = useState("");
-  const [prazo, setPrazo] = useState("");
-  const [observacao, setObservacao] = useState("");
+  const colaborador = caso ? getColaboradorById(caso.colaboradorId) : undefined;
 
-  if (!empresa || !caso) return <NotFound />;
+  const [status, setStatus] = useState(caso?.status);
+  const [tratativas, setTratativas] = useState<Tratativa[]>(colaborador?.historicoTratativas ?? []);
+
+  if (!empresa || !caso || !colaborador) return <NotFound />;
 
   const def = getCombinacaoCriticaById(caso.combinacaoId);
-  const colaborador = getColaboradorById(caso.colaboradorId);
-  if (!def || !colaborador) return <NotFound />;
-
-  const encaminhamentosDisponiveis = def.nivel === "ESPECIAL" ? ENCAMINHAMENTOS_ESPECIAL : ENCAMINHAMENTOS_PADRAO;
-  const responsaveis = usuariosDaEmpresa(empresa.id).filter((u) => u.perfil !== "Avaliador");
+  if (!def) return <NotFound />;
 
   const dias = diasDesde(caso.detectadoEm);
   const slaExcedido = status === "sem_tratativa" && dias > SLA_DIAS_TRATATIVA;
-
-  // O protocolo das combinacoes Critico/Especial exige suspensao/afastamento
-  // obrigatorio -- "Liberar para atividade" nesses niveis contraria a
-  // recomendacao, entao exige uma confirmacao explicita antes de salvar.
-  const nivelExigeSuspensao = def.nivel === "ESPECIAL" || def.nivel === "CRÍTICO";
-  const liberarContrariaProtocolo = acaoOperacional === "liberar" && nivelExigeSuspensao;
 
   // Linha do tempo com dados reais do colaborador -- a combinacao e sempre
   // apurada a partir de um DT (nao do EEA, que so sinaliza risco antes
@@ -123,37 +62,6 @@ export default function TratativaCombinacao() {
       descricao: null,
     },
   ];
-
-  function toggleEncaminhamento(id: string) {
-    setEncaminhamentos((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function salvarTratativa() {
-    if (!acaoOperacional) {
-      toast.error("Selecione uma ação operacional");
-      return;
-    }
-    if (!observacao.trim()) {
-      toast.error("Descreva a justificativa antes de salvar");
-      return;
-    }
-    if (!responsavelId) {
-      toast.error("Selecione o responsável pela decisão");
-      return;
-    }
-    if (liberarContrariaProtocolo && !cienteContrarioProtocolo) {
-      toast.error("Confirme que está ciente de que essa decisão contraria o protocolo");
-      return;
-    }
-    caso!.status = "em_tratativa";
-    setStatus("em_tratativa");
-    toast.success("Tratativa registrada (protótipo)");
-  }
 
   return (
     <Layout>
@@ -280,137 +188,44 @@ export default function TratativaCombinacao() {
 
       <Card className="w-full py-0 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-          <CardTitle className="text-lg">Registrar decisão e tratativa</CardTitle>
-          <span
-            className={`text-xs font-medium ${
-              status === "em_tratativa" ? "text-amber-600" : "text-red-600"
-            }`}
-          >
-            {status === "em_tratativa" ? "Em tratativa" : "Sem tratativa"}
-          </span>
-        </CardHeader>
-        <CardContent className="space-y-5 px-6 pb-6">
-          <FieldGroup>
-            <Field>
-              <FieldLabel>Ação operacional</FieldLabel>
-              <FieldContent>
-                <ToggleGroup
-                  type="single"
-                  variant="outline"
-                  value={acaoOperacional}
-                  onValueChange={(v) => v && setAcaoOperacional(v)}
-                  className="w-full"
-                >
-                  {ACOES_OPERACIONAIS.map((acao) => (
-                    <ToggleGroupItem
-                      key={acao.id}
-                      value={acao.id}
-                      className="h-11 gap-1.5 text-xs font-medium data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground sm:text-sm"
-                    >
-                      <acao.icon className="size-4" />
-                      {acao.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </FieldContent>
-            </Field>
-
-            {liberarContrariaProtocolo && (
-              <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                <div className="flex items-start gap-2 text-amber-800">
-                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                  <p className="text-sm">
-                    O protocolo recomenda <strong>{def.protocolo}</strong> para o nível {NIVEL_LABEL[def.nivel]}.
-                    Liberar para atividade contraria essa recomendação.
-                  </p>
-                </div>
-                <label className="flex items-start gap-2 text-sm text-amber-900">
-                  <Checkbox
-                    checked={cienteContrarioProtocolo}
-                    onCheckedChange={(v) => setCienteContrarioProtocolo(v === true)}
-                  />
-                  Estou ciente e assumo a responsabilidade por essa decisão
-                </label>
-              </div>
-            )}
-
-            <Field>
-              <FieldLabel>Encaminhamentos</FieldLabel>
-              <FieldContent>
-                <div className="flex flex-wrap gap-2">
-                  {encaminhamentosDisponiveis.map((acao) => (
-                    <Toggle
-                      key={acao.id}
-                      variant="outline"
-                      pressed={encaminhamentos.has(acao.id)}
-                      onPressedChange={() => toggleEncaminhamento(acao.id)}
-                      className="h-10 gap-1.5 rounded-xl px-3 font-medium data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                    >
-                      <acao.icon className="size-4" />
-                      {acao.label}
-                    </Toggle>
-                  ))}
-                </div>
-              </FieldContent>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="justificativa">Justificativa da decisão</FieldLabel>
-              <FieldContent>
-                <Textarea
-                  id="justificativa"
-                  placeholder="Descreva os motivos que levaram à decisão tomada..."
-                  value={observacao}
-                  onChange={(e) => setObservacao(e.target.value)}
-                  rows={4}
-                />
-              </FieldContent>
-            </Field>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="responsavel">Responsável pela decisão</FieldLabel>
-                <FieldContent>
-                  <Select value={responsavelId} onValueChange={setResponsavelId}>
-                    <SelectTrigger id="responsavel" className="w-full">
-                      <SelectValue placeholder="Selecione o responsável" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {responsaveis.map((u) => (
-                        <SelectItem key={u.id} value={u.id}>
-                          {u.nome} · {u.perfil}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FieldContent>
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="prazo">Prazo para revisão (opcional)</FieldLabel>
-                <FieldContent>
-                  <div className="relative">
-                    <Clock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="prazo"
-                      type="date"
-                      className="pl-9"
-                      value={prazo}
-                      onChange={(e) => setPrazo(e.target.value)}
-                    />
-                  </div>
-                </FieldContent>
-              </Field>
-            </div>
-          </FieldGroup>
-
-          <div className="flex justify-end gap-2">
-            <Button asChild variant="outline" className="h-11 rounded-xl">
-              <Link href={`/empresas/${empresa.id}/combinacoes`}>Cancelar</Link>
-            </Button>
-            <Button className="h-11 rounded-xl" onClick={salvarTratativa}>
-              Salvar decisão e tratativa
-            </Button>
+          <div>
+            <CardTitle className="text-lg">Histórico de tratativas</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Conversas, feedbacks e encaminhamentos registrados para {colaborador.nome}
+            </p>
           </div>
+          <TratativaDialog
+            colaboradorNome={colaborador.nome}
+            onRegistrar={(t) => {
+              setTratativas((prev) => [t, ...prev]);
+              caso.status = "em_tratativa";
+              setStatus("em_tratativa");
+            }}
+          />
+        </CardHeader>
+        <CardContent className="px-6 pb-6">
+          {tratativas.length === 0 ? (
+            <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+              Nenhuma tratativa registrada ainda. Use "Registrar tratativa" para
+              documentar a primeira ação com este funcionário.
+            </p>
+          ) : (
+            <ul className="space-y-4">
+              {tratativas.map((t) => (
+                <li key={t.id} className="rounded-xl border p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <Badge variant="secondary" className="rounded-lg px-2.5 py-1">
+                      {t.tipo}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {t.data} · {t.autor}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-foreground">{t.observacao}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </Layout>
