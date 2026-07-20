@@ -1,4 +1,4 @@
-import { colaboradores, type Colaborador, type RiskLevel } from "./mock-colaboradores";
+import { colaboradores, parseDataBr, type Colaborador, type RiskLevel } from "./mock-colaboradores";
 
 export type StatusEmpresa = "ativo" | "inativo";
 
@@ -58,7 +58,21 @@ export type CombinacaoCriticaCaso = {
   colaboradorId: string;
   combinacaoId: string;
   status: StatusCaso;
+  // Data do DT que confirmou a combinacao (as 9 combinacoes sao apuradas a
+  // partir do DT, nao do EEA -- ver focoDT em CombinacaoCriticaDef).
+  detectadoEm: string;
 };
+
+// Mesma data simulada de "hoje" usada em mock-colaboradores.ts
+// (DATA_FINAL_SERIE_EEA), para os calculos de "ha quantos dias" ficarem
+// consistentes com o resto do app.
+const HOJE_SIMULADO = new Date(2026, 6, 6);
+
+export const SLA_DIAS_TRATATIVA = 3;
+
+export function diasDesde(dataBr: string, hoje: Date = HOJE_SIMULADO): number {
+  return Math.round((hoje.getTime() - parseDataBr(dataBr).getTime()) / 86_400_000);
+}
 
 // Empresa "cheia": Transportadora Andrade reaproveita os 5 colaboradores reais
 // ja existentes. As filiais vem diretamente dos valores `local` que ja
@@ -295,6 +309,7 @@ export const combinacoesCasos: CombinacaoCriticaCaso[] = [
     colaboradorId: "renata-alves",
     combinacaoId: "CC5",
     status: "sem_tratativa",
+    detectadoEm: "05/07/2026",
   },
   {
     id: "caso-carlos-cc7",
@@ -303,6 +318,7 @@ export const combinacoesCasos: CombinacaoCriticaCaso[] = [
     colaboradorId: "carlos-silva",
     combinacaoId: "CC7",
     status: "em_tratativa",
+    detectadoEm: "01/07/2026",
   },
   {
     id: "caso-mariana-cc8",
@@ -310,6 +326,7 @@ export const combinacoesCasos: CombinacaoCriticaCaso[] = [
     filialId: FILIAL_MATRIZ_SP,
     colaboradorId: "mariana-costa",
     combinacaoId: "CC8",
+    detectadoEm: "27/06/2026",
     status: "sem_tratativa",
   },
 ];

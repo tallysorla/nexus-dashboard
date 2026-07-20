@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, ArrowRight } from "lucide-react";
 import {
   casosDoColaborador,
+  diasDesde,
   getCombinacaoCriticaById,
   NIVEL_BADGE_CLASS,
   NIVEL_LABEL,
+  SLA_DIAS_TRATATIVA,
   type CombinacaoCriticaCaso,
   type CombinacaoCriticaDef,
   type NivelCombinacao,
@@ -56,6 +58,8 @@ export function CombinacoesCriticasAlert({ colaboradorId }: CombinacoesCriticasA
       <div className="space-y-3">
         {casos.map(({ caso, def }) => {
           const especial = def.nivel === "ESPECIAL";
+          const dias = diasDesde(caso.detectadoEm);
+          const slaExcedido = caso.status === "sem_tratativa" && dias > SLA_DIAS_TRATATIVA;
           return (
             <div
               key={caso.id}
@@ -73,6 +77,12 @@ export function CombinacoesCriticasAlert({ colaboradorId }: CombinacoesCriticasA
                   {NIVEL_LABEL[def.nivel]}
                 </Badge>
                 <p className="font-medium">{def.nome}</p>
+                <span className={`ml-auto text-xs ${especial ? "text-white/70" : "text-muted-foreground"}`}>
+                  {caso.status === "em_tratativa"
+                    ? "Em tratativa"
+                    : `Sem tratativa há ${dias} dia${dias === 1 ? "" : "s"}`}
+                  {slaExcedido && <span className="text-red-500"> · SLA excedido</span>}
+                </span>
               </div>
 
               <div className="mt-2 flex flex-wrap gap-1.5">
