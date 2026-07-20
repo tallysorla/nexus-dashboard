@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ArrowRight } from "lucide-react";
+import { AlertTriangle, ArrowRight, Microscope } from "lucide-react";
 import {
   casosDoColaborador,
   diasDesde,
@@ -96,7 +96,29 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
                 ))}
               </div>
 
-              <p className={`mt-2 text-sm ${especial ? "text-white/90" : "text-muted-foreground"}`}>
+              <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,1fr)]">
+                <div>
+                  <p
+                    className={`text-xs font-medium uppercase tracking-wide ${
+                      especial ? "text-white/60" : "text-muted-foreground"
+                    }`}
+                  >
+                    Vulnerabilidade identificada
+                  </p>
+                  <p className={`mt-1.5 text-sm leading-relaxed ${especial ? "text-white/90" : "text-foreground"}`}>
+                    {def.vulnerabilidade}
+                  </p>
+                </div>
+                <div className={`rounded-xl p-4 ${especial ? "bg-white/10" : "bg-violet-50"}`}>
+                  <div className={`flex items-center gap-2 ${especial ? "text-white" : "text-violet-700"}`}>
+                    <Microscope className="size-4" />
+                    <p className="text-sm font-semibold">Foco do DT</p>
+                  </div>
+                  <p className={`mt-1.5 text-sm ${especial ? "text-white/90" : "text-violet-900"}`}>{def.focoDT}</p>
+                </div>
+              </div>
+
+              <p className={`mt-3 text-sm ${especial ? "text-white/90" : "text-muted-foreground"}`}>
                 {def.protocolo}
               </p>
 

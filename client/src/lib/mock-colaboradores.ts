@@ -462,9 +462,15 @@ export function fatoresDoTeste(teste: TesteHistorico): string[] {
   return teste.fatores.split(", ");
 }
 
-export function autorizacaoDoTeste(status: RiskLevel): { label: string; autorizado: boolean } {
-  if (status === "baixo") return { label: "Autorizado para dirigir", autorizado: true };
-  return { label: "Não autorizado para dirigir", autorizado: false };
+// Autorizacao tem 3 estados (nao so autorizado/nao-autorizado): alto risco
+// bloqueia de vez, medio risco fica pendente de decisao do gestor (nao e
+// autorizado automaticamente so por nao ser alto), baixo risco autoriza.
+export function autorizacaoDoTeste(
+  status: RiskLevel
+): { label: string; autorizado: boolean; pendente: boolean } {
+  if (status === "alto") return { label: "Não autorizado", autorizado: false, pendente: false };
+  if (status === "medio") return { label: "Aguardando", autorizado: false, pendente: true };
+  return { label: "Autorizado", autorizado: true, pendente: false };
 }
 
 export function recomendacaoDoTeste(teste: TesteHistorico): string {
@@ -513,23 +519,56 @@ const PERGUNTAS_CANDIDATAS = [
   "Teve pensamentos recorrentes sobre problemas pessoais durante a condução?",
 ];
 
+const MOTIVOS_CANDIDATOS = [
+  "Motorista não compreendeu a pergunta após explicação.",
+  "Pergunta pulada por tempo esgotado durante a aplicação.",
+  "Motorista se recusou a responder esta pergunta.",
+  "Falha técnica interrompeu a exibição da pergunta.",
+];
+
 function hashString(valor: string): number {
   let hash = 0;
   for (const ch of valor) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
   return hash;
 }
 
+export type PerguntaPulada = { fator: string; pergunta: string; motivo: string };
+
 // So testes baixo risco nao pulam nenhuma pergunta; medio pula 1, alto pula 2
-// -- indice deterministico a partir do id do teste, sem repetir sempre as
-// mesmas perguntas em todo teste medio/alto.
-export function perguntasPuladasDoTeste(teste: TesteHistorico): string[] {
+// -- cada pergunta pulada fica associada a um dos fatores em atencao do
+// proprio teste (fatoresDoTeste nunca fica vazio quando chegamos aqui, ja
+// que so entramos neste branch para medio/alto). Indices deterministicos a
+// partir do id do teste, sem repetir sempre as mesmas perguntas/motivos.
+export function perguntasPuladasDoTeste(teste: TesteHistorico): PerguntaPulada[] {
   if (teste.status === "baixo") return [];
   const quantidade = teste.status === "alto" ? 2 : 1;
   const inicio = hashString(teste.id) % PERGUNTAS_CANDIDATAS.length;
-  return Array.from(
-    { length: quantidade },
-    (_, i) => PERGUNTAS_CANDIDATAS[(inicio + i) % PERGUNTAS_CANDIDATAS.length]
-  );
+  const criticos = fatoresDoTeste(teste);
+  return Array.from({ length: quantidade }, (_, i) => ({
+    fator: criticos[i % criticos.length],
+    pergunta: PERGUNTAS_CANDIDATAS[(inicio + i) % PERGUNTAS_CANDIDATAS.length],
+    motivo: MOTIVOS_CANDIDATOS[(inicio + i) % MOTIVOS_CANDIDATOS.length],
+  }));
+}
+
+// Duracao do teste: como hora do teste, nao existe no dado bruto -- deriva
+// um valor plausivel (5-24 min) e estavel a partir do id composto.
+export function duracaoDoTeste(colaboradorId: string, testeId: string): number {
+  const hash = hashString(`${colaboradorId}-${testeId}-duracao`);
+  return 5 + (hash % 20);
+}
+
+// Texto generico de recomendacao por fator (usado no accordion "Resultados
+// do teste"), no mesmo espirito de recomendacaoDoTeste mas focado num unico
+// fator especifico em vez do teste inteiro.
+export function descricaoRiscoFator(nome: string, risco: RiskLevel): string {
+  if (risco === "alto") {
+    return `Os resultados do teste indicam alto risco em ${nome}. Por segurança, não recomendamos que dirija no momento. É fundamental buscar descanso e, se necessário, apoio médico ou psicológico antes de retornar à atividade.`;
+  }
+  if (risco === "medio") {
+    return `O teste identificou risco médio em ${nome}. Recomendamos cautela adicional e atenção ao bem-estar antes de novas atividades.`;
+  }
+  return `Os resultados do teste indicam baixo risco em ${nome}. Recomendamos manter os bons hábitos de descanso e atenção ao bem-estar físico e emocional.`;
 }
 
 // Tempo de casa a partir da data de admissao, ate a mesma data "hoje"
