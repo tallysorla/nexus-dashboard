@@ -273,34 +273,27 @@ export default function CombinacoesCriticas() {
             Qualquer combinação de risco médio nos fatores abaixo aciona encaminhamento ao DT
           </p>
         </CardHeader>
-        <CardContent className="space-y-3 px-6 pb-6">
-          {COMBINACOES_CRITICAS.map((def) => (
-            <div
-              key={def.id}
-              className={`rounded-xl border-l-4 bg-muted/20 p-3 ${
-                def.nivel === "ESPECIAL"
-                  ? "border-l-slate-900"
-                  : def.nivel === "CRÍTICO"
-                  ? "border-l-red-500"
-                  : "border-l-amber-500"
-              }`}
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${NIVEL_BADGE_CLASS[def.nivel]}`}>
-                  {NIVEL_LABEL[def.nivel]}
-                </Badge>
-                <p className="font-medium">{def.nome}</p>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {def.fatores.map((f) => (
-                  <Badge key={f} variant="secondary" className="rounded-lg px-2 py-0.5 text-xs">
-                    {f}
+        <CardContent className="px-6 pb-6">
+          <div className="divide-y rounded-xl border">
+            {COMBINACOES_CRITICAS.map((def) => (
+              <div key={def.id} className="p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${NIVEL_BADGE_CLASS[def.nivel]}`}>
+                    {NIVEL_LABEL[def.nivel]}
                   </Badge>
-                ))}
+                  <p className="font-medium">{def.nome}</p>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {def.fatores.map((f) => (
+                    <Badge key={f} variant="secondary" className="rounded-lg px-2 py-0.5 text-xs">
+                      {f}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">{def.protocolo}</p>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">{def.protocolo}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </CardContent>
       </Card>
     </Layout>

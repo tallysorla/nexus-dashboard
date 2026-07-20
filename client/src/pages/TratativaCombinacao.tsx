@@ -194,15 +194,7 @@ export default function TratativaCombinacao() {
         </Button>
       </div>
 
-      <Card
-        className={`w-full border-l-4 py-0 shadow-sm ${
-          def.nivel === "ESPECIAL"
-            ? "border-l-slate-900"
-            : def.nivel === "CRÍTICO"
-            ? "border-l-red-500"
-            : "border-l-amber-500"
-        }`}
-      >
+      <Card className="w-full py-0 shadow-sm">
         <CardContent className="space-y-3 px-6 py-6">
           <div>
             <p className="font-medium">{def.nome}</p>
@@ -244,7 +236,7 @@ export default function TratativaCombinacao() {
                 </div>
                 <p className="mt-1.5 text-sm text-violet-900">{def.focoDT}</p>
               </div>
-              <div className="rounded-xl border-l-4 border-l-red-500 bg-red-50 p-4">
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
                 <div className="flex items-center gap-2 text-red-700">
                   <ShieldAlert className="size-4" />
                   <p className="text-sm font-semibold">Ação recomendada pelo protocolo</p>
@@ -310,7 +302,11 @@ export default function TratativaCombinacao() {
                   className="w-full"
                 >
                   {ACOES_OPERACIONAIS.map((acao) => (
-                    <ToggleGroupItem key={acao.id} value={acao.id} className="h-11 gap-1.5 text-xs sm:text-sm">
+                    <ToggleGroupItem
+                      key={acao.id}
+                      value={acao.id}
+                      className="h-11 gap-1.5 text-xs font-medium data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground sm:text-sm"
+                    >
                       <acao.icon className="size-4" />
                       {acao.label}
                     </ToggleGroupItem>
@@ -348,7 +344,7 @@ export default function TratativaCombinacao() {
                       variant="outline"
                       pressed={encaminhamentos.has(acao.id)}
                       onPressedChange={() => toggleEncaminhamento(acao.id)}
-                      className="h-10 gap-1.5 rounded-xl px-3"
+                      className="h-10 gap-1.5 rounded-xl px-3 font-medium data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                     >
                       <acao.icon className="size-4" />
                       {acao.label}

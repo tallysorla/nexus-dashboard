@@ -20,12 +20,6 @@ const ORDEM_NIVEL: Record<NivelCombinacao, number> = {
   ALTA: 2,
 };
 
-const BORDA_NIVEL: Record<NivelCombinacao, string> = {
-  ESPECIAL: "border-l-slate-900",
-  "CRÍTICO": "border-l-red-500",
-  ALTA: "border-l-amber-500",
-};
-
 // So a Triade (nivel mais severo do protocolo) troca as 3 acoes genericas de
 // tratativa pelas 3 especificas pedidas no criterio de aceite -- as demais
 // combinacoes continuam levando o gestor para a tela de tratativa completa,
@@ -63,8 +57,8 @@ export function CombinacoesCriticasAlert({ colaboradorId }: CombinacoesCriticasA
           return (
             <div
               key={caso.id}
-              className={`rounded-xl border-l-4 p-4 shadow-sm ${BORDA_NIVEL[def.nivel]} ${
-                especial ? "border bg-slate-900 text-white" : "border bg-card"
+              className={`rounded-xl border p-4 shadow-sm ${
+                especial ? "bg-slate-900 text-white" : "bg-card"
               }`}
             >
               <div className="flex flex-wrap items-center gap-2">
