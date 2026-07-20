@@ -41,14 +41,18 @@ import {
 } from "@/components/ui/pagination";
 import { FileText } from "lucide-react";
 import { RISCO_BADGE_CLASS, type RiskLevel, type TesteHistorico, type TipoTeste } from "@/lib/mock-colaboradores";
+import { TesteCombinacaoCritica } from "@/components/TesteCombinacaoCritica";
+import { useProfile } from "@/contexts/ProfileContext";
 
 const PAGE_SIZE = 5;
 
 type TestHistoryTableProps = {
   tests: TesteHistorico[];
+  colaboradorId: string;
 };
 
-export function TestHistoryTable({ tests }: TestHistoryTableProps) {
+export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps) {
+  const { profile } = useProfile();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<RiskLevel | "todos">("todos");
   const [tipoFilter, setTipoFilter] = useState<TipoTeste>("EEA");
@@ -249,6 +253,9 @@ export function TestHistoryTable({ tests }: TestHistoryTableProps) {
                   {selectedTest.status === "baixo" ? "Nenhum fator em atenção" : selectedTest.fatores}
                 </p>
               </div>
+              {profile.nav.includes("risco") && (
+                <TesteCombinacaoCritica colaboradorId={colaboradorId} dataTeste={selectedTest.data} />
+              )}
             </div>
           )}
         </DialogContent>

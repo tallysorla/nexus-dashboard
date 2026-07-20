@@ -27,12 +27,17 @@ const ORDEM_NIVEL: Record<NivelCombinacao, number> = {
 // Encaminhamento clinico).
 const ACOES_ESPECIAL = ["Contato com a WeSafety", "Consulta com RH", "Encaminhamento especializado"];
 
-type CombinacoesCriticasAlertProps = {
+type TesteCombinacaoCriticaProps = {
   colaboradorId: string;
+  // Data (DD/MM/AAAA) do teste aberto no dialog de detalhe -- so mostramos a
+  // combinacao critica cujo `detectadoEm` bate com esse teste especifico,
+  // em vez de listar todos os casos ativos do funcionario.
+  dataTeste: string;
 };
 
-export function CombinacoesCriticasAlert({ colaboradorId }: CombinacoesCriticasAlertProps) {
+export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombinacaoCriticaProps) {
   const casos = casosDoColaborador(colaboradorId)
+    .filter((caso) => caso.detectadoEm === dataTeste)
     .map((caso) => ({ caso, def: getCombinacaoCriticaById(caso.combinacaoId) }))
     .filter(
       (item): item is { caso: CombinacaoCriticaCaso; def: CombinacaoCriticaDef } => item.def !== undefined
@@ -45,9 +50,9 @@ export function CombinacoesCriticasAlert({ colaboradorId }: CombinacoesCriticasA
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <AlertTriangle className="size-4 text-red-600" />
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-red-700">
-          Combinações críticas detectadas
-        </h2>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-red-700">
+          Combinação crítica detectada neste teste
+        </h3>
       </div>
       <div className="space-y-3">
         {casos.map(({ caso, def }) => {

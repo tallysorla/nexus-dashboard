@@ -6,16 +6,13 @@ import { EeaChartSection } from "@/components/EeaChartSection";
 import { DtChartSection } from "@/components/DtChartSection";
 import { TestHistoryTable } from "@/components/TestHistoryTable";
 import { UserCard } from "@/components/UserCard";
-import { CombinacoesCriticasAlert } from "@/components/CombinacoesCriticasAlert";
 import { ArrowLeft } from "lucide-react";
 import { getColaboradorById } from "@/lib/mock-colaboradores";
-import { useProfile } from "@/contexts/ProfileContext";
 import NotFound from "@/pages/NotFound";
 
 export default function ColaboradorProfile() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const { profile } = useProfile();
   const colaborador = getColaboradorById(id ?? "");
 
   if (!colaborador) {
@@ -34,11 +31,6 @@ export default function ColaboradorProfile() {
         <ArrowLeft className="size-4" />
         Voltar para funcionários
       </Link>
-
-      {/* So perfis gestores (quem tem "risco" no nav) veem as combinacoes
-          criticas do funcionario -- o Avaliador nao deve ter acesso a essa
-          informacao, mesmo que consiga abrir esta tela. */}
-      {profile.nav.includes("risco") && <CombinacoesCriticasAlert colaboradorId={colaborador.id} />}
 
       <div className="space-y-1">
         <h2 className="text-lg font-semibold leading-none">Últimos testes realizados</h2>
@@ -62,7 +54,7 @@ export default function ColaboradorProfile() {
         </div>
       </div>
 
-      <TestHistoryTable tests={colaborador.historicoTestes} />
+      <TestHistoryTable tests={colaborador.historicoTestes} colaboradorId={colaborador.id} />
     </Layout>
   );
 }
