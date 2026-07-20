@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { useParams, useSearchParams } from "wouter";
+import { Link, useParams, useSearchParams } from "wouter";
 import { Layout } from "@/components/Layout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -13,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, FileText } from "lucide-react";
 import { RISCO_BADGE_CLASS, RISCO_LABEL, parseDataBr, type TipoTeste } from "@/lib/mock-colaboradores";
 import {
   colaboradoresDaEmpresa,
@@ -99,6 +100,7 @@ export default function Testes() {
                     <TableHead className="h-12 px-4">Data</TableHead>
                     <TableHead className="h-12 px-4">Autorização</TableHead>
                     <TableHead className="h-12 px-4">Classificação</TableHead>
+                    <TableHead className="h-12 px-4 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -121,6 +123,23 @@ export default function Testes() {
                         >
                           {RISCO_LABEL[teste.status]}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 text-right">
+                        <Button
+                          asChild
+                          aria-label="Abrir detalhe do teste"
+                          variant="ghost"
+                          size="icon"
+                          className="size-10 rounded-xl text-primary"
+                        >
+                          <Link
+                            href={`/empresas/${empresa.id}/testes/${colaborador.id}/${teste.id}${
+                              filial ? `?filial=${filial.id}` : ""
+                            }`}
+                          >
+                            <FileText className="size-4" />
+                          </Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

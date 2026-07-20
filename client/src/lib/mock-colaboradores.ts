@@ -201,7 +201,7 @@ export function parseDataBr(data: string): Date {
 // Os 10 fatores de risco psicossocial acompanhados pelo Nexus.
 // Cada colaborador tem 3 "em destaque" (maior variacao) e os 7 restantes
 // ficam em "fatoresAdicionais", sem duplicar nomes.
-const TODOS_FATORES = [
+export const TODOS_FATORES = [
   "Perda de foco",
   "Inquietação",
   "Cansaço",
@@ -445,4 +445,99 @@ export const colaboradores: Colaborador[] = [
 
 export function getColaboradorById(id: string): Colaborador | undefined {
   return colaboradores.find((c) => c.id === id);
+}
+
+// --- Detalhe do teste ---------------------------------------------------
+// A partir daqui, tudo e derivado do que ja existe em TesteHistorico
+// (status/pontuacao/tipo/data/fatores) -- nao adicionamos nenhum campo novo
+// "inventado" por registro, pra nao ter que digitar a mao dezenas de valores
+// para cada um dos testes ja cadastrados.
+
+// O campo `fatores` de um teste guarda nomes mesmo quando o status e baixo
+// (resquicio do dado bruto) -- a UI em outros lugares (ex.: dialog de
+// TestHistoryTable) ja trata baixo risco como "sem fator em atencao", entao
+// repetimos a mesma regra aqui pra manter consistencia.
+export function fatoresDoTeste(teste: TesteHistorico): string[] {
+  if (teste.status === "baixo") return [];
+  return teste.fatores.split(", ");
+}
+
+export function autorizacaoDoTeste(status: RiskLevel): { label: string; autorizado: boolean } {
+  if (status === "baixo") return { label: "Autorizado para dirigir", autorizado: true };
+  return { label: "Não autorizado para dirigir", autorizado: false };
+}
+
+export function recomendacaoDoTeste(teste: TesteHistorico): string {
+  if (teste.status === "baixo") {
+    return "Nenhuma ação necessária no momento. Manter acompanhamento de rotina.";
+  }
+  const principal = fatoresDoTeste(teste)[0]?.toLowerCase() ?? "fatores em atenção";
+  if (teste.status === "alto") {
+    return `Encaminhamento prioritário ao RH/DT para avaliação de ${principal}, com suspensão condicional da atividade até nova avaliação.`;
+  }
+  return `Acompanhamento próximo recomendado devido a ${principal}. Reavaliar antes do próximo ciclo.`;
+}
+
+// EEA e diario -> proxima reavaliacao no dia seguinte; DT e mensal (ver
+// serieDt/comentarios acima) -> proxima reavaliacao em 30 dias.
+export function proximaReavaliacaoDoTeste(teste: TesteHistorico): string {
+  const data = parseDataBr(teste.data);
+  data.setDate(data.getDate() + (teste.tipo === "EEA" ? 1 : 30));
+  return `${String(data.getDate()).padStart(2, "0")}/${String(data.getMonth() + 1).padStart(2, "0")}/${data.getFullYear()}`;
+}
+
+// Nota por fator especifica deste teste (0-75): fatores marcados como em
+// atencao partem de uma fracao alta da pontuacao geral do teste (decrescente
+// por ordem de citacao); os demais recebem uma nota baixa proporcional, so
+// para preencher a visao "resultados completos" sem inventar 10 valores por
+// teste a mao.
+export function resultadosCompletosDoTeste(
+  teste: TesteHistorico
+): { nome: string; nota: number; critico: boolean }[] {
+  const criticos = fatoresDoTeste(teste);
+  return TODOS_FATORES.map((nome, i) => {
+    const rankCritico = criticos.indexOf(nome);
+    if (rankCritico >= 0) {
+      const nota = Math.max(20, Math.min(75, Math.round(teste.pontuacao * 0.75) - rankCritico * 6));
+      return { nome, nota, critico: true };
+    }
+    const nota = Math.max(5, Math.round(teste.pontuacao * 0.2) - (i % 4) * 2);
+    return { nome, nota, critico: false };
+  });
+}
+
+const PERGUNTAS_CANDIDATAS = [
+  "Você se sentiu descansado ao acordar hoje?",
+  "Teve dificuldade para se concentrar durante o turno?",
+  "Sentiu irritação ou impaciência no trânsito?",
+  "Teve pensamentos recorrentes sobre problemas pessoais durante a condução?",
+];
+
+function hashString(valor: string): number {
+  let hash = 0;
+  for (const ch of valor) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return hash;
+}
+
+// So testes baixo risco nao pulam nenhuma pergunta; medio pula 1, alto pula 2
+// -- indice deterministico a partir do id do teste, sem repetir sempre as
+// mesmas perguntas em todo teste medio/alto.
+export function perguntasPuladasDoTeste(teste: TesteHistorico): string[] {
+  if (teste.status === "baixo") return [];
+  const quantidade = teste.status === "alto" ? 2 : 1;
+  const inicio = hashString(teste.id) % PERGUNTAS_CANDIDATAS.length;
+  return Array.from(
+    { length: quantidade },
+    (_, i) => PERGUNTAS_CANDIDATAS[(inicio + i) % PERGUNTAS_CANDIDATAS.length]
+  );
+}
+
+// Horario do teste: nao faz parte do dado bruto (so a data), entao derivamos
+// um horario comercial plausivel e estavel a partir do id composto
+// colaborador+teste (sem precisar digitar 35 horarios a mao).
+export function horaDoTeste(colaboradorId: string, testeId: string): string {
+  const hash = hashString(`${colaboradorId}-${testeId}`);
+  const hora = 7 + (hash % 12);
+  const minuto = (hash >> 3) % 60;
+  return `${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`;
 }

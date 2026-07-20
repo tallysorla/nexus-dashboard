@@ -415,3 +415,17 @@ export function usuariosDaEmpresa(empresaId: string): Usuario[] {
 export function getUsuarioById(uid: string): Usuario | undefined {
   return usuariosAcesso.find((u) => u.id === uid);
 }
+
+// Gestor responsavel por um colaborador: o Avaliador da filial dele (quem de
+// fato aplica/acompanha os testes no dia a dia); se nao houver, cai pro
+// primeiro usuario da propria filial e por ultimo pro Admin da empresa.
+export function gestorResponsavelDoColaborador(colaborador: Colaborador): Usuario | undefined {
+  const filialId = filialIdDoColaborador(colaborador);
+  const daEmpresa = usuariosDaEmpresa(ANDRADE_ID);
+  const daFilial = daEmpresa.filter((u) => u.filialId === filialId);
+  return (
+    daFilial.find((u) => u.perfil === "Avaliador") ??
+    daFilial[0] ??
+    daEmpresa.find((u) => u.perfil === "Admin Empresa")
+  );
+}
