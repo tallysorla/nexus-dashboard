@@ -45,7 +45,7 @@ import {
   type RiskLevel,
   type Tratativa,
 } from "@/lib/mock-colaboradores";
-import { getEmpresaById, getFilialById } from "@/lib/mock-empresas";
+import { casosDoColaborador, getEmpresaById, getFilialById } from "@/lib/mock-empresas";
 import NotFound from "@/pages/NotFound";
 
 const RISCO_HEX: Record<RiskLevel, string> = {
@@ -95,6 +95,13 @@ export default function TesteDetail() {
     teste.status === "baixo" ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50";
   const acaoTextClass = teste.status === "baixo" ? "text-emerald-700" : "text-red-700";
   const acaoBodyClass = teste.status === "baixo" ? "text-emerald-900" : "text-red-900";
+
+  // Determina se o card de combinacao critica vai aparecer, pra saber se o
+  // card de Historico de tratativas fica sozinho na linha (e precisa ocupar
+  // as 2 colunas) ou pareado com ele no grid de 2 colunas abaixo.
+  const temCombinacaoCritica =
+    profile.nav.includes("risco") &&
+    casosDoColaborador(colaborador.id).some((c) => c.detectadoEm === teste.data);
 
   return (
     <Layout>
@@ -207,213 +214,221 @@ export default function TesteDetail() {
         </CardContent>
       </Card>
 
-      {profile.nav.includes("risco") && (
-        <TesteCombinacaoCritica colaboradorId={colaborador.id} dataTeste={teste.data} />
-      )}
+      {/* A partir daqui os cards ficam lado a lado (2 por linha) sempre que
+          a tela permitir -- monitores grandes nao precisam de tudo empilhado
+          em coluna unica. Gráfico de risco e Detalhes do funcionário ocupam
+          as 2 colunas (conteudo largo demais pra dividir). Historico de
+          tratativas ocupa as 2 colunas so quando nao ha combinacao critica
+          pareada com ele, senao ficaria uma coluna vazia ao lado. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+        {temCombinacaoCritica && (
+          <TesteCombinacaoCritica colaboradorId={colaborador.id} dataTeste={teste.data} />
+        )}
 
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-          <div>
-            <CardTitle className="text-lg">Histórico de tratativas</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Conversas, feedbacks e encaminhamentos registrados para {colaborador.nome}
-            </p>
-          </div>
-          <TratativaDialog
-            colaboradorNome={colaborador.nome}
-            onRegistrar={(t) => setTratativas((prev) => [t, ...prev])}
-          />
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          {tratativas.length === 0 ? (
-            <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-              Nenhuma tratativa registrada ainda. Use "Registrar tratativa" para
-              documentar a primeira ação com este funcionário.
-            </p>
-          ) : (
-            <ul className="space-y-4">
-              {tratativas.map((t) => (
-                <li key={t.id} className="rounded-xl border p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <Badge variant="secondary" className="rounded-lg px-2.5 py-1">
-                      {t.tipo}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {t.data} · {t.autor}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm text-foreground">{t.observacao}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-          <CardTitle className="text-lg">Gráfico de risco</CardTitle>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.baixo }} />
-              Baixo
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.medio }} />
-              Médio
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.alto }} />
-              Alto
-            </span>
-          </div>
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          <div className="h-[420px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
-                <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
-                <XAxis
-                  type="number"
-                  domain={[0, 75]}
-                  ticks={[0, 15, 30, 45, 60, 75]}
-                  axisLine={false}
-                  tickLine={false}
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="nome"
-                  width={150}
-                  axisLine={false}
-                  tickLine={false}
-                  style={{ fontSize: "12px" }}
-                />
-                <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
-                  {resultados.map((r) => (
-                    <Cell key={r.nome} fill={RISCO_HEX[classificarRiscoDT(r.nota)]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="px-6 pt-6">
-          <CardTitle className="text-lg">Resultados do Teste</CardTitle>
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          <Accordion type="multiple" defaultValue={fatoresEmAtencao}>
-            {resultados.map((r) => {
-              const risco = classificarRiscoDT(r.nota);
-              const Icon = risco === "alto" ? AlertCircle : risco === "medio" ? AlertTriangle : CheckCircle2;
-              const boxClass =
-                risco === "alto"
-                  ? "border-red-200 bg-red-50 text-red-800"
-                  : risco === "medio"
-                    ? "border-amber-200 bg-amber-50 text-amber-800"
-                    : "border-emerald-200 bg-emerald-50 text-emerald-800";
-              return (
-                <AccordionItem key={r.nome} value={r.nome}>
-                  <AccordionTrigger>
-                    <span className="flex flex-1 items-center justify-between gap-3">
-                      <span className="font-medium">{r.nome}</span>
-                      <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className={`rounded-xl border p-4 ${boxClass}`}>
-                      <p className="font-semibold">{RISCO_LABEL[risco]}</p>
-                      <p className="mt-1 text-sm">{descricaoRiscoFator(r.nome, risco)}</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="px-6 pt-6">
-          <CardTitle className="text-lg">Perguntas puladas</CardTitle>
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          {perguntasPuladas.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma pergunta foi pulada neste teste.</p>
-          ) : (
-            <Accordion type="multiple" defaultValue={perguntasPuladas.map((_, i) => `pp-${i}`)}>
-              {perguntasPuladas.map((p, i) => (
-                <AccordionItem key={i} value={`pp-${i}`}>
-                  <AccordionTrigger>{p.fator}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="rounded-xl bg-muted/40 p-4">
-                      <p className="text-sm font-medium text-red-600">Pergunta pulada</p>
-                      <p className="mt-1 text-sm">{p.pergunta}</p>
-                      <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-                        Motivo: {p.motivo}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-        </CardContent>
-      </Card>
-
-      <Collapsible className="w-full">
-        <Card className="w-full gap-0 py-0 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-5">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="size-4.5 text-muted-foreground" />
-              Detalhes do funcionário
-            </CardTitle>
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-              <div>
-                <p className="text-xs text-muted-foreground">Cargo</p>
-                <p className="font-medium">{colaborador.cargo}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Filial / NOP</p>
-                <p className="font-medium">{colaborador.local}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Tempo na empresa</p>
-                <p className="font-medium">{tempoNaEmpresa(colaborador.dataAdmissao)}</p>
-              </div>
-              <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
-                <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-              </CollapsibleTrigger>
+        <Card className={`w-full py-0 shadow-sm ${temCombinacaoCritica ? "" : "lg:col-span-2"}`}>
+          <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
+            <div>
+              <CardTitle className="text-lg">Histórico de tratativas</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Conversas, feedbacks e encaminhamentos registrados para {colaborador.nome}
+              </p>
             </div>
-          </div>
-          <CollapsibleContent>
-            <CardContent className="grid grid-cols-1 gap-4 border-t px-6 py-5 sm:grid-cols-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Setor</p>
-                <p className="text-sm font-medium">{colaborador.setor}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Matrícula</p>
-                <p className="text-sm font-medium">{colaborador.matricula}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Idade</p>
-                <p className="text-sm font-medium">{colaborador.idade} anos</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <CalendarClock className="size-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Data de admissão</p>
-                  <p className="text-sm font-medium">{colaborador.dataAdmissao}</p>
-                </div>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
+            <TratativaDialog
+              colaboradorNome={colaborador.nome}
+              onRegistrar={(t) => setTratativas((prev) => [t, ...prev])}
+            />
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            {tratativas.length === 0 ? (
+              <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                Nenhuma tratativa registrada ainda. Use "Registrar tratativa" para
+                documentar a primeira ação com este funcionário.
+              </p>
+            ) : (
+              <ul className="space-y-4">
+                {tratativas.map((t) => (
+                  <li key={t.id} className="rounded-xl border p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <Badge variant="secondary" className="rounded-lg px-2.5 py-1">
+                        {t.tipo}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {t.data} · {t.autor}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-foreground">{t.observacao}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
         </Card>
-      </Collapsible>
+
+        <Card className="w-full py-0 shadow-sm lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
+            <CardTitle className="text-lg">Gráfico de risco</CardTitle>
+            <div className="flex items-center gap-4 text-sm">
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.baixo }} />
+                Baixo
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.medio }} />
+                Médio
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.alto }} />
+                Alto
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            <div className="h-[420px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
+                  <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
+                  <XAxis
+                    type="number"
+                    domain={[0, 75]}
+                    ticks={[0, 15, 30, 45, 60, 75]}
+                    axisLine={false}
+                    tickLine={false}
+                    style={{ fontSize: "12px" }}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="nome"
+                    width={150}
+                    axisLine={false}
+                    tickLine={false}
+                    style={{ fontSize: "12px" }}
+                  />
+                  <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
+                    {resultados.map((r) => (
+                      <Cell key={r.nome} fill={RISCO_HEX[classificarRiscoDT(r.nota)]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="w-full py-0 shadow-sm">
+          <CardHeader className="px-6 pt-6">
+            <CardTitle className="text-lg">Resultados do Teste</CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            <Accordion type="multiple" defaultValue={fatoresEmAtencao}>
+              {resultados.map((r) => {
+                const risco = classificarRiscoDT(r.nota);
+                const Icon = risco === "alto" ? AlertCircle : risco === "medio" ? AlertTriangle : CheckCircle2;
+                const boxClass =
+                  risco === "alto"
+                    ? "border-red-200 bg-red-50 text-red-800"
+                    : risco === "medio"
+                      ? "border-amber-200 bg-amber-50 text-amber-800"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-800";
+                return (
+                  <AccordionItem key={r.nome} value={r.nome}>
+                    <AccordionTrigger>
+                      <span className="flex flex-1 items-center justify-between gap-3">
+                        <span className="font-medium">{r.nome}</span>
+                        <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className={`rounded-xl border p-4 ${boxClass}`}>
+                        <p className="font-semibold">{RISCO_LABEL[risco]}</p>
+                        <p className="mt-1 text-sm">{descricaoRiscoFator(r.nome, risco)}</p>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          </CardContent>
+        </Card>
+
+        <Card className="w-full py-0 shadow-sm">
+          <CardHeader className="px-6 pt-6">
+            <CardTitle className="text-lg">Perguntas puladas</CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            {perguntasPuladas.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma pergunta foi pulada neste teste.</p>
+            ) : (
+              <Accordion type="multiple" defaultValue={perguntasPuladas.map((_, i) => `pp-${i}`)}>
+                {perguntasPuladas.map((p, i) => (
+                  <AccordionItem key={i} value={`pp-${i}`}>
+                    <AccordionTrigger>{p.fator}</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="rounded-xl bg-muted/40 p-4">
+                        <p className="text-sm font-medium text-red-600">Pergunta pulada</p>
+                        <p className="mt-1 text-sm">{p.pergunta}</p>
+                        <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                          Motivo: {p.motivo}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
+          </CardContent>
+        </Card>
+
+        <Collapsible className="w-full lg:col-span-2">
+          <Card className="w-full gap-0 py-0 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-5">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <User className="size-4.5 text-muted-foreground" />
+                Detalhes do funcionário
+              </CardTitle>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">Cargo</p>
+                  <p className="font-medium">{colaborador.cargo}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Filial / NOP</p>
+                  <p className="font-medium">{colaborador.local}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Tempo na empresa</p>
+                  <p className="font-medium">{tempoNaEmpresa(colaborador.dataAdmissao)}</p>
+                </div>
+                <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
+                  <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+              </div>
+            </div>
+            <CollapsibleContent>
+              <CardContent className="grid grid-cols-1 gap-4 border-t px-6 py-5 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Setor</p>
+                  <p className="text-sm font-medium">{colaborador.setor}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Matrícula</p>
+                  <p className="text-sm font-medium">{colaborador.matricula}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Idade</p>
+                  <p className="text-sm font-medium">{colaborador.idade} anos</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="size-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Data de admissão</p>
+                    <p className="text-sm font-medium">{colaborador.dataAdmissao}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      </div>
     </Layout>
   );
 }
