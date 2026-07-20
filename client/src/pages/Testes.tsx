@@ -105,7 +105,7 @@ export default function Testes() {
                 </TableHeader>
                 <TableBody>
                   {linhas.map(({ colaborador, teste }) => (
-                    <TableRow key={teste.id}>
+                    <TableRow key={`${colaborador.id}-${teste.id}`}>
                       <TableCell className="px-4 py-4 font-medium">{colaborador.nome}</TableCell>
                       <TableCell className="px-4 py-4 text-muted-foreground">{colaborador.cpf}</TableCell>
                       <TableCell className="px-4 py-4 text-muted-foreground">{teste.data}</TableCell>

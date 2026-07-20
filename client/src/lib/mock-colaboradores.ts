@@ -532,12 +532,26 @@ export function perguntasPuladasDoTeste(teste: TesteHistorico): string[] {
   );
 }
 
+// Tempo de casa a partir da data de admissao, ate a mesma data "hoje"
+// simulada usada no resto do app (DATA_FINAL_SERIE_EEA).
+export function tempoNaEmpresa(dataAdmissao: string, hoje: Date = DATA_FINAL_SERIE_EEA): string {
+  const admissao = parseDataBr(dataAdmissao);
+  let meses = (hoje.getFullYear() - admissao.getFullYear()) * 12 + (hoje.getMonth() - admissao.getMonth());
+  if (hoje.getDate() < admissao.getDate()) meses -= 1;
+  const anos = Math.floor(meses / 12);
+  const mesesRestantes = meses % 12;
+  const partes: string[] = [];
+  if (anos > 0) partes.push(`${anos} ano${anos === 1 ? "" : "s"}`);
+  if (mesesRestantes > 0 || anos === 0) partes.push(`${mesesRestantes} ${mesesRestantes === 1 ? "mês" : "meses"}`);
+  return partes.join(" e ");
+}
+
 // Horario do teste: nao faz parte do dado bruto (so a data), entao derivamos
 // um horario comercial plausivel e estavel a partir do id composto
 // colaborador+teste (sem precisar digitar 35 horarios a mao).
 export function horaDoTeste(colaboradorId: string, testeId: string): string {
   const hash = hashString(`${colaboradorId}-${testeId}`);
   const hora = 7 + (hash % 12);
-  const minuto = (hash >> 3) % 60;
+  const minuto = (hash >>> 3) % 60;
   return `${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`;
 }
