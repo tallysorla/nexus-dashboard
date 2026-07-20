@@ -7,7 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ClipboardList, Microscope, Stethoscope, ShieldAlert, PauseCircle } from "lucide-react";
+import {
+  ClipboardList,
+  Microscope,
+  Stethoscope,
+  ShieldAlert,
+  PauseCircle,
+  Phone,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { getColaboradorById } from "@/lib/mock-colaboradores";
 import {
   combinacoesCasos,
@@ -17,6 +26,22 @@ import {
   NIVEL_LABEL,
 } from "@/lib/mock-empresas";
 import NotFound from "@/pages/NotFound";
+
+type AcaoRapida = { label: string; icon: LucideIcon; toastMsg: string };
+
+// A Triade (nivel ESPECIAL, o mais severo do protocolo) troca as 3 acoes
+// genericas por 3 acoes proprias, conforme o criterio de aceite.
+const ACOES_PADRAO: AcaoRapida[] = [
+  { label: "Encaminhar ao DT", icon: ClipboardList, toastMsg: "Protótipo: DT agendado" },
+  { label: "Suspender operação", icon: PauseCircle, toastMsg: "Protótipo: operação suspensa" },
+  { label: "Encaminhamento clínico", icon: Stethoscope, toastMsg: "Protótipo: encaminhamento clínico registrado" },
+];
+
+const ACOES_ESPECIAL: AcaoRapida[] = [
+  { label: "Contato com a WeSafety", icon: Phone, toastMsg: "Protótipo: contato com a WeSafety registrado" },
+  { label: "Consulta com RH", icon: Users, toastMsg: "Protótipo: encaminhamento ao RH registrado" },
+  { label: "Encaminhamento especializado", icon: Stethoscope, toastMsg: "Protótipo: encaminhamento especializado registrado" },
+];
 
 export default function TratativaCombinacao() {
   const { cid, kid } = useParams<{ cid: string; kid: string }>();
@@ -30,6 +55,8 @@ export default function TratativaCombinacao() {
   const def = getCombinacaoCriticaById(caso.combinacaoId);
   const colaborador = getColaboradorById(caso.colaboradorId);
   if (!def || !colaborador) return <NotFound />;
+
+  const acoesRapidas = def.nivel === "ESPECIAL" ? ACOES_ESPECIAL : ACOES_PADRAO;
 
   function salvarTratativa() {
     if (!observacao.trim()) {
@@ -132,30 +159,17 @@ export default function TratativaCombinacao() {
         </CardHeader>
         <CardContent className="space-y-4 px-6 pb-6">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <Button
-              variant="outline"
-              className="h-11 rounded-xl"
-              onClick={() => toast("Protótipo: DT agendado")}
-            >
-              <ClipboardList className="size-4" />
-              Encaminhar ao DT
-            </Button>
-            <Button
-              variant="outline"
-              className="h-11 rounded-xl"
-              onClick={() => toast("Protótipo: operação suspensa")}
-            >
-              <PauseCircle className="size-4" />
-              Suspender operação
-            </Button>
-            <Button
-              variant="outline"
-              className="h-11 rounded-xl"
-              onClick={() => toast("Protótipo: encaminhamento clínico registrado")}
-            >
-              <Stethoscope className="size-4" />
-              Encaminhamento clínico
-            </Button>
+            {acoesRapidas.map((acao) => (
+              <Button
+                key={acao.label}
+                variant="outline"
+                className="h-11 rounded-xl"
+                onClick={() => toast(acao.toastMsg)}
+              >
+                <acao.icon className="size-4" />
+                {acao.label}
+              </Button>
+            ))}
           </div>
           <Textarea
             placeholder="Descreva a ação de gestão tomada (encaminhamento, conversa, plano de ação)..."

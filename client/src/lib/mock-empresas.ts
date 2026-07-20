@@ -322,6 +322,10 @@ export function casosDaFilial(filialId: string): CombinacaoCriticaCaso[] {
   return combinacoesCasos.filter((c) => c.filialId === filialId);
 }
 
+export function casosDoColaborador(colaboradorId: string): CombinacaoCriticaCaso[] {
+  return combinacoesCasos.filter((c) => c.colaboradorId === colaboradorId);
+}
+
 export const NIVEL_LABEL: Record<NivelCombinacao, string> = {
   ESPECIAL: "Especial",
   "CRÍTICO": "Crítico",
