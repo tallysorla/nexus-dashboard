@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ProfileProvider } from "./contexts/ProfileContext";
@@ -50,6 +50,14 @@ function Router() {
 //   to keep consistent foreground/background color across components
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
+// Em produção o build pode ser publicado sob um subcaminho (ex.: GitHub
+// Pages serve em /nexus-dashboard/, nao na raiz do dominio como a Vercel) --
+// import.meta.env.BASE_URL reflete o `base` configurado no build do Vite,
+// entao o Router do wouter fica correto nos dois lugares sem precisar de
+// nenhuma outra mudanca nas paginas (todo Link/navigate usa caminho absoluto
+// e passa a ser relativo a esse base automaticamente).
+const routerBase = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 function App() {
   return (
     <ErrorBoundary>
@@ -59,9 +67,11 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <ProfileProvider>
-            <Router />
-          </ProfileProvider>
+          <WouterRouter base={routerBase}>
+            <ProfileProvider>
+              <Router />
+            </ProfileProvider>
+          </WouterRouter>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
