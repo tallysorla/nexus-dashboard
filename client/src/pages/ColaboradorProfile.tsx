@@ -33,7 +33,7 @@ export default function ColaboradorProfile() {
       </Link>
 
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold leading-none">Últimos testes realizados</h2>
+        <h2 className="text-lg font-semibold leading-none">Detalhes do funcionário</h2>
         <p className="text-sm text-muted-foreground">Resultado mais recente por indicador · há 1 mês</p>
       </div>
 

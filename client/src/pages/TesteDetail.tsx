@@ -12,6 +12,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { KpiCard } from "@/components/MetricsCards";
+import { TesteCombinacaoCritica } from "@/components/TesteCombinacaoCritica";
+import { useProfile } from "@/contexts/ProfileContext";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -60,6 +62,7 @@ export default function TesteDetail() {
     testeId: string;
   }>();
   const [searchParams] = useSearchParams();
+  const { profile } = useProfile();
 
   const empresa = getEmpresaById(cid ?? "");
   const colaborador = getColaboradorById(colaboradorId ?? "");
@@ -215,6 +218,10 @@ export default function TesteDetail() {
           </div>
         </CardContent>
       </Card>
+
+      {profile.nav.includes("risco") && (
+        <TesteCombinacaoCritica colaboradorId={colaborador.id} dataTeste={teste.data} />
+      )}
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Resumo rápido</h2>

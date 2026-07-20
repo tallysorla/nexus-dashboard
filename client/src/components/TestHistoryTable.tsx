@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "wouter";
 import {
   Card,
   CardContent,
@@ -7,13 +8,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -41,8 +35,7 @@ import {
 } from "@/components/ui/pagination";
 import { FileText } from "lucide-react";
 import { RISCO_BADGE_CLASS, type RiskLevel, type TesteHistorico, type TipoTeste } from "@/lib/mock-colaboradores";
-import { TesteCombinacaoCritica } from "@/components/TesteCombinacaoCritica";
-import { useProfile } from "@/contexts/ProfileContext";
+import { ANDRADE_ID } from "@/lib/mock-empresas";
 
 const PAGE_SIZE = 5;
 
@@ -52,11 +45,9 @@ type TestHistoryTableProps = {
 };
 
 export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps) {
-  const { profile } = useProfile();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<RiskLevel | "todos">("todos");
   const [tipoFilter, setTipoFilter] = useState<TipoTeste>("EEA");
-  const [selectedTest, setSelectedTest] = useState<TesteHistorico | null>(null);
 
   const filtered = useMemo(() => {
     return tests.filter((test) => {
@@ -153,13 +144,15 @@ export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps
                   </TableCell>
                   <TableCell className="px-4 py-4 text-right">
                     <Button
-                      aria-label="Abrir relatório do teste"
+                      asChild
+                      aria-label="Abrir detalhe do teste"
                       variant="ghost"
                       size="icon"
                       className="size-10 rounded-xl text-primary"
-                      onClick={() => setSelectedTest(test)}
                     >
-                      <FileText className="size-4" />
+                      <Link href={`/empresas/${ANDRADE_ID}/testes/${colaboradorId}/${test.id}`}>
+                        <FileText className="size-4" />
+                      </Link>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -224,42 +217,6 @@ export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps
           )}
         </div>
       </CardContent>
-
-      <Dialog open={!!selectedTest} onOpenChange={(open) => !open && setSelectedTest(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Detalhe do teste</DialogTitle>
-            <DialogDescription>
-              Teste {selectedTest?.tipo} realizado em {selectedTest?.data}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedTest && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between rounded-xl border p-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Índice de risco</p>
-                  <p className="text-2xl font-semibold">{selectedTest.pontuacao}/100</p>
-                </div>
-                <Badge
-                  variant="outline"
-                  className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[selectedTest.status]}`}
-                >
-                  {selectedTest.classificacao}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Principais fatores</p>
-                <p className="text-sm">
-                  {selectedTest.status === "baixo" ? "Nenhum fator em atenção" : selectedTest.fatores}
-                </p>
-              </div>
-              {profile.nav.includes("risco") && (
-                <TesteCombinacaoCritica colaboradorId={colaboradorId} dataTeste={selectedTest.data} />
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }
