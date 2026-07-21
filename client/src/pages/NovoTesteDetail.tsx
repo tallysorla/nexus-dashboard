@@ -40,6 +40,7 @@ import {
   RISCO_LABEL,
   autorizacaoDoTeste,
   classificarRiscoDT,
+  duracaoDoTeste,
   getColaboradorById,
   horaDoTeste,
   parseDataBr,
@@ -393,7 +394,12 @@ export default function NovoTesteDetail() {
         <CardContent className="space-y-4 p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold">{colaborador.nome}</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-2xl font-bold">{colaborador.nome}</h2>
+                <Badge variant="outline" className="rounded-lg border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-700">
+                  Teste {teste.tipo}
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground">CPF: {colaborador.cpf}</p>
             </div>
             {casosPendentes.length > 0 ? (
@@ -418,6 +424,27 @@ export default function NovoTesteDetail() {
                 {autorizacaoLabel}
               </Badge>
             )}
+          </div>
+
+          {/* Dados especificos deste teste -- nota, duracao e autorizacao,
+              o que o usuario pediu de volta do formato antigo. */}
+          <div className="grid grid-cols-2 gap-6 rounded-xl bg-muted/30 p-4 sm:grid-cols-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Autorização para exercer a função</p>
+              <p className={`mt-1 text-lg font-bold ${autorizacaoColorClass}`}>{autorizacaoLabel}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Pontuação total</p>
+              <p className="mt-1 text-lg font-bold">{teste.pontuacao} / 100</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Status</p>
+              <p className={`mt-1 text-lg font-bold ${STATUS_TEXT_CLASS[teste.status]}`}>{teste.classificacao}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Duração do teste</p>
+              <p className="mt-1 text-lg font-bold">{duracaoDoTeste(colaborador.id, teste.id)} min</p>
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-xl border">
