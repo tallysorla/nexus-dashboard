@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, ArrowRight, Microscope } from "lucide-react";
 import {
   casosDoColaborador,
-  diasDesde,
   getCombinacaoCriticaById,
   NIVEL_BADGE_CLASS,
   NIVEL_LABEL,
-  SLA_DIAS_TRATATIVA,
   type CombinacaoCriticaCaso,
   type CombinacaoCriticaDef,
   type NivelCombinacao,
@@ -57,8 +55,6 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
       <div className="space-y-3">
         {casos.map(({ caso, def }) => {
           const especial = def.nivel === "ESPECIAL";
-          const dias = diasDesde(caso.detectadoEm);
-          const slaExcedido = caso.status === "sem_tratativa" && dias > SLA_DIAS_TRATATIVA;
           return (
             <div
               key={caso.id}
@@ -66,23 +62,14 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
                 especial ? "bg-slate-900 text-white" : "bg-card"
               }`}
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className={`rounded-lg px-2 py-0.5 text-xs ${
-                    especial ? "border-white/30 bg-white/10 text-white" : NIVEL_BADGE_CLASS[def.nivel]
-                  }`}
-                >
-                  {NIVEL_LABEL[def.nivel]}
-                </Badge>
-                <p className="font-medium">{def.nome}</p>
-                <span className={`ml-auto text-xs ${especial ? "text-white/70" : "text-muted-foreground"}`}>
-                  {caso.status === "em_tratativa"
-                    ? "Em tratativa"
-                    : `Sem tratativa há ${dias} dia${dias === 1 ? "" : "s"}`}
-                  {slaExcedido && <span className="text-red-500"> · SLA excedido</span>}
-                </span>
-              </div>
+              <Badge
+                variant="outline"
+                className={`rounded-lg px-2 py-0.5 text-xs ${
+                  especial ? "border-white/30 bg-white/10 text-white" : NIVEL_BADGE_CLASS[def.nivel]
+                }`}
+              >
+                {NIVEL_LABEL[def.nivel]}
+              </Badge>
 
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {def.fatores.map((f) => (
