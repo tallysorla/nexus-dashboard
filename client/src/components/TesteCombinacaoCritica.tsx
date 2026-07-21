@@ -111,10 +111,6 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
                 </div>
               </div>
 
-              <p className={`mt-3 text-sm ${especial ? "text-white/90" : "text-muted-foreground"}`}>
-                {def.protocolo}
-              </p>
-
               {especial && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {ACOES_ESPECIAL.map((acao) => (

@@ -45,7 +45,12 @@ import {
   type RiskLevel,
   type Tratativa,
 } from "@/lib/mock-colaboradores";
-import { casosDoColaborador, getEmpresaById, getFilialById } from "@/lib/mock-empresas";
+import {
+  casosDoColaborador,
+  getCombinacaoCriticaById,
+  getEmpresaById,
+  getFilialById,
+} from "@/lib/mock-empresas";
 import NotFound from "@/pages/NotFound";
 
 const RISCO_HEX: Record<RiskLevel, string> = {
@@ -98,9 +103,15 @@ export default function TesteDetail() {
 
   // So renderiza o card de combinacao critica quando ha um caso batendo com
   // a data deste teste (e o perfil ativo pode ver essa informacao).
-  const temCombinacaoCritica =
-    profile.nav.includes("risco") &&
-    casosDoColaborador(colaborador.id).some((c) => c.detectadoEm === teste.data);
+  const casoCritico = casosDoColaborador(colaborador.id).find((c) => c.detectadoEm === teste.data);
+  const defCritico = casoCritico ? getCombinacaoCriticaById(casoCritico.combinacaoId) : undefined;
+  const temCombinacaoCritica = profile.nav.includes("risco") && !!defCritico;
+
+  // Quando ha combinacao critica, o protocolo dela e mais especifico e
+  // urgente que a recomendacao generica do teste -- mostrar as duas ao
+  // mesmo tempo dava a impressao de duas orientacoes conflitantes (uma de
+  // rotina, outra de encaminhamento imediato). Uma unica acao prevalece.
+  const acaoRecomendada = temCombinacaoCritica && defCritico ? defCritico.protocolo : recomendacaoDoTeste(teste);
 
   return (
     <Layout>
@@ -191,8 +202,7 @@ export default function TesteDetail() {
                 </p>
                 <p className={`mt-1 text-sm ${teste.status === "alto" ? "text-red-900" : "text-amber-900"}`}>
                   Os resultados do teste indicam um nível {teste.status === "alto" ? "alto" : "médio"} de risco para
-                  dirigir. Recomendamos cautela adicional ao volante e, se necessário, apoio antes de novas
-                  atividades.
+                  dirigir. Veja a ação recomendada pelo protocolo abaixo.
                 </p>
               </div>
             </div>
@@ -208,7 +218,7 @@ export default function TesteDetail() {
                 Data/Hora: {teste.data}, {hora}
               </span>
             </div>
-            <p className={`mt-2 text-sm font-medium ${acaoBodyClass}`}>{recomendacaoDoTeste(teste)}</p>
+            <p className={`mt-2 text-sm font-medium ${acaoBodyClass}`}>{acaoRecomendada}</p>
           </div>
         </CardContent>
       </Card>
