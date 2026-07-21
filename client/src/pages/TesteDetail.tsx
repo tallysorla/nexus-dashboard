@@ -92,9 +92,12 @@ export default function TesteDetail() {
   const hora = horaDoTeste(colaborador.id, teste.id);
   const duracao = duracaoDoTeste(colaborador.id, teste.id);
 
-  const fatoresEmAtencao = resultados
-    .filter((r) => classificarRiscoDT(r.nota) !== "baixo")
-    .map((r) => r.nome);
+  // O Gráfico de risco logo acima já mostra os 10 fatores visualmente -- o
+  // accordion de Resultados do Teste so precisa detalhar em texto os que
+  // exigem atencao, sem repetir os 10 de novo (a maioria fica baixo risco
+  // na pratica).
+  const resultadosEmAtencao = resultados.filter((r) => classificarRiscoDT(r.nota) !== "baixo");
+  const quantidadeBaixo = resultados.length - resultadosEmAtencao.length;
 
   const acaoBoxClass =
     teste.status === "baixo" ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50";
@@ -286,36 +289,48 @@ export default function TesteDetail() {
         <Card className="w-full py-0 shadow-sm">
           <CardHeader className="px-6 pt-6">
             <CardTitle className="text-lg">Resultados do Teste</CardTitle>
+            <p className="text-sm text-muted-foreground">Fatores que precisam de atenção neste teste</p>
           </CardHeader>
           <CardContent className="px-6 pb-6">
-            <Accordion type="multiple" defaultValue={fatoresEmAtencao}>
-              {resultados.map((r) => {
-                const risco = classificarRiscoDT(r.nota);
-                const Icon = risco === "alto" ? AlertCircle : risco === "medio" ? AlertTriangle : CheckCircle2;
-                const boxClass =
-                  risco === "alto"
-                    ? "border-red-200 bg-red-50 text-red-800"
-                    : risco === "medio"
-                      ? "border-amber-200 bg-amber-50 text-amber-800"
-                      : "border-emerald-200 bg-emerald-50 text-emerald-800";
-                return (
-                  <AccordionItem key={r.nome} value={r.nome}>
-                    <AccordionTrigger>
-                      <span className="flex flex-1 items-center justify-between gap-3">
-                        <span className="font-medium">{r.nome}</span>
-                        <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
-                      </span>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className={`rounded-xl border p-4 ${boxClass}`}>
-                        <p className="font-semibold">{RISCO_LABEL[risco]}</p>
-                        <p className="mt-1 text-sm">{descricaoRiscoFator(r.nome, risco)}</p>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
+            {resultadosEmAtencao.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhum fator em atenção — os 10 fatores estão em baixo risco neste teste.
+              </p>
+            ) : (
+              <>
+                <Accordion type="multiple" defaultValue={resultadosEmAtencao.map((r) => r.nome)}>
+                  {resultadosEmAtencao.map((r) => {
+                    const risco = classificarRiscoDT(r.nota);
+                    const Icon = risco === "alto" ? AlertCircle : AlertTriangle;
+                    const boxClass =
+                      risco === "alto"
+                        ? "border-red-200 bg-red-50 text-red-800"
+                        : "border-amber-200 bg-amber-50 text-amber-800";
+                    return (
+                      <AccordionItem key={r.nome} value={r.nome}>
+                        <AccordionTrigger>
+                          <span className="flex flex-1 items-center justify-between gap-3">
+                            <span className="font-medium">{r.nome}</span>
+                            <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className={`rounded-xl border p-4 ${boxClass}`}>
+                            <p className="font-semibold">{RISCO_LABEL[risco]}</p>
+                            <p className="mt-1 text-sm">{descricaoRiscoFator(r.nome, risco)}</p>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
+                {quantidadeBaixo > 0 && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Os outros {quantidadeBaixo} fatores estão em baixo risco (veja o gráfico acima).
+                  </p>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
 

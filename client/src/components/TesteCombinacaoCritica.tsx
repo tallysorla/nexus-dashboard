@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ArrowRight, Microscope } from "lucide-react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 import {
   casosDoColaborador,
   getCombinacaoCriticaById,
@@ -85,30 +85,17 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
                 ))}
               </div>
 
-              <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,1fr)]">
-                <div>
-                  <p
-                    className={`text-xs font-medium uppercase tracking-wide ${
-                      especial ? "text-white/60" : "text-muted-foreground"
-                    }`}
-                  >
-                    Vulnerabilidade identificada
-                  </p>
-                  <p className={`mt-1.5 text-sm leading-relaxed ${especial ? "text-white/90" : "text-foreground"}`}>
-                    {def.vulnerabilidade}
-                  </p>
-                </div>
-                <div className={`lg:border-l lg:pl-6 ${especial ? "border-white/20" : "border-primary/40"}`}>
-                  <div
-                    className={`flex items-center gap-2 border-b pb-2 ${
-                      especial ? "border-white/30 text-white" : "border-primary/40 text-primary"
-                    }`}
-                  >
-                    <Microscope className="size-4" />
-                    <p className="text-sm font-semibold">Foco do DT</p>
-                  </div>
-                  <p className={`mt-2 text-sm ${especial ? "text-white/90" : "text-foreground"}`}>{def.focoDT}</p>
-                </div>
+              <div className="mt-4">
+                <p
+                  className={`text-xs font-medium uppercase tracking-wide ${
+                    especial ? "text-white/60" : "text-muted-foreground"
+                  }`}
+                >
+                  Vulnerabilidade identificada
+                </p>
+                <p className={`mt-1.5 text-sm leading-relaxed ${especial ? "text-white/90" : "text-foreground"}`}>
+                  {def.vulnerabilidade}
+                </p>
               </div>
 
               {especial && (
