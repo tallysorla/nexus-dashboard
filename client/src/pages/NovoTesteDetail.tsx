@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "wouter";
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { Layout } from "@/components/Layout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { AutorizacaoFuncaoDialog } from "@/components/AutorizacaoFuncaoDialog";
@@ -14,6 +13,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -23,13 +23,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useProfile } from "@/contexts/ProfileContext";
+import { toast } from "sonner";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   CalendarClock,
   ChevronDown,
   ClipboardList,
+  Flag,
   History,
+  Stethoscope,
   User,
 } from "lucide-react";
 import {
@@ -77,6 +81,96 @@ const ORDEM_NIVEL: Record<NivelCombinacao, number> = {
 };
 
 type EventoTimeline = { data: string; titulo: string; descricao?: string };
+type CasoComDef = { caso: CombinacaoCriticaCaso; def: CombinacaoCriticaDef };
+
+// Texto generico de "por que foi identificado" -- deriva do numero de
+// fatores da combinacao, sem precisar de mais um campo de texto por
+// combinacao no dado (as 9 definicoes ja tem vulnerabilidade/focoDT/protocolo).
+function porQueIdentificado(def: CombinacaoCriticaDef): string {
+  const n = def.fatores.length;
+  const sujeito = n === 2 ? "Ambos os fatores" : `Os ${n} fatores`;
+  const verbo = n === 2 ? "apresentam" : "apresentaram";
+  return `${sujeito} ${verbo} nível elevado no EEA atual.`;
+}
+
+function CombinacaoCard({
+  caso,
+  def,
+  index,
+  variant,
+}: {
+  caso: CombinacaoCriticaCaso;
+  def: CombinacaoCriticaDef;
+  index: number;
+  variant: "compacta" | "completa";
+}) {
+  const especial = def.nivel === "ESPECIAL";
+  const pendente = caso.status === "sem_tratativa";
+
+  return (
+    <div className={`rounded-xl border p-4 shadow-sm ${especial ? "border-red-200 bg-red-50" : "bg-card"}`}>
+      <div className="flex items-start gap-3">
+        <div
+          className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+            especial ? "bg-red-600 text-white" : "bg-muted text-muted-foreground"
+          }`}
+        >
+          {especial ? <AlertTriangle className="size-4" /> : index + 1}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold">{def.nome}</p>
+            <Badge
+              variant="outline"
+              className={`rounded-lg px-2 py-0.5 text-xs ${especial ? "border-red-300 bg-red-100 text-red-800" : NIVEL_BADGE_CLASS[def.nivel]}`}
+            >
+              {especial ? "Prioridade absoluta" : NIVEL_LABEL[def.nivel]}
+            </Badge>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">{def.fatores.join(" + ")}</p>
+
+          {variant === "completa" && <p className="mt-2 text-sm text-foreground/80">{def.vulnerabilidade}</p>}
+
+          <div
+            className={`mt-3 grid grid-cols-1 gap-3 rounded-lg bg-muted/40 p-3 sm:grid-cols-2 ${
+              variant === "completa" ? "xl:grid-cols-4" : ""
+            }`}
+          >
+
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Protocolo</p>
+              <p className="text-sm font-semibold">{NIVEL_LABEL[def.nivel]}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Por que foi identificado?</p>
+              <p className="text-sm">{porQueIdentificado(def)}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Foco do DT</p>
+              <p className="text-sm">{def.focoDT}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Orientação do protocolo</p>
+              <p className="text-sm">{def.protocolo}</p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <span className={`text-xs font-medium ${pendente ? "text-red-600" : "text-amber-600"}`}>
+              Status: {pendente ? "Sem tratativa" : "Em tratativa"}
+            </span>
+            <Button asChild size="sm" variant={pendente ? "default" : "outline"} className="rounded-xl">
+              <Link href={`/empresas/${caso.empresaId}/combinacoes/${caso.id}`}>
+                Ver tratativa
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function NovoTesteDetail() {
   const { cid, colaboradorId, testeId } = useParams<{
@@ -95,6 +189,7 @@ export default function NovoTesteDetail() {
   const [decisaoAutorizacao, setDecisaoAutorizacao] = useState<DecisaoAutorizacao | undefined>(
     teste?.autorizacaoDecidida
   );
+  const [aba, setAba] = useState("visao-geral");
 
   if (!empresa || !colaborador || !teste) return <NotFound />;
 
@@ -119,12 +214,10 @@ export default function NovoTesteDetail() {
   // Todas as combinacoes criticas do colaborador (nao so a deste teste
   // especifico) -- essa versao mostra a situacao geral dele, nao so o
   // recorte de um teste isolado.
-  const casos = podeVerRisco
+  const casos: CasoComDef[] = podeVerRisco
     ? casosDoColaborador(colaborador.id)
         .map((caso) => ({ caso, def: getCombinacaoCriticaById(caso.combinacaoId) }))
-        .filter(
-          (item): item is { caso: CombinacaoCriticaCaso; def: CombinacaoCriticaDef } => item.def !== undefined
-        )
+        .filter((item): item is CasoComDef => item.def !== undefined)
         .sort((a, b) => ORDEM_NIVEL[a.def.nivel] - ORDEM_NIVEL[b.def.nivel])
     : [];
   const casosPendentes = casos.filter((c) => c.caso.status === "sem_tratativa");
@@ -166,6 +259,97 @@ export default function NovoTesteDetail() {
     });
   }
 
+  const proximaAcao =
+    casosPendentes.length > 0 ? (
+      <div className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-semibold text-red-800">Registrar decisão da tratativa</p>
+          <p className="mt-1 text-sm text-red-900">
+            {casosPendentes.length === 1
+              ? `A combinação ${casosPendentes[0].def.nome} está aguardando uma decisão.`
+              : `${casosPendentes.length} combinações estão aguardando uma decisão.`}{" "}
+            Recomendação: {casosPendentes[0].def.protocolo.toLowerCase()}
+          </p>
+        </div>
+        <RegistrarDecisaoDialog
+          colaboradorNome={colaborador.nome}
+          combinacoesRelacionadas={casosPendentes.map((c) => ({ id: c.caso.id, nome: c.def.nome }))}
+          onRegistrar={registrarDecisao}
+          className="shrink-0 bg-red-600 hover:bg-red-700"
+        />
+      </div>
+    ) : teste.status === "medio" && !decisaoAutorizacao ? (
+      <AutorizacaoFuncaoDialog
+        colaboradorNome={colaborador.nome}
+        classificacao={teste.classificacao}
+        onDecidir={(decisao) => {
+          teste.autorizacaoDecidida = decisao;
+          setDecisaoAutorizacao(decisao);
+        }}
+      />
+    ) : (
+      <p className="text-sm text-muted-foreground">Nenhuma ação pendente no momento.</p>
+    );
+
+  const resultadosDosFatores = (
+    <Card className="w-full py-0 shadow-sm">
+      <CardHeader className="px-6 pt-6">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <ClipboardList className="size-4.5 text-muted-foreground" />
+          Resultados dos fatores (EEA)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-6 pb-6">
+        <div className="divide-y">
+          {resultados.map((r) => {
+            const risco = classificarRiscoDT(r.nota);
+            const relacionado = fatoresRelacionados.has(r.nome);
+            return (
+              <div key={r.nome} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2.5">
+                <span className="flex min-w-0 items-center gap-2">
+                  {relacionado && <span className="size-2 shrink-0 rounded-full bg-red-500" />}
+                  <span className="truncate text-sm">{r.nome}</span>
+                </span>
+                <div className="flex w-36 items-center gap-2">
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${(r.nota / 75) * 100}%`, backgroundColor: RISCO_HEX[risco] }}
+                    />
+                  </div>
+                  <span className="w-12 shrink-0 text-right text-xs text-muted-foreground">{r.nota}/75</span>
+                </div>
+                <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${STATUS_TEXT_CLASS[risco]}`}>
+                  {RISCO_LABEL[risco]}
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-4 border-t pt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.baixo }} />
+            Baixo
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.medio }} />
+            Médio
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.alto }} />
+            Alto
+          </span>
+          {fatoresRelacionados.size > 0 && (
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-red-500" />
+              Fatores que compõem combinações detectadas
+            </span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <Layout>
       <Breadcrumb
@@ -199,7 +383,7 @@ export default function NovoTesteDetail() {
         </Button>
       </div>
 
-      {/* 1. Cabecalho -- prioriza "o que precisa acontecer agora" em vez da
+      {/* Cabecalho -- prioriza "o que precisa acontecer agora" em vez da
           pontuacao bruta do teste. */}
       <Card className="w-full shadow-sm">
         <CardContent className="space-y-4 p-6">
@@ -259,263 +443,218 @@ export default function NovoTesteDetail() {
         </CardContent>
       </Card>
 
-      {/* 2. Combinacoes detectadas -- o elemento mais importante da tela:
-          o que aciona a tratativa e a combinacao de fatores, nao a
-          pontuacao total isolada. */}
-      {podeVerRisco && casos.length > 0 && (
-        <Card className="w-full py-0 shadow-sm">
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="text-lg">Combinações críticas identificadas</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {casos.length} combinaç{casos.length === 1 ? "ão" : "ões"} — Tríade (nível Especial) sempre aparece
-              primeiro, as demais em ordem de severidade
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-3 px-6 pb-6">
-            {casos.map(({ caso, def }, index) => {
-              const especial = def.nivel === "ESPECIAL";
-              return (
-                <div
-                  key={caso.id}
-                  className={`rounded-xl border p-4 shadow-sm ${especial ? "bg-slate-900 text-white" : "bg-card"}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                        especial ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-semibold uppercase tracking-wide">{def.nome}</p>
-                        <Badge
-                          variant="outline"
-                          className={`rounded-lg px-2 py-0.5 text-xs ${
-                            especial ? "border-white/30 bg-white/10 text-white" : NIVEL_BADGE_CLASS[def.nivel]
-                          }`}
-                        >
-                          {NIVEL_LABEL[def.nivel]}
-                          {especial ? " · Prioridade absoluta" : ""}
-                        </Badge>
-                      </div>
-                      <p className={`mt-1.5 text-sm ${especial ? "text-white/80" : "text-muted-foreground"}`}>
-                        {def.fatores.join(" + ")}
-                      </p>
-                      <p className={`mt-2 text-sm font-medium ${especial ? "text-white" : "text-foreground"}`}>
-                        {def.protocolo}
-                      </p>
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                        <span
-                          className={`text-xs font-medium ${
-                            especial ? "text-white/70" : caso.status === "em_tratativa" ? "text-amber-600" : "text-red-600"
-                          }`}
-                        >
-                          {caso.status === "em_tratativa" ? "Em tratativa" : "Sem tratativa"}
-                        </span>
-                        <Button
-                          asChild
-                          size="sm"
-                          variant={especial ? "secondary" : "outline"}
-                          className="rounded-xl"
-                        >
-                          <Link href={`/empresas/${caso.empresaId}/combinacoes/${caso.id}`}>
-                            Ver tratativa
-                            <ArrowRight className="size-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
+      <Tabs value={aba} onValueChange={setAba} className="w-full">
+        <TabsList>
+          <TabsTrigger value="visao-geral">Visão geral</TabsTrigger>
+          <TabsTrigger value="combinacoes">Combinações detectadas</TabsTrigger>
+          <TabsTrigger value="dt">DT</TabsTrigger>
+          <TabsTrigger value="historico">Histórico</TabsTrigger>
+        </TabsList>
 
-      {/* 3. Proxima acao -- o gestor nao deveria ter que interpretar a tela
-          inteira pra descobrir o proximo passo. */}
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="px-6 pt-6">
-          <CardTitle className="text-lg">Próxima ação</CardTitle>
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          {casosPendentes.length > 0 ? (
-            <div className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="font-semibold text-red-800">Registrar decisão da tratativa</p>
-                <p className="mt-1 text-sm text-red-900">
-                  {casosPendentes.length === 1
-                    ? `A combinação ${casosPendentes[0].def.nome} está aguardando uma decisão.`
-                    : `${casosPendentes.length} combinações estão aguardando uma decisão.`}{" "}
-                  Recomendação: {casosPendentes[0].def.protocolo.toLowerCase()}
-                </p>
-              </div>
-              <RegistrarDecisaoDialog
-                colaboradorNome={colaborador.nome}
-                combinacoesRelacionadas={casosPendentes.map((c) => ({ id: c.caso.id, nome: c.def.nome }))}
-                onRegistrar={registrarDecisao}
-                className="shrink-0 bg-red-600 hover:bg-red-700"
-              />
-            </div>
-          ) : teste.status === "medio" && !decisaoAutorizacao ? (
-            <AutorizacaoFuncaoDialog
-              colaboradorNome={colaborador.nome}
-              classificacao={teste.classificacao}
-              onDecidir={(decisao) => {
-                teste.autorizacaoDecidida = decisao;
-                setDecisaoAutorizacao(decisao);
-              }}
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">Nenhuma ação pendente no momento.</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 4. Resultados dos fatores -- desce na hierarquia, mas destaca os
-          fatores que participam de alguma combinacao critica. */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
-        <Card className="w-full py-0 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-            <CardTitle className="text-lg">Gráfico de risco</CardTitle>
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.baixo }} />
-                Baixo
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.medio }} />
-                Médio
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.alto }} />
-                Alto
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <div className="h-[360px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
-                  <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
-                  <XAxis
-                    type="number"
-                    domain={[0, 75]}
-                    ticks={[0, 15, 30, 45, 60, 75]}
-                    axisLine={false}
-                    tickLine={false}
-                    style={{ fontSize: "12px" }}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="nome"
-                    width={150}
-                    axisLine={false}
-                    tickLine={false}
-                    style={{ fontSize: "12px" }}
-                  />
-                  <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={20}>
-                    {resultados.map((r) => (
-                      <Cell key={r.nome} fill={RISCO_HEX[classificarRiscoDT(r.nota)]} />
+        <TabsContent value="visao-geral" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+            <div className="space-y-6">
+              {podeVerRisco && casos.length > 0 && (
+                <Card className="w-full py-0 shadow-sm">
+                  <CardHeader className="px-6 pt-6">
+                    <CardTitle className="text-lg">Combinações críticas identificadas</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 px-6 pb-6">
+                    {casos.map(({ caso, def }, index) => (
+                      <CombinacaoCard key={caso.id} caso={caso} def={def} index={index} variant="compacta" />
                     ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+                  </CardContent>
+                </Card>
+              )}
 
-        <Card className="w-full py-0 shadow-sm">
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <ClipboardList className="size-4.5 text-muted-foreground" />
-              Resultados dos fatores
-            </CardTitle>
-            {fatoresRelacionados.size > 0 && (
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="size-2 rounded-full bg-red-500" />
-                Fator relacionado a uma combinação crítica
-              </p>
-            )}
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <div className="divide-y">
-              {resultados.map((r) => {
-                const risco = classificarRiscoDT(r.nota);
-                const relacionado = fatoresRelacionados.has(r.nome);
-                return (
-                  <div key={r.nome} className="flex items-center justify-between gap-3 py-2.5">
-                    <span className="flex min-w-0 flex-1 items-center gap-2">
-                      {relacionado && <span className="size-2 shrink-0 rounded-full bg-red-500" />}
-                      <span className="truncate text-sm">{r.nome}</span>
-                    </span>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{r.nota}/75</span>
-                      <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${STATUS_TEXT_CLASS[risco]}`}>
-                        {RISCO_LABEL[risco]}
-                      </Badge>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              <Card className="w-full py-0 shadow-sm">
+                <CardHeader className="px-6 pt-6">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Flag className="size-4.5 text-muted-foreground" />
+                    Próxima ação
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-6 pb-6">{proximaAcao}</CardContent>
+              </Card>
 
-      {/* 5. Historico -- timeline unificada (combinacoes + tratativas), em
-          vez de uma tabela de logs. */}
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <History className="size-4.5 text-muted-foreground" />
-              Histórico da tratativa
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Combinações identificadas e ações registradas para {colaborador.nome}
-            </p>
+              {podeVerRisco && (
+                <p className="text-xs text-muted-foreground">
+                  Somente gestores têm acesso às combinações detectadas e à tratativa.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              {resultadosDosFatores}
+
+              <Card className="w-full py-0 shadow-sm">
+                <CardHeader className="px-6 pt-6">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <History className="size-4.5 text-muted-foreground" />
+                    Histórico da tratativa
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-6 pb-6">
+                  {eventos.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhum evento registrado ainda.</p>
+                  ) : (
+                    <ol className="space-y-4">
+                      {eventos.slice(0, 3).map((evento, index) => (
+                        <li key={index} className="flex gap-3">
+                          <div className="flex flex-col items-center">
+                            <span className="mt-1 size-2.5 shrink-0 rounded-full bg-primary" />
+                            {index < Math.min(eventos.length, 3) - 1 && (
+                              <span className="mt-1 w-px flex-1 bg-border" />
+                            )}
+                          </div>
+                          <div className="pb-1">
+                            <p className="text-xs text-muted-foreground">{evento.data}</p>
+                            <p className="text-sm font-medium">{evento.titulo}</p>
+                            {evento.descricao && <p className="text-xs text-muted-foreground">{evento.descricao}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="mt-4 w-full rounded-xl"
+                    onClick={() => setAba("historico")}
+                  >
+                    Ver histórico completo
+                    <ArrowRight className="size-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          {eventos.length === 0 ? (
-            <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-              Nenhum evento registrado ainda para este funcionário.
-            </p>
-          ) : (
-            <ol className="space-y-4">
-              {eventos.map((evento, index) => (
-                <li key={index} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <span className="mt-1 size-2.5 shrink-0 rounded-full bg-primary" />
-                    {index < eventos.length - 1 && <span className="mt-1 w-px flex-1 bg-border" />}
-                  </div>
-                  <div className="pb-1">
-                    <p className="text-xs text-muted-foreground">{evento.data}</p>
-                    <p className="text-sm font-medium">{evento.titulo}</p>
-                    {evento.descricao && <p className="text-xs text-muted-foreground">{evento.descricao}</p>}
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-          <CardTitle className="text-lg">Registrar tratativa simples</CardTitle>
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          <p className="mb-3 text-sm text-muted-foreground">
-            Para conversas e feedbacks pontuais, sem vínculo com uma combinação específica.
-          </p>
-          <TratativaDialog colaboradorNome={colaborador.nome} onRegistrar={registrarTratativaSimples} />
-        </CardContent>
-      </Card>
+        <TabsContent value="combinacoes" className="space-y-3">
+          {podeVerRisco && casos.length > 0 ? (
+            casos.map(({ caso, def }, index) => (
+              <CombinacaoCard key={caso.id} caso={caso} def={def} index={index} variant="completa" />
+            ))
+          ) : (
+            <Card className="w-full py-0 shadow-sm">
+              <CardContent className="px-6 py-8 text-center text-sm text-muted-foreground">
+                Nenhuma combinação crítica identificada para este funcionário.
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="dt" className="space-y-6">
+          {casosPendentes.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm text-amber-900">
+                {casosPendentes.length === 1
+                  ? `A combinação ${casosPendentes[0].def.nome} precisa de um DT mais aprofundado.`
+                  : `${casosPendentes.length} combinações precisam de um DT mais aprofundado.`}
+              </p>
+              <Button
+                size="sm"
+                className="rounded-xl"
+                onClick={() => toast(`Iniciando novo DT para ${colaborador.nome}`)}
+              >
+                <Stethoscope className="size-4" />
+                Iniciar novo DT
+              </Button>
+            </div>
+          )}
+
+          <Card className="w-full py-0 shadow-sm">
+            <CardHeader className="px-6 pt-6">
+              <CardTitle className="text-lg">Testes DT realizados</CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              {testesDt.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum DT realizado ainda para este funcionário.</p>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/40 hover:bg-muted/40">
+                        <TableHead className="h-11 px-4">Data</TableHead>
+                        <TableHead className="h-11 px-4">Pontuação</TableHead>
+                        <TableHead className="h-11 px-4">Classificação</TableHead>
+                        <TableHead className="h-11 px-4" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {testesDt.map((t) => (
+                        <TableRow key={t.id}>
+                          <TableCell className="px-4 py-3">
+                            {t.data} · {horaDoTeste(colaborador.id, t.id)}
+                          </TableCell>
+                          <TableCell className="px-4 py-3">{t.pontuacao} / 100</TableCell>
+                          <TableCell className="px-4 py-3">
+                            <span className={STATUS_TEXT_CLASS[t.status]}>{t.classificacao}</span>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-right">
+                            <Button asChild size="sm" variant="outline" className="rounded-xl">
+                              <Link href={`/empresas/${empresa.id}/ntestes/${colaborador.id}/${t.id}`}>Ver</Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="historico" className="space-y-6">
+          <Card className="w-full py-0 shadow-sm">
+            <CardHeader className="px-6 pt-6">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <History className="size-4.5 text-muted-foreground" />
+                Histórico da tratativa
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Combinações identificadas e ações registradas para {colaborador.nome}
+              </p>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              {eventos.length === 0 ? (
+                <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                  Nenhum evento registrado ainda para este funcionário.
+                </p>
+              ) : (
+                <ol className="space-y-4">
+                  {eventos.map((evento, index) => (
+                    <li key={index} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <span className="mt-1 size-2.5 shrink-0 rounded-full bg-primary" />
+                        {index < eventos.length - 1 && <span className="mt-1 w-px flex-1 bg-border" />}
+                      </div>
+                      <div className="pb-1">
+                        <p className="text-xs text-muted-foreground">{evento.data}</p>
+                        <p className="text-sm font-medium">{evento.titulo}</p>
+                        {evento.descricao && <p className="text-xs text-muted-foreground">{evento.descricao}</p>}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="w-full py-0 shadow-sm">
+            <CardHeader className="px-6 pt-6">
+              <CardTitle className="text-lg">Registrar tratativa simples</CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <p className="mb-3 text-sm text-muted-foreground">
+                Para conversas e feedbacks pontuais, sem vínculo com uma combinação específica.
+              </p>
+              <TratativaDialog colaboradorNome={colaborador.nome} onRegistrar={registrarTratativaSimples} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <Collapsible className="w-full">
         <Card className="w-full gap-0 py-0 shadow-sm">
