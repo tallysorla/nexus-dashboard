@@ -88,15 +88,17 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
                 {def.fatores.map((f) => (
                   <Badge
                     key={f}
-                    variant="secondary"
-                    className={`rounded-lg px-2 py-0.5 text-xs ${especial ? "bg-white/10 text-white" : ""}`}
+                    variant="outline"
+                    className={`rounded-lg px-2 py-0.5 text-xs ${
+                      especial ? "border-white/30 bg-white/10 text-white" : "border-amber-200 bg-amber-50 text-amber-800"
+                    }`}
                   >
                     {f}
                   </Badge>
                 ))}
               </div>
 
-              <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,1fr)]">
+              <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,1fr)]">
                 <div>
                   <p
                     className={`text-xs font-medium uppercase tracking-wide ${
@@ -109,12 +111,16 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
                     {def.vulnerabilidade}
                   </p>
                 </div>
-                <div className={`rounded-xl p-4 ${especial ? "bg-white/10" : "bg-violet-50"}`}>
-                  <div className={`flex items-center gap-2 ${especial ? "text-white" : "text-violet-700"}`}>
+                <div className={`lg:border-l lg:pl-6 ${especial ? "border-white/20" : "border-primary/40"}`}>
+                  <div
+                    className={`flex items-center gap-2 border-b pb-2 ${
+                      especial ? "border-white/30 text-white" : "border-primary/40 text-primary"
+                    }`}
+                  >
                     <Microscope className="size-4" />
                     <p className="text-sm font-semibold">Foco do DT</p>
                   </div>
-                  <p className={`mt-1.5 text-sm ${especial ? "text-white/90" : "text-violet-900"}`}>{def.focoDT}</p>
+                  <p className={`mt-2 text-sm ${especial ? "text-white/90" : "text-foreground"}`}>{def.focoDT}</p>
                 </div>
               </div>
 
