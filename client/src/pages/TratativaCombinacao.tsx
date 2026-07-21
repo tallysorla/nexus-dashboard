@@ -6,7 +6,7 @@ import { TratativaDialog } from "@/components/TratativaDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Microscope, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ShieldAlert } from "lucide-react";
 import { getColaboradorById, parseDataBr, type Tratativa } from "@/lib/mock-colaboradores";
 import {
   combinacoesCasos,
@@ -104,53 +104,38 @@ export default function TratativaCombinacao() {
 
       <Card className="w-full py-0 shadow-sm">
         <CardContent className="space-y-3 px-6 py-6">
-          <div>
-            <p className="font-medium">{def.nome}</p>
-            <p className="text-sm text-muted-foreground">{colaborador.local}</p>
+          <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${NIVEL_BADGE_CLASS[def.nivel]}`}>
+            {NIVEL_LABEL[def.nivel]}
+          </Badge>
+          <div className="flex flex-wrap gap-1.5">
+            {def.fatores.map((f) => (
+              <Badge
+                key={f}
+                variant="outline"
+                className="rounded-lg border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-800"
+              >
+                {f}
+              </Badge>
+            ))}
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Fatores combinados
+              Vulnerabilidade identificada
             </p>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {def.fatores.map((f) => (
-                <Badge
-                  key={f}
-                  variant="outline"
-                  className="rounded-lg border-red-200 bg-red-50 px-2 py-0.5 text-xs text-red-700"
-                >
-                  {f}
-                </Badge>
-              ))}
-            </div>
+            <p className="mt-1.5 text-sm leading-relaxed">{def.vulnerabilidade}</p>
           </div>
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,1fr)]">
         <Card className="w-full py-0 shadow-sm">
-          <CardContent className="space-y-4 px-6 py-6">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Vulnerabilidade identificada
-              </p>
-              <p className="mt-1.5 text-sm leading-relaxed">{def.vulnerabilidade}</p>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-violet-50 p-4">
-                <div className="flex items-center gap-2 text-violet-700">
-                  <Microscope className="size-4" />
-                  <p className="text-sm font-semibold">Foco do DT</p>
-                </div>
-                <p className="mt-1.5 text-sm text-violet-900">{def.focoDT}</p>
+          <CardContent className="px-6 py-6">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+              <div className="flex items-center gap-2 text-red-700">
+                <ShieldAlert className="size-4" />
+                <p className="text-sm font-semibold">Ação recomendada pelo protocolo</p>
               </div>
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-                <div className="flex items-center gap-2 text-red-700">
-                  <ShieldAlert className="size-4" />
-                  <p className="text-sm font-semibold">Ação recomendada pelo protocolo</p>
-                </div>
-                <p className="mt-1.5 text-sm font-semibold text-red-700">{def.protocolo}</p>
-              </div>
+              <p className="mt-1.5 text-sm font-semibold text-red-700">{def.protocolo}</p>
             </div>
           </CardContent>
         </Card>

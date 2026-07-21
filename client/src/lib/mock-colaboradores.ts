@@ -49,6 +49,17 @@ export type PontoDt = {
   origem: "mensal" | "tratativa";
 };
 
+// Decisao manual do gestor quando o teste da risco medio ("Aguardando") --
+// alto ja bloqueia automaticamente e baixo ja libera automaticamente, entao
+// so o medio exige essa decisao explicita.
+export type DecisaoAutorizacao = {
+  decisao: "autorizado" | "nao_autorizado";
+  observacao: string;
+  autor: string;
+  data: string;
+  hora: string;
+};
+
 export type TesteHistorico = {
   id: string;
   data: string;
@@ -57,6 +68,7 @@ export type TesteHistorico = {
   classificacao: string;
   status: RiskLevel;
   fatores: string;
+  autorizacaoDecidida?: DecisaoAutorizacao;
 };
 
 export type Tratativa = {

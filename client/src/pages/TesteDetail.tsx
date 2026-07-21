@@ -17,6 +17,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { AutorizacaoFuncaoDialog } from "@/components/AutorizacaoFuncaoDialog";
 import { TesteCombinacaoCritica } from "@/components/TesteCombinacaoCritica";
 import { TratativaDialog } from "@/components/TratativaDialog";
 import { useProfile } from "@/contexts/ProfileContext";
@@ -42,6 +43,7 @@ import {
   recomendacaoDoTeste,
   resultadosCompletosDoTeste,
   tempoNaEmpresa,
+  type DecisaoAutorizacao,
   type RiskLevel,
   type Tratativa,
 } from "@/lib/mock-colaboradores";
@@ -79,6 +81,9 @@ export default function TesteDetail() {
   const teste = colaborador?.historicoTestes.find((t) => t.id === testeId);
 
   const [tratativas, setTratativas] = useState<Tratativa[]>(colaborador?.historicoTratativas ?? []);
+  const [decisaoAutorizacao, setDecisaoAutorizacao] = useState<DecisaoAutorizacao | undefined>(
+    teste?.autorizacaoDecidida
+  );
 
   if (!empresa || !colaborador || !teste) return <NotFound />;
 
@@ -87,6 +92,18 @@ export default function TesteDetail() {
   const voltarHref = `/empresas/${empresa.id}/testes${filial ? `?filial=${filial.id}` : ""}`;
 
   const autorizacao = autorizacaoDoTeste(teste.status);
+  // Uma vez que o gestor decide (so acontece com risco medio), a decisao
+  // dele prevalece sobre o "Aguardando" automatico.
+  const autorizacaoLabel = decisaoAutorizacao
+    ? decisaoAutorizacao.decisao === "autorizado"
+      ? "Autorizado"
+      : "Não autorizado"
+    : autorizacao.label;
+  const autorizacaoColorClass = decisaoAutorizacao
+    ? decisaoAutorizacao.decisao === "autorizado"
+      ? "text-emerald-600"
+      : "text-red-600"
+    : STATUS_TEXT_CLASS[teste.status];
   const resultados = resultadosCompletosDoTeste(teste);
   const perguntasPuladas = perguntasPuladasDoTeste(teste);
   const hora = horaDoTeste(colaborador.id, teste.id);
@@ -164,7 +181,7 @@ export default function TesteDetail() {
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
             <div>
               <p className="text-sm text-muted-foreground">Autorização para exercer a função</p>
-              <p className={`mt-1 text-xl font-bold ${STATUS_TEXT_CLASS[teste.status]}`}>{autorizacao.label}</p>
+              <p className={`mt-1 text-xl font-bold ${autorizacaoColorClass}`}>{autorizacaoLabel}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Pontuação total</p>
@@ -223,6 +240,56 @@ export default function TesteDetail() {
             </div>
             <p className={`mt-2 text-sm font-medium ${acaoBodyClass}`}>{acaoRecomendada}</p>
           </div>
+
+          {/* Alto ja bloqueia e baixo ja libera automaticamente -- so o
+              medio ("Aguardando") exige essa decisao explicita do gestor. */}
+          {teste.status === "medio" &&
+            (decisaoAutorizacao ? (
+              <div
+                className={`rounded-xl border p-4 ${
+                  decisaoAutorizacao.decisao === "autorizado"
+                    ? "border-emerald-200 bg-emerald-50"
+                    : "border-red-200 bg-red-50"
+                }`}
+              >
+                <p
+                  className={`font-semibold ${
+                    decisaoAutorizacao.decisao === "autorizado" ? "text-emerald-800" : "text-red-800"
+                  }`}
+                >
+                  Autorização para exercer a função{" "}
+                  {decisaoAutorizacao.decisao === "autorizado" ? "concedida" : "negada"}
+                </p>
+                <p
+                  className={`mt-1 text-sm ${
+                    decisaoAutorizacao.decisao === "autorizado" ? "text-emerald-900" : "text-red-900"
+                  }`}
+                >
+                  Decisão registrada por: <strong>{decisaoAutorizacao.autor}</strong>
+                </p>
+                {decisaoAutorizacao.observacao && (
+                  <p
+                    className={`mt-1 text-sm ${
+                      decisaoAutorizacao.decisao === "autorizado" ? "text-emerald-900" : "text-red-900"
+                    }`}
+                  >
+                    {decisaoAutorizacao.observacao}
+                  </p>
+                )}
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Data/Hora: {decisaoAutorizacao.data}, {decisaoAutorizacao.hora}
+                </p>
+              </div>
+            ) : (
+              <AutorizacaoFuncaoDialog
+                colaboradorNome={colaborador.nome}
+                classificacao={teste.classificacao}
+                onDecidir={(decisao) => {
+                  teste.autorizacaoDecidida = decisao;
+                  setDecisaoAutorizacao(decisao);
+                }}
+              />
+            ))}
         </CardContent>
       </Card>
 
