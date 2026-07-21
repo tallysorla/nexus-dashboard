@@ -308,7 +308,7 @@ export const colaboradores: Colaborador[] = [
     serieEea: serieEea(58),
     serieDt: serieDt(340),
     historicoTestes: [
-      { id: "t1", data: "01/07/2026", tipo: "DT", pontuacao: 58, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva, Cansaço" },
+      { id: "t1", data: "01/07/2026", tipo: "DT", pontuacao: 58, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva, Qualidade do sono" },
       { id: "t2", data: "24/06/2026", tipo: "EEA", pontuacao: 52, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
       { id: "t3", data: "17/06/2026", tipo: "EEA", pontuacao: 33, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
       { id: "t4", data: "10/06/2026", tipo: "EEA", pontuacao: 28, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
@@ -344,7 +344,7 @@ export const colaboradores: Colaborador[] = [
     serieEea: serieEea(76),
     serieDt: serieDt(610, [MESES_SERIE_DT - 1]),
     historicoTestes: [
-      { id: "t1", data: "05/07/2026", tipo: "DT", pontuacao: 88, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Preocupação excessiva" },
+      { id: "t1", data: "05/07/2026", tipo: "DT", pontuacao: 88, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Perda de foco, Raiva ou irritabilidade" },
       { id: "t2", data: "28/06/2026", tipo: "EEA", pontuacao: 84, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Cansaço" },
       { id: "t3", data: "21/06/2026", tipo: "EEA", pontuacao: 79, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade" },
       { id: "t4", data: "14/06/2026", tipo: "EEA", pontuacao: 65, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
@@ -432,7 +432,7 @@ export const colaboradores: Colaborador[] = [
     serieDt: serieDt(480),
     historicoTestes: [
       { id: "t1", data: "04/07/2026", tipo: "EEA", pontuacao: 66, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço, Cansaço mental" },
-      { id: "t2", data: "27/06/2026", tipo: "DT", pontuacao: 63, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço" },
+      { id: "t2", data: "27/06/2026", tipo: "DT", pontuacao: 63, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço mental, Desmotivação" },
       { id: "t3", data: "20/06/2026", tipo: "EEA", pontuacao: 59, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço mental" },
       { id: "t4", data: "13/06/2026", tipo: "EEA", pontuacao: 45, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Insegurança" },
       { id: "t5", data: "06/06/2026", tipo: "DT", pontuacao: 37, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
