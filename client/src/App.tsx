@@ -13,6 +13,7 @@ import Filiais from "./pages/Filiais";
 import FilialDetail from "./pages/FilialDetail";
 import Testes from "./pages/Testes";
 import TesteDetail from "./pages/TesteDetail";
+import NovoTesteDetail from "./pages/NovoTesteDetail";
 import CombinacoesCriticas from "./pages/CombinacoesCriticas";
 import TratativaCombinacao from "./pages/TratativaCombinacao";
 import UsuariosAcessos from "./pages/UsuariosAcessos";
@@ -31,6 +32,7 @@ function Router() {
       <Route path={"/empresas/:cid/filiais/:fid"} component={FilialDetail} />
       <Route path={"/empresas/:cid/filiais"} component={Filiais} />
       <Route path={"/empresas/:cid/testes/:colaboradorId/:testeId"} component={TesteDetail} />
+      <Route path={"/empresas/:cid/ntestes/:colaboradorId/:testeId"} component={NovoTesteDetail} />
       <Route path={"/empresas/:cid/testes"} component={Testes} />
       <Route path={"/empresas/:cid/combinacoes/:kid"} component={TratativaCombinacao} />
       <Route path={"/empresas/:cid/combinacoes"} component={CombinacoesCriticas} />
