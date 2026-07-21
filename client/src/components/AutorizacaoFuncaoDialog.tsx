@@ -103,26 +103,22 @@ export function AutorizacaoFuncaoDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="autorizacao-observacao">
-                Observações{isAutorizar ? "*" : " (Opcional)"}
-              </FieldLabel>
-              <FieldContent>
-                <Textarea
-                  id="autorizacao-observacao"
-                  placeholder={
-                    isAutorizar
-                      ? "Ex: O funcionário pode exercer a função, mas precisa realizar algumas pausas entre o expediente."
-                      : "Ex: O funcionário não pode exercer a função no momento devido ao risco identificado no teste."
-                  }
-                  value={observacao}
-                  onChange={(e) => setObservacao(e.target.value)}
-                  rows={4}
-                />
-              </FieldContent>
-            </Field>
-          </FieldGroup>
+          {isAutorizar && (
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="autorizacao-observacao">Observações*</FieldLabel>
+                <FieldContent>
+                  <Textarea
+                    id="autorizacao-observacao"
+                    placeholder="Ex: O funcionário pode exercer a função, mas precisa realizar algumas pausas entre o expediente."
+                    value={observacao}
+                    onChange={(e) => setObservacao(e.target.value)}
+                    rows={4}
+                  />
+                </FieldContent>
+              </Field>
+            </FieldGroup>
+          )}
 
           <DialogFooter>
             <Button variant="outline" onClick={fechar}>
