@@ -232,8 +232,12 @@ export default function NovoTesteDetail() {
   const testesDt = [...colaborador.historicoTestes]
     .filter((t) => t.tipo === "DT")
     .sort((a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime());
-  const ultimoEea = testesEea[0];
-  const ultimoDt = testesDt[0];
+  // O teste aberto e sempre um dos dois (EEA ou DT) -- a coluna
+  // correspondente mostra os dados DELE, nao o mais recente do historico
+  // geral, para o cabecalho refletir o teste especifico que foi escolhido
+  // (e nao "o que ha de mais novo" no funcionario).
+  const eeaExibido = teste.tipo === "EEA" ? teste : testesEea[0];
+  const dtExibido = teste.tipo === "DT" ? teste : testesDt[0];
   const ultimaTratativa = [...tratativas].sort(
     (a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime()
   )[0];
@@ -420,18 +424,36 @@ export default function NovoTesteDetail() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40 hover:bg-muted/40">
-                  <TableHead className="h-11 px-4">Último EEA</TableHead>
-                  <TableHead className="h-11 px-4">Último DT</TableHead>
+                  <TableHead className="h-11 px-4">
+                    <span className="flex items-center gap-1.5">
+                      EEA
+                      {teste.tipo === "EEA" && (
+                        <Badge variant="outline" className="rounded-md border-primary/30 bg-primary/10 px-1.5 py-0 text-[10px] text-primary">
+                          Este teste
+                        </Badge>
+                      )}
+                    </span>
+                  </TableHead>
+                  <TableHead className="h-11 px-4">
+                    <span className="flex items-center gap-1.5">
+                      DT
+                      {teste.tipo === "DT" && (
+                        <Badge variant="outline" className="rounded-md border-primary/30 bg-primary/10 px-1.5 py-0 text-[10px] text-primary">
+                          Este teste
+                        </Badge>
+                      )}
+                    </span>
+                  </TableHead>
                   <TableHead className="h-11 px-4">Última ação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow>
                   <TableCell className="px-4 py-3">
-                    {ultimoEea ? `${ultimoEea.data} · ${horaDoTeste(colaborador.id, ultimoEea.id)}` : "—"}
+                    {eeaExibido ? `${eeaExibido.data} · ${horaDoTeste(colaborador.id, eeaExibido.id)}` : "—"}
                   </TableCell>
                   <TableCell className="px-4 py-3">
-                    {ultimoDt ? `${ultimoDt.data} · ${horaDoTeste(colaborador.id, ultimoDt.id)}` : "Pendente"}
+                    {dtExibido ? `${dtExibido.data} · ${horaDoTeste(colaborador.id, dtExibido.id)}` : "Pendente"}
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     {ultimaTratativa ? `${ultimaTratativa.tipo} · ${ultimaTratativa.data}` : "Nenhuma registrada"}
