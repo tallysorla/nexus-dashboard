@@ -49,7 +49,10 @@ export function DtChartSection({ data }: DtChartSectionProps) {
 
   const meses = Math.min(Number(range), data.length);
   const visibleData = data.slice(-meses);
-  const media = Math.round(visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length);
+  const media =
+    visibleData.length > 0
+      ? Math.round(visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length)
+      : 0;
 
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">

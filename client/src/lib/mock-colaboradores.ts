@@ -31,8 +31,11 @@ export function statusDoFator(tendencia: Tendencia): string {
   return "Estável";
 }
 
+// Sem sinal de +/- -- "+12%" lia como algo positivo mesmo quando a tendencia
+// e "Piorando" (usuarios confundiram). O badge de status e a cor do valor ja
+// comunicam a direcao, entao aqui so a magnitude importa.
 export function variacaoLabel(variacaoPercentual: number): string {
-  return `${variacaoPercentual > 0 ? "+" : ""}${variacaoPercentual}%`;
+  return `${Math.abs(variacaoPercentual)}%`;
 }
 
 export type PontoEea = {
@@ -188,21 +191,16 @@ function serieDt(valorAtual: number, pontosTratativa: number[] = []): PontoDt[] 
   });
 }
 
-// Tendencia do EEA: media dos ultimos 30 dias vs. media dos 30 dias
-// anteriores. Usamos o EEA (nao o DT) como base do calculo porque ele e
-// diario -- o DT e raro demais (poucos pontos ao longo de meses) para uma
-// comparacao de 30 dias em 30 dias, o que faria uma unica reavaliacao pontual
-// virar "tendencia".
-export function tendenciaEeaPercentual(serie: PontoEea[]): number {
-  const ultimos30 = serie.slice(-30);
-  const anteriores30 = serie.slice(-60, -30);
-  if (anteriores30.length === 0) return 0;
-
-  const mediaUltimos = ultimos30.reduce((soma, p) => soma + p.eea, 0) / ultimos30.length;
-  const mediaAnteriores = anteriores30.reduce((soma, p) => soma + p.eea, 0) / anteriores30.length;
-  if (mediaAnteriores === 0) return 0;
-
-  return Math.round(((mediaUltimos - mediaAnteriores) / mediaAnteriores) * 100);
+// Tendencia do EEA em relacao ao ultimo DT: o DT e o teste de referencia
+// (mais profundo, feito com bem menos frequencia) -- os EEAs diarios feitos
+// depois dele devem ser comparados contra esse baseline para indicar se o
+// funcionario esta piorando ou melhorando desde a ultima avaliacao
+// aprofundada, e nao contra a propria media historica do EEA. Normaliza o DT
+// (0-750) pra mesma escala do EEA (0-100) antes de comparar.
+export function tendenciaEeaVsUltimoDt(eeaAtual: number, dtAtual: number): number {
+  const dtBaseline = (dtAtual / 750) * 100;
+  if (dtBaseline === 0) return 0;
+  return Math.round(((eeaAtual - dtBaseline) / dtBaseline) * 100);
 }
 
 export function parseDataBr(data: string): Date {
@@ -450,6 +448,42 @@ export const colaboradores: Colaborador[] = [
       { id: "t5", data: "06/06/2026", tipo: "DT", pontuacao: 37, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
       { id: "t6", data: "30/05/2026", tipo: "EEA", pontuacao: 31, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
       { id: "t7", data: "23/05/2026", tipo: "EEA", pontuacao: 28, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço mental" },
+    ],
+    historicoTratativas: [],
+  },
+  {
+    // Funcionario recem-admitido: ja fez EEA (diario, comeca no primeiro dia)
+    // mas ainda nao teve nenhum DT (periodico/mais raro) -- cenario real de
+    // blank state pro card de Tendencia em MetricsCards.tsx.
+    id: "bruno-teixeira",
+    nome: "Bruno Teixeira",
+    cargo: "Auxiliar de Logística",
+    setor: "Logística",
+    local: "Matriz SP",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces&auto=format&q=80",
+    matricula: "EMP-11501",
+    cpf: "203.884.771-09",
+    idade: 22,
+    dataAdmissao: "01/07/2026",
+    eea: 22,
+    dt: 0,
+    risco: "baixo",
+    totalTestesEea: 4,
+    totalTestesDt: 0,
+    fatoresDestaque: [
+      { rank: 1, nome: "Insegurança", nota: 15, variacaoPercentual: 2, origem: "EEA" },
+      { rank: 2, nome: "Cansaço", nota: 12, variacaoPercentual: -1, origem: "EEA" },
+      { rank: 3, nome: "Perda de foco", nota: 9, variacaoPercentual: 1, origem: "EEA" },
+    ],
+    fatoresAdicionais: gerarFatoresAdicionais("baixo", ["Insegurança", "Cansaço", "Perda de foco"]),
+    serieEea: serieEea(22),
+    serieDt: [],
+    historicoTestes: [
+      { id: "t1", data: "05/07/2026", tipo: "EEA", pontuacao: 22, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t2", data: "04/07/2026", tipo: "EEA", pontuacao: 19, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t3", data: "03/07/2026", tipo: "EEA", pontuacao: 16, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Perda de foco" },
+      { id: "t4", data: "02/07/2026", tipo: "EEA", pontuacao: 14, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
     ],
     historicoTratativas: [],
   },

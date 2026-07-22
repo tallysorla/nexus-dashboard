@@ -6,20 +6,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Info,
-  Minus,
-  TrendingDown,
-  TrendingUp,
-  type LucideIcon,
-} from "lucide-react";
+import { Info, type LucideIcon } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
   statusDoFator,
   tendenciaDoFator,
-  tendenciaEeaPercentual,
+  tendenciaEeaVsUltimoDt,
   variacaoLabel,
   type Colaborador,
   type Tendencia,
@@ -40,12 +34,6 @@ type KpiCardProps = {
   sublabel?: string;
   tooltip?: string;
   extra?: ReactNode;
-};
-
-const TENDENCIA_ICON: Record<Tendencia, LucideIcon> = {
-  subindo: TrendingUp,
-  descendo: TrendingDown,
-  estavel: Minus,
 };
 
 // Subir e piorar aqui (nota mais alta de EEA/DT normalizado = mais risco),
@@ -107,9 +95,12 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   const dtProgress = Math.round((colaborador.dt / 750) * 100);
   const dtRisco = classificarRisco(dtProgress);
 
-  const tendenciaEeaValor = tendenciaEeaPercentual(colaborador.serieEea);
+  // A tendencia so faz sentido quando ja existe pelo menos 1 EEA e 1 DT
+  // realizados -- sem os dois, nao ha o que comparar (mostra blank state
+  // em vez de um numero calculado a partir de dado inexistente).
+  const semDadosSuficientes = colaborador.totalTestesEea === 0 || colaborador.totalTestesDt === 0;
+  const tendenciaEeaValor = tendenciaEeaVsUltimoDt(colaborador.eea, colaborador.dt);
   const tendencia = tendenciaDoFator(tendenciaEeaValor);
-  const TendenciaValorIcon = TENDENCIA_ICON[tendencia];
 
   return (
     <>
@@ -131,21 +122,33 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
         tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
       />
-      <KpiCard
-        label="Tendência (EEA)"
-        value={
-          <span className="inline-flex items-center gap-1.5">
-            <TendenciaValorIcon className={`size-6 ${TENDENCIA_VALOR_CLASSE[tendencia]}`} />
-            {variacaoLabel(tendenciaEeaValor)}
-          </span>
-        }
-        badge={statusDoFator(tendencia)}
-        badgeClassName={
-          tendencia === "subindo" ? RISCO_BADGE_CLASS.alto : "border-slate-200 bg-slate-50 text-slate-700"
-        }
-        sublabel="Último DT realizado Vs Dt's realizados nos últimos 60 dias"
-        tooltip="Compara o resultado mais recente do teste DT com o último ou últimos 3 testes DT's realizados. Valores positivos indicam aumento do índice; valores negativos indicam redução."
-      />
+      {semDadosSuficientes ? (
+        <KpiCard
+          label="Tendência (EEA)"
+          value={<span className="text-muted-foreground">—</span>}
+          badge="Sem dados suficientes"
+          badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
+          sublabel={
+            colaborador.totalTestesEea === 0 && colaborador.totalTestesDt === 0
+              ? "Aguardando o primeiro teste EEA e DT"
+              : colaborador.totalTestesEea === 0
+                ? "Aguardando o primeiro teste EEA"
+                : "Aguardando o primeiro teste DT"
+          }
+          tooltip="A tendência compara o EEA mais recente com o último DT realizado. Ela só aparece depois que o funcionário tiver pelo menos um teste de cada tipo."
+        />
+      ) : (
+        <KpiCard
+          label="Tendência (EEA)"
+          value={<span className={TENDENCIA_VALOR_CLASSE[tendencia]}>{variacaoLabel(tendenciaEeaValor)}</span>}
+          badge={statusDoFator(tendencia)}
+          badgeClassName={
+            tendencia === "subindo" ? RISCO_BADGE_CLASS.alto : "border-slate-200 bg-slate-50 text-slate-700"
+          }
+          sublabel="EEA atual em relação ao último DT realizado"
+          tooltip="O DT é o teste de referência mais aprofundado. Compara o EEA mais recente com o resultado do último DT (na mesma escala) para indicar se o funcionário está piorando ou melhorando desde essa última avaliação."
+        />
+      )}
     </>
   );
 }
