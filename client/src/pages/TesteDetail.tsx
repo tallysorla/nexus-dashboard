@@ -297,55 +297,62 @@ export default function TesteDetail() {
         <TesteCombinacaoCritica colaboradorId={colaborador.id} dataTeste={teste.data} />
       )}
 
-      <Card className="w-full py-0 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-          <CardTitle className="text-lg">Gráfico de risco</CardTitle>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.baixo }} />
-              Baixo
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.medio }} />
-              Médio
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.alto }} />
-              Alto
-            </span>
+      <Collapsible defaultOpen className="w-full">
+        <Card className="w-full gap-0 py-0 shadow-sm">
+          <div className="flex flex-row items-center justify-between gap-4 px-6 py-5">
+            <CardTitle className="text-lg">Gráfico de risco</CardTitle>
+            <div className="flex items-center gap-4 text-sm">
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.baixo }} />
+                Baixo
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.medio }} />
+                Médio
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.alto }} />
+                Alto
+              </span>
+              <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
+                <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="px-6 pb-6">
-          <div className="h-[420px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
-                <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
-                <XAxis
-                  type="number"
-                  domain={[0, 75]}
-                  ticks={[0, 15, 30, 45, 60, 75]}
-                  axisLine={false}
-                  tickLine={false}
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="nome"
-                  width={150}
-                  axisLine={false}
-                  tickLine={false}
-                  style={{ fontSize: "12px" }}
-                />
-                <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
-                  {resultados.map((r) => (
-                    <Cell key={r.nome} fill={RISCO_HEX[classificarRiscoDT(r.nota)]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+          <CollapsibleContent>
+            <CardContent className="border-t px-6 py-5">
+              <div className="h-[420px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
+                    <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
+                    <XAxis
+                      type="number"
+                      domain={[0, 75]}
+                      ticks={[0, 15, 30, 45, 60, 75]}
+                      axisLine={false}
+                      tickLine={false}
+                      style={{ fontSize: "12px" }}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="nome"
+                      width={150}
+                      axisLine={false}
+                      tickLine={false}
+                      style={{ fontSize: "12px" }}
+                    />
+                    <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
+                      {resultados.map((r) => (
+                        <Cell key={r.nome} fill={RISCO_HEX[classificarRiscoDT(r.nota)]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Resultados do Teste (esquerda) pareado com Perguntas puladas +
           Historico de tratativas empilhados (direita) -- Perguntas puladas
@@ -353,82 +360,98 @@ export default function TesteDetail() {
           Historico de tratativas preenche o espaco vazio que sobraria
           embaixo dele em vez de deixar a coluna da direita mais curta. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
-        <Card className="w-full py-0 shadow-sm">
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="text-lg">Resultados do Teste</CardTitle>
-            <p className="text-sm text-muted-foreground">Fatores que precisam de atenção neste teste</p>
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
-            {resultadosEmAtencao.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Nenhum fator em atenção — os 10 fatores estão em baixo risco neste teste.
-              </p>
-            ) : (
-              <>
-                <Accordion type="multiple" defaultValue={resultadosEmAtencao.map((r) => r.nome)}>
-                  {resultadosEmAtencao.map((r) => {
-                    const risco = classificarRiscoDT(r.nota);
-                    const Icon = risco === "alto" ? AlertCircle : AlertTriangle;
-                    const boxClass =
-                      risco === "alto"
-                        ? "border-red-200 bg-red-50 text-red-800"
-                        : "border-amber-200 bg-amber-50 text-amber-800";
-                    return (
-                      <AccordionItem key={r.nome} value={r.nome}>
-                        <AccordionTrigger>
-                          <span className="flex flex-1 items-center justify-between gap-3">
-                            <span className="font-medium">{r.nome}</span>
-                            <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
-                          </span>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className={`rounded-xl border p-4 ${boxClass}`}>
-                            <p className="font-semibold">{RISCO_LABEL[risco]}</p>
-                            <p className="mt-1 text-sm">{descricaoRiscoFator(r.nome, risco)}</p>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
-                {quantidadeBaixo > 0 && (
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Os outros {quantidadeBaixo} fatores estão em baixo risco (veja o gráfico acima).
+        <Collapsible defaultOpen className="w-full">
+          <Card className="w-full gap-0 py-0 shadow-sm">
+            <div className="flex items-center justify-between gap-4 px-6 py-5">
+              <div>
+                <CardTitle className="text-lg">Resultados do Teste</CardTitle>
+                <p className="text-sm text-muted-foreground">Fatores que precisam de atenção neste teste</p>
+              </div>
+              <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
+                <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+              <CardContent className="border-t px-6 py-5">
+                {resultadosEmAtencao.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum fator em atenção — os 10 fatores estão em baixo risco neste teste.
                   </p>
+                ) : (
+                  <>
+                    <Accordion type="multiple" defaultValue={resultadosEmAtencao.map((r) => r.nome)}>
+                      {resultadosEmAtencao.map((r) => {
+                        const risco = classificarRiscoDT(r.nota);
+                        const Icon = risco === "alto" ? AlertCircle : AlertTriangle;
+                        const boxClass =
+                          risco === "alto"
+                            ? "border-red-200 bg-red-50 text-red-800"
+                            : "border-amber-200 bg-amber-50 text-amber-800";
+                        return (
+                          <AccordionItem key={r.nome} value={r.nome}>
+                            <AccordionTrigger>
+                              <span className="flex flex-1 items-center justify-between gap-3">
+                                <span className="font-medium">{r.nome}</span>
+                                <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
+                              </span>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className={`rounded-xl border p-4 ${boxClass}`}>
+                                <p className="font-semibold">{RISCO_LABEL[risco]}</p>
+                                <p className="mt-1 text-sm">{descricaoRiscoFator(r.nome, risco)}</p>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                    {quantidadeBaixo > 0 && (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Os outros {quantidadeBaixo} fatores estão em baixo risco (veja o gráfico acima).
+                      </p>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         <div className="flex flex-col gap-6">
-          <Card className="w-full py-0 shadow-sm">
-            <CardHeader className="px-6 pt-6">
-              <CardTitle className="text-lg">Perguntas puladas</CardTitle>
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              {perguntasPuladas.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma pergunta foi pulada neste teste.</p>
-              ) : (
-                <Accordion type="multiple" defaultValue={perguntasPuladas.map((_, i) => `pp-${i}`)}>
-                  {perguntasPuladas.map((p, i) => (
-                    <AccordionItem key={i} value={`pp-${i}`}>
-                      <AccordionTrigger>{p.fator}</AccordionTrigger>
-                      <AccordionContent>
-                        <div className="rounded-xl bg-muted/40 p-4">
-                          <p className="text-sm font-medium text-red-600">Pergunta pulada</p>
-                          <p className="mt-1 text-sm">{p.pergunta}</p>
-                          <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-                            Motivo: {p.motivo}
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              )}
-            </CardContent>
-          </Card>
+          <Collapsible defaultOpen className="w-full">
+            <Card className="w-full gap-0 py-0 shadow-sm">
+              <div className="flex items-center justify-between gap-4 px-6 py-5">
+                <CardTitle className="text-lg">Perguntas puladas</CardTitle>
+                <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
+                  <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+              </div>
+              <CollapsibleContent>
+                <CardContent className="border-t px-6 py-5">
+                  {perguntasPuladas.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhuma pergunta foi pulada neste teste.</p>
+                  ) : (
+                    <Accordion type="multiple" defaultValue={perguntasPuladas.map((_, i) => `pp-${i}`)}>
+                      {perguntasPuladas.map((p, i) => (
+                        <AccordionItem key={i} value={`pp-${i}`}>
+                          <AccordionTrigger>{p.fator}</AccordionTrigger>
+                          <AccordionContent>
+                            <div className="rounded-xl bg-muted/40 p-4">
+                              <p className="text-sm font-medium text-red-600">Pergunta pulada</p>
+                              <p className="mt-1 text-sm">{p.pergunta}</p>
+                              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                                Motivo: {p.motivo}
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  )}
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           <Card className="w-full py-0 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
