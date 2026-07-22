@@ -84,16 +84,6 @@ const ORDEM_NIVEL: Record<NivelCombinacao, number> = {
 type EventoTimeline = { data: string; titulo: string; descricao?: string };
 type CasoComDef = { caso: CombinacaoCriticaCaso; def: CombinacaoCriticaDef };
 
-// Texto generico de "por que foi identificado" -- deriva do numero de
-// fatores da combinacao, sem precisar de mais um campo de texto por
-// combinacao no dado (as 9 definicoes ja tem vulnerabilidade/focoDT/protocolo).
-function porQueIdentificado(def: CombinacaoCriticaDef): string {
-  const n = def.fatores.length;
-  const sujeito = n === 2 ? "Ambos os fatores" : `Os ${n} fatores`;
-  const verbo = n === 2 ? "apresentam" : "apresentaram";
-  return `${sujeito} ${verbo} nível elevado no EEA atual.`;
-}
-
 function CombinacaoCard({
   caso,
   def,
@@ -107,67 +97,91 @@ function CombinacaoCard({
 }) {
   const especial = def.nivel === "ESPECIAL";
   const pendente = caso.status === "sem_tratativa";
+  // A divisao lado a lado (diagnostico | acao) so cabe confortavelmente
+  // quando o card ocupa a largura toda -- no card compacto (Visao geral)
+  // ele vive numa coluna de metade da tela, entao fica sempre empilhado.
+  const ladoALado = variant === "completa" ? "lg:flex-row" : "";
 
   return (
-    <div className={`rounded-xl border p-4 shadow-sm ${especial ? "border-red-200 bg-red-50" : "bg-card"}`}>
-      <div className="flex items-start gap-3">
+    <div className="overflow-hidden rounded-xl border shadow-sm">
+      <div className={`flex items-center gap-3 p-4 ${especial ? "bg-slate-900 text-white" : "bg-card"}`}>
         <div
           className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-            especial ? "bg-red-600 text-white" : "bg-muted text-muted-foreground"
+            especial ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
           }`}
         >
           {especial ? <AlertTriangle className="size-4" /> : index + 1}
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="font-semibold">{def.nome}</p>
-            <Badge
-              variant="outline"
-              className={`rounded-lg px-2 py-0.5 text-xs ${especial ? "border-red-300 bg-red-100 text-red-800" : NIVEL_BADGE_CLASS[def.nivel]}`}
-            >
-              {especial ? "Prioridade absoluta" : NIVEL_LABEL[def.nivel]}
-            </Badge>
-          </div>
-          <p className="mt-1 text-sm text-muted-foreground">{def.fatores.join(" + ")}</p>
+        <p className="font-semibold">{def.nome}</p>
+        <Badge
+          variant="outline"
+          className={`rounded-lg px-2 py-0.5 text-xs ${especial ? "border-white/30 bg-white/10 text-white" : NIVEL_BADGE_CLASS[def.nivel]}`}
+        >
+          {especial ? "Prioridade absoluta" : NIVEL_LABEL[def.nivel]}
+        </Badge>
+      </div>
 
-          {variant === "completa" && <p className="mt-2 text-sm text-foreground/80">{def.vulnerabilidade}</p>}
-
-          <div
-            className={`mt-3 grid grid-cols-1 gap-3 rounded-lg bg-muted/40 p-3 sm:grid-cols-2 ${
-              variant === "completa" ? "xl:grid-cols-4" : ""
-            }`}
-          >
-
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Protocolo</p>
-              <p className="text-sm font-semibold">{NIVEL_LABEL[def.nivel]}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Por que foi identificado?</p>
-              <p className="text-sm">{porQueIdentificado(def)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Foco do DT</p>
-              <p className="text-sm">{def.focoDT}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Orientação do protocolo</p>
-              <p className="text-sm">{def.protocolo}</p>
+      {/* Diagnostico (fatores + orientacao do protocolo) separado da acao
+          (callout de encaminhamento ao DT) -- o gestor nao precisa ler os
+          dois com o mesmo peso, so a acao exige destaque de cor. */}
+      <div className={`flex flex-col ${ladoALado}`}>
+        <div className="flex-1 space-y-3 p-4">
+          <div>
+            <p className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
+              Fatores combinados
+            </p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {def.fatores.map((f) => (
+                <Badge key={f} variant="outline" className="rounded border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-800">
+                  {f}
+                </Badge>
+              ))}
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <span className={`text-xs font-medium ${pendente ? "text-red-600" : "text-amber-600"}`}>
-              Status: {pendente ? "Sem tratativa" : "Em tratativa"}
-            </span>
-            <Button asChild size="sm" variant={pendente ? "default" : "outline"} className="rounded-xl">
-              <Link href={`/empresas/${caso.empresaId}/combinacoes/${caso.id}`}>
-                Ver tratativa
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
+          <div className="rounded-lg border bg-muted/30 p-3">
+            <p className="text-sm font-semibold">Orientação do protocolo</p>
+            <p className="mt-1 text-sm text-muted-foreground">{def.protocolo}</p>
           </div>
+
+          {variant === "completa" && (
+            <Collapsible>
+              <CollapsibleTrigger className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                Ver explicação técnica
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <p className="mt-2 text-sm text-foreground/80">{def.vulnerabilidade}</p>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </div>
+
+        <div
+          className={`w-full space-y-3 border-t p-4 lg:w-[300px] lg:border-t-0 lg:border-l ${
+            especial ? "border-red-700 bg-red-600 text-white" : "border-red-200 bg-red-50"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <AlertTriangle className={`size-4 shrink-0 ${especial ? "text-white" : "text-red-600"}`} />
+            <p className={`text-sm font-semibold ${especial ? "text-white" : "text-red-700"}`}>
+              {especial ? "Afastamento imediato obrigatório" : "Necessário encaminhamento para teste DT"}
+            </p>
+          </div>
+          <div className={`h-px w-full ${especial ? "bg-white/30" : "bg-red-200"}`} />
+          <p className={`text-sm ${especial ? "text-white/90" : "text-red-900"}`}>{def.focoDT}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t p-4">
+        <span className={`text-xs font-medium ${pendente ? "text-red-600" : "text-amber-600"}`}>
+          Status: {pendente ? "Sem tratativa" : "Em tratativa"}
+        </span>
+        <Button asChild size="sm" variant={pendente ? "default" : "outline"} className="rounded-xl">
+          <Link href={`/empresas/${caso.empresaId}/combinacoes/${caso.id}`}>
+            Ver tratativa
+            <ArrowRight className="size-4" />
+          </Link>
+        </Button>
       </div>
     </div>
   );
