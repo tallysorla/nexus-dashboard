@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ArrowRight } from "lucide-react";
+import { AlertTriangle, ArrowRight, Stethoscope } from "lucide-react";
 import {
   casosDoColaborador,
   getCombinacaoCriticaById,
@@ -96,6 +96,20 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
                 <p className={`mt-1.5 text-sm leading-relaxed ${especial ? "text-white/90" : "text-foreground"}`}>
                   {def.vulnerabilidade}
                 </p>
+              </div>
+
+              <div
+                className={`mt-3 flex items-start gap-2.5 rounded-lg border p-3 ${
+                  especial ? "border-white/20 bg-white/10" : "border-amber-200 bg-amber-50"
+                }`}
+              >
+                <Stethoscope className={`mt-0.5 size-4 shrink-0 ${especial ? "text-amber-300" : "text-amber-700"}`} />
+                <div>
+                  <p className={`text-sm font-semibold ${especial ? "text-white" : "text-amber-800"}`}>
+                    {especial ? "Afastamento imediato obrigatório" : "Encaminhamento para teste DT necessário"}
+                  </p>
+                  <p className={`mt-1 text-sm ${especial ? "text-white/80" : "text-amber-900"}`}>{def.focoDT}</p>
+                </div>
               </div>
 
               {especial && (
