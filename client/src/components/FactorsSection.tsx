@@ -155,7 +155,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTe
           variant="outline"
           value={tipoFiltro}
           onValueChange={updateTipoFiltro}
-          className="h-11 shrink-0 rounded-xl bg-card shadow-none"
+          className="h-11 shrink-0 rounded-xl bg-card"
         >
           <ToggleGroupItem value="EEA" className="px-4 text-xs">EEA</ToggleGroupItem>
           <ToggleGroupItem value="DT" className="px-4 text-xs">DT</ToggleGroupItem>
