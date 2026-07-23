@@ -1,6 +1,5 @@
-import { Bell, Check, ChevronDown, Eye, LogOut, Search, Settings, User } from "lucide-react";
+import { Bell, Check, ChevronDown, Eye, LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -46,14 +45,6 @@ export function Header({ children, showSidebarTrigger = true }: HeaderProps) {
 
         <div className="flex items-center gap-2">
           {children}
-          <div className="relative hidden w-72 lg:block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Buscar no dashboard"
-              className="h-11 rounded-xl bg-card pl-9"
-              placeholder="Buscar..."
-            />
-          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
