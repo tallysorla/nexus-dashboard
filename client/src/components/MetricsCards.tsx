@@ -54,6 +54,15 @@ const TENDENCIA_BADGE_CLASS: Record<Tendencia, string> = {
   estavel: "border-slate-200 bg-slate-50 text-slate-700",
 };
 
+// So o valor que muda (media do EEA) ganha cor de acordo com a tendencia --
+// o DT fica neutro porque e so a referencia fixa, nao o dado que estamos
+// avaliando.
+const TENDENCIA_VALOR_CLASSE: Record<Tendencia, string> = {
+  subindo: "text-emerald-600",
+  descendo: "text-red-600",
+  estavel: "text-foreground",
+};
+
 // "3,0" em vez de "3" -- casa com a media do EEA (que quase sempre tem uma
 // casa decimal) sem o DT parecer um numero de tipo diferente ao lado dela.
 function formatPontuacao(valor: number): string {
@@ -181,18 +190,21 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         <KpiCard
           label="Tendência"
           value={
-            <div className="flex items-center gap-2 text-base">
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs font-normal text-muted-foreground">DT ({ultimoDt!.data.slice(0, 5)})</span>
-                <span className="font-medium text-muted-foreground">{formatPontuacao(ultimoDt!.pontuacao)}</span>
+            <div className="w-full">
+              <div className="flex items-center justify-between text-xs font-normal text-muted-foreground">
+                <span>DT ({ultimoDt!.data.slice(0, 5)})</span>
+                <span>Média EEA</span>
               </div>
-              <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs font-normal text-muted-foreground">Média EEA</span>
-                <span className="text-xl font-semibold text-foreground">{formatPontuacao(mediaEea)}</span>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <span className="text-2xl font-semibold text-foreground">{formatPontuacao(ultimoDt!.pontuacao)}</span>
+                <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+                <span className={`text-2xl font-semibold ${TENDENCIA_VALOR_CLASSE[tendencia]}`}>
+                  {formatPontuacao(mediaEea)}
+                </span>
               </div>
             </div>
           }
+          meta={<div className="border-t pt-1" />}
           badge={
             <span className="flex items-center gap-1">
               <TendenciaIcon className="size-3.5" />
@@ -200,6 +212,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
             </span>
           }
           badgeClassName={TENDENCIA_BADGE_CLASS[tendencia]}
+          sublabel="Com base nos últimos 7 dias de teste EEA"
           tooltip="Compara a média do EEA nos últimos 7 dias com a pontuação do último DT realizado (o teste de referência, mais aprofundado), para indicar se o funcionário está melhorando ou piorando desde essa última avaliação."
         />
       )}
