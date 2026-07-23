@@ -6,17 +6,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ArrowRight, CalendarClock, Info, Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
+import { CalendarClock, Info, Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
-  mediaEea7Dias,
+  diasDesde,
   parseDataBr,
   statusDoFator,
   tendenciaDoFator,
   tendenciaEeaVsUltimoDt,
-  variacaoLabel,
   type Colaborador,
   type Tendencia,
 } from "@/lib/mock-colaboradores";
@@ -48,16 +47,18 @@ const TENDENCIA_ICON: Record<Tendencia, LucideIcon> = {
   estavel: Minus,
 };
 
-const TENDENCIA_BADGE_CLASS: Record<Tendencia, string> = {
-  subindo: RISCO_BADGE_CLASS.baixo,
-  descendo: RISCO_BADGE_CLASS.alto,
-  estavel: "border-slate-200 bg-slate-50 text-slate-700",
-};
+// Cor neutra (azul) pras 3 direcoes -- de proposito nao usa verde/vermelho
+// aqui. Isso e so a tendencia desde o ultimo DT, nao o nivel de risco atual
+// (que ja tem seu proprio badge vermelho/amarelo/verde nos cards ao lado);
+// se "Melhorando" viesse em verde, um gestor podia ler "esta tudo bem" mesmo
+// quando o funcionario segue em Alto risco.
+const TENDENCIA_COR = "text-blue-600";
+const TENDENCIA_BADGE_CLASS = "border-blue-200 bg-blue-50 text-blue-700";
 
-// "3,0" em vez de "3" -- casa com a media do EEA (que quase sempre tem uma
-// casa decimal) sem o DT parecer um numero de tipo diferente ao lado dela.
-function formatPontuacao(valor: number): string {
-  return valor.toFixed(1).replace(".", ",");
+// "+8%"/"-13%" (com sinal) -- aqui o sinal ajuda porque o valor vem sozinho,
+// sem os dois numeros de origem ao lado pra dar contexto.
+function variacaoComSinal(variacaoPercentual: number): string {
+  return `${variacaoPercentual > 0 ? "+" : ""}${variacaoPercentual}%`;
 }
 
 export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, meta, badge, badgeClassName, sublabel, tooltip, extra }: KpiCardProps) {
@@ -121,11 +122,13 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   // realizados -- sem os dois, nao ha o que comparar (mostra blank state
   // em vez de um numero calculado a partir de dado inexistente).
   const semDadosSuficientes = colaborador.totalTestesEea === 0 || colaborador.totalTestesDt === 0;
-  const mediaEea = mediaEea7Dias(colaborador.serieEea);
-  // Usa colaborador.dt (o mesmo valor do card "Ultima pontuacao DT" ao lado)
-  // em vez do registro isolado do historico, pra nunca poder divergir do que
-  // ja esta exibido na tela.
-  const tendenciaEeaValor = ultimoDt ? tendenciaEeaVsUltimoDt(mediaEea, colaborador.dt) : 0;
+  // Compara contra o ultimo EEA (um unico teste), nao uma media -- decisao
+  // deliberada: se os 2 primeiros dias da janela fossem ruins e os 5
+  // seguintes bons, a media "puxaria pra baixo" e esconderia justamente a
+  // melhora recente que o gestor precisa ver agora. colaborador.eea/dt (os
+  // mesmos valores dos cards "Ultima pontuacao" ao lado) garantem que a
+  // tendencia nunca diverge do que ja esta exibido na tela.
+  const tendenciaEeaValor = ultimoDt ? tendenciaEeaVsUltimoDt(colaborador.eea, colaborador.dt) : 0;
   const tendencia = tendenciaDoFator(tendenciaEeaValor);
   const TendenciaIcon = TENDENCIA_ICON[tendencia];
 
@@ -178,34 +181,24 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
                 ? "Aguardando o primeiro teste EEA"
                 : "Aguardando o primeiro teste DT"
           }
-          tooltip="A tendência compara a média do EEA nos últimos 7 dias com o último DT realizado. Ela só aparece depois que o funcionário tiver pelo menos um teste de cada tipo."
+          tooltip="A tendência compara o último EEA com o último DT realizado. Ela só aparece depois que o funcionário tiver pelo menos um teste de cada tipo."
         />
       ) : (
         <KpiCard
           label="Tendência"
           value={
-            <div className="w-full">
-              <div className="flex items-center justify-between text-xs font-normal text-muted-foreground">
-                <span>DT ({ultimoDt!.data.slice(0, 5)})</span>
-                <span>Média EEA</span>
-              </div>
-              <div className="mt-1 flex items-center justify-between gap-2">
-                <span className="text-2xl font-semibold text-foreground">{formatPontuacao(colaborador.dt)}</span>
-                <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
-                <span className="text-2xl font-semibold text-foreground">{formatPontuacao(mediaEea)}</span>
-              </div>
+            <div className="w-full space-y-1">
+              <p className="text-sm font-normal text-muted-foreground">Último DT vs. último EEA</p>
+              <span className={`flex items-center gap-1.5 text-2xl font-semibold ${TENDENCIA_COR}`}>
+                <TendenciaIcon className="size-5 shrink-0" />
+                {variacaoComSinal(tendenciaEeaValor)}
+              </span>
             </div>
           }
-          meta={<div className="border-t pt-1" />}
-          badge={
-            <span className="flex items-center gap-1">
-              <TendenciaIcon className="size-3.5" />
-              {variacaoLabel(tendenciaEeaValor)} {statusDoFator(tendencia)}
-            </span>
-          }
-          badgeClassName={TENDENCIA_BADGE_CLASS[tendencia]}
-          sublabel="Com base nos últimos 7 dias de teste EEA"
-          tooltip="Compara a média do EEA nos últimos 7 dias com a pontuação do último DT realizado (o teste de referência, mais aprofundado), para indicar se o funcionário está melhorando ou piorando desde essa última avaliação."
+          badge={statusDoFator(tendencia)}
+          badgeClassName={TENDENCIA_BADGE_CLASS}
+          sublabel={`${diasDesde(ultimoDt!.data)} dias desde o último DT`}
+          tooltip="Compara a pontuação do último EEA com a do último DT realizado (o teste de referência, mais aprofundado), para indicar se o funcionário está melhorando ou piorando desde essa última avaliação."
         />
       )}
     </>
