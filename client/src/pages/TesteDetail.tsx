@@ -171,14 +171,20 @@ export default function TesteDetail() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold">{colaborador.nome}</h2>
-              <p className="text-sm text-muted-foreground">CPF: {colaborador.cpf}</p>
+              <p className="text-sm text-muted-foreground">
+                CPF: {colaborador.cpf} · Duração do teste: {duracao} min
+              </p>
             </div>
             <Badge variant="outline" className="rounded-lg border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700">
               Teste {teste.tipo}
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          {/* So 3 estatisticas aqui -- Duracao do teste virou metadado
+              discreto acima porque nao tem nenhum "e dai" pra decisao do
+              gestor (nao indica risco nem exige acao), diferente de
+              Autorizacao/Pontuacao/Status. */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
               <p className="text-sm text-muted-foreground">Autorização para exercer a função</p>
               <p className={`mt-1 text-xl font-bold ${autorizacaoColorClass}`}>{autorizacaoLabel}</p>
@@ -190,10 +196,6 @@ export default function TesteDetail() {
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
               <p className={`mt-1 text-xl font-bold ${STATUS_TEXT_CLASS[teste.status]}`}>{teste.classificacao}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Duração do teste</p>
-              <p className="mt-1 text-xl font-bold">{duracao} min</p>
             </div>
           </div>
 
