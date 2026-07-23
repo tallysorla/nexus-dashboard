@@ -54,15 +54,6 @@ const TENDENCIA_BADGE_CLASS: Record<Tendencia, string> = {
   estavel: "border-slate-200 bg-slate-50 text-slate-700",
 };
 
-// So o valor que muda (media do EEA) ganha cor de acordo com a tendencia --
-// o DT fica neutro porque e so a referencia fixa, nao o dado que estamos
-// avaliando.
-const TENDENCIA_VALOR_CLASSE: Record<Tendencia, string> = {
-  subindo: "text-emerald-600",
-  descendo: "text-red-600",
-  estavel: "text-foreground",
-};
-
 // "3,0" em vez de "3" -- casa com a media do EEA (que quase sempre tem uma
 // casa decimal) sem o DT parecer um numero de tipo diferente ao lado dela.
 function formatPontuacao(valor: number): string {
@@ -201,9 +192,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
               <div className="mt-1 flex items-center justify-between gap-2">
                 <span className="text-2xl font-semibold text-foreground">{formatPontuacao(colaborador.dt)}</span>
                 <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
-                <span className={`text-2xl font-semibold ${TENDENCIA_VALOR_CLASSE[tendencia]}`}>
-                  {formatPontuacao(mediaEea)}
-                </span>
+                <span className="text-2xl font-semibold text-foreground">{formatPontuacao(mediaEea)}</span>
               </div>
             </div>
           }
