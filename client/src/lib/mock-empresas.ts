@@ -44,6 +44,11 @@ export type CombinacaoCriticaDef = {
   nivel: NivelCombinacao;
   nome: string;
   fatores: string[];
+  // Explicacao operacional curta ("por que isso importa pra dirigir?") --
+  // e o que aparece primeiro pro gestor. `vulnerabilidade` (o mecanismo
+  // clinico, verbatim do protocolo oficial) continua existindo, so que como
+  // detalhe tecnico opcional, nao como a primeira coisa que ele le.
+  impactoOperacional: string;
   vulnerabilidade: string;
   focoDT: string;
   protocolo: string;
@@ -197,6 +202,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "CRÍTICO",
     nome: "A Combinação do Microsono",
     fatores: ["Qualidade do sono", "Cansaço mental"],
+    impactoOperacional:
+      "Pode causar microssonos — episódios de poucos segundos de perda de consciência — que a 90 km/h já representam dezenas de metros percorridos sem nenhum controle do veículo.",
     vulnerabilidade:
       "A privação de sono compromete os mecanismos de vigilância cortical, enquanto o cansaço mental elimina os estímulos cognitivos que manteriam o motorista alerta. Resultado: microsono involuntário — episódios de 3 a 15 segundos de perda de consciência imperceptíveis ao próprio motorista. A 90 km/h, 5 segundos equivalem a 125 metros percorridos sem controle.",
     focoDT:
@@ -208,6 +215,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "CRÍTICO",
     nome: "A Combinação do Colapso Psicomotor",
     fatores: ["Qualidade do sono", "Cansaço"],
+    impactoOperacional:
+      "Reduz o tempo de reação e a percepção de risco durante a condução, aumentando a chance de resposta tardia diante de um imprevisto na via.",
     vulnerabilidade:
       "Ambos os fatores causam lentidão psicomotora — redução do tempo de reação e processamento lento de estímulos. Combinados, criam um estado de rebaixamento funcional que o próprio motorista não percebe, pois o cansaço profundo compromete a autoconsciência da deterioração. Há ainda risco latente de indiferença passiva à própria segurança.",
     focoDT:
@@ -219,6 +228,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "CRÍTICO",
     nome: "A Combinação da Hipervigilância Paralisante",
     fatores: ["Cicatrizes Invisíveis", "Inquietação"],
+    impactoOperacional:
+      "Pode gerar tanto reações bruscas e desproporcionais quanto momentos de congelamento diante de situações inesperadas no trânsito.",
     vulnerabilidade:
       "Este fator cria um sistema em modo permanente de ameaça. A Inquietação amplifica isso com tendências a maximizar problemas. O efeito no volante é duplo e contraditório: reação exagerada e abrupta a estímulos inesperados (freada brusca, bloqueios...) ou congelamento decisório em situações de emergência. Risco elevado de crises dissociativas ao volante em rotas similares ao contexto do trauma.",
     focoDT:
@@ -230,6 +241,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "CRÍTICO",
     nome: "A Combinação da Indiferença ao Risco",
     fatores: ["Cansaço", "Desmotivação"],
+    impactoOperacional:
+      "Reduz a atenção à própria segurança durante a condução, aumentando o risco de não desviar ou frear a tempo diante de um obstáculo.",
     vulnerabilidade:
       "Isolados, cansaço e desmotivação são fatores sérios. Combinados, produzem algo mais crítico: o motorista perde a referência de valor da própria preservação. Não é impulsividade — é ausência de motivação para se proteger. Maior correlação com colisões por ausência de esquiva (não desviar de obstáculo, não frear com antecedência suficiente).",
     focoDT:
@@ -241,6 +254,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "ALTA",
     nome: "A Combinação da Condução Agressiva",
     fatores: ["Perda de foco", "Raiva ou irritabilidade"],
+    impactoOperacional:
+      "Aumenta a chance de ultrapassagens arriscadas e decisões impulsivas no trânsito, especialmente em situações de conflito com outros motoristas.",
     vulnerabilidade:
       "A perda de foco crônica rebaixa o limiar de tolerância à frustração. A raiva transforma isso em comportamento: ultrapassagens de risco, reações a outros motoristas, decisões impulsivas. O mecanismo é uma resposta emocional irresponsável pelo risco envolvido. Este motorista pode decidir com 0,3s quando a situação exige algo próximo ou acima de 1,5s.",
     focoDT:
@@ -252,6 +267,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "ALTA",
     nome: "A Combinação da Impulsividade Amplificada",
     fatores: ["Qualidade do sono", "Raiva ou irritabilidade"],
+    impactoOperacional:
+      "Pode levar a reações desproporcionais e precipitadas a situações do trânsito, antes mesmo de o motorista processar o que está acontecendo.",
     vulnerabilidade:
       "A privação de sono reduz diretamente a capacidade de análise e síntese, portanto de tomada de decisão e reações diante de situações inusitadas. Combinada com alta irritabilidade, o resultado é um motorista que reage antes de processar, interpreta ambiguidades como ameaças e tem respostas de magnitude desproporcional. 24h de privação de sono produzem desempenho equivalente a 0,10% de álcool no sangue — o dobro do permitido por lei.",
     focoDT:
@@ -263,6 +280,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "ALTA",
     nome: "A Combinação do Burnout Operacional",
     fatores: ["Preocupação excessiva", "Qualidade do sono"],
+    impactoOperacional:
+      "Compromete a capacidade de manter atenção sustentada por longos períodos — exatamente a demanda central da condução profissional.",
     vulnerabilidade:
       "A preocupação excessiva somada à privação de sono faz com que o organismo entre em falência de recursos adaptativos — o motorista não consegue mais compensar um fator com o outro. A fadiga emocional afeta diretamente a capacidade de sustentação da atenção por longos períodos, que é exatamente a demanda central da condução profissional.",
     focoDT:
@@ -274,6 +293,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "ALTA",
     nome: "A Combinação do Piloto Automático Permanente",
     fatores: ["Cansaço mental", "Desmotivação"],
+    impactoOperacional:
+      "Pode levar a uma condução em modo automático, com episódios de percorrer trechos inteiros sem memória real do trajeto.",
     vulnerabilidade:
       "Cansaço mental e desmotivação criam desengajamento duplo: o ambiente não estimula e o profissional não quer ser estimulado. Resultado: condução em modo absolutamente automático, sem presença executiva real na tarefa. Episódios de quilômetros fantasma (percorrer distâncias sem memória do trajeto) são característicos desta combinação.",
     focoDT:
@@ -285,6 +306,8 @@ export const COMBINACOES_CRITICAS: CombinacaoCriticaDef[] = [
     nivel: "ESPECIAL",
     nome: "Tríade de Vulnerabilidade Extrema",
     fatores: ["Qualidade do sono", "Cansaço", "Cicatrizes Invisíveis"],
+    impactoOperacional:
+      "Combina os três fatores de maior impacto na segurança da condução — sono, cansaço e trauma — e exige avaliação imediata antes de qualquer retorno à atividade.",
     vulnerabilidade:
       "Quando estes três fatores coexistem em pontuação elevada, estamos diante de um sistema de alerta máximo: a perda de qualidade do sono alimenta as Cicatrizes Invisíveis (pesadelos, hipervigilância), as Cicatrizes Invisíveis alimentam o cansaço profundo (desesperança aprendida pós-trauma), e o cansaço aprofunda a perda de sono. Não se resolve com tempo ou descanso sem intervenção especializada.",
     focoDT:

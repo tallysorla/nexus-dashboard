@@ -606,15 +606,18 @@ export function duracaoDoTeste(colaboradorId: string, testeId: string): number {
 
 // Texto generico de recomendacao por fator (usado no accordion "Resultados
 // do teste"), no mesmo espirito de recomendacaoDoTeste mas focado num unico
-// fator especifico em vez do teste inteiro.
-export function descricaoRiscoFator(nome: string, risco: RiskLevel): string {
+// fator especifico em vez do teste inteiro. Nao repete o nome do fator nem o
+// nivel de risco no texto -- o cabecalho do accordion e o badge "Medio
+// risco"/"Alto risco" logo acima ja mostram isso, entao aqui so a orientacao
+// pratica importa.
+export function descricaoRiscoFator(risco: RiskLevel): string {
   if (risco === "alto") {
-    return `Os resultados do teste indicam alto risco em ${nome}. Por segurança, não recomendamos que dirija no momento. É fundamental buscar descanso e, se necessário, apoio médico ou psicológico antes de retornar à atividade.`;
+    return "Por segurança, não recomendamos que dirija no momento. É fundamental buscar descanso e, se necessário, apoio médico ou psicológico antes de retornar à atividade.";
   }
   if (risco === "medio") {
-    return `O teste identificou risco médio em ${nome}. Recomendamos cautela adicional e atenção ao bem-estar antes de novas atividades.`;
+    return "Recomendamos cautela adicional e atenção ao bem-estar antes de novas atividades.";
   }
-  return `Os resultados do teste indicam baixo risco em ${nome}. Recomendamos manter os bons hábitos de descanso e atenção ao bem-estar físico e emocional.`;
+  return "Recomendamos manter os bons hábitos de descanso e atenção ao bem-estar físico e emocional.";
 }
 
 // Tempo de casa a partir da data de admissao, ate a mesma data "hoje"

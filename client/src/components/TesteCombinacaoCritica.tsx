@@ -7,7 +7,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ArrowRight, CalendarClock, ChevronDown } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ArrowRight, CalendarClock, ChevronDown, Info } from "lucide-react";
 import {
   casosDoColaborador,
   getCombinacaoCriticaById,
@@ -100,16 +105,39 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
                     >
                       <CalendarClock className="size-3.5" />
                       Teste DT obrigatório
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" aria-label="O que é o teste DT?" className="opacity-70 hover:opacity-100">
+                            <Info className="size-3.5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-64">
+                          DT (Direcionamento Terapêutico): avaliação complementar, mais aprofundada, indicada pelo
+                          protocolo para investigar melhor os fatores críticos identificados neste EEA.
+                        </TooltipContent>
+                      </Tooltip>
                     </Badge>
                   </div>
 
                   <div className={`mt-3 rounded-lg border p-3 ${especial ? "border-white/20 bg-white/5" : "bg-card"}`}>
                     <p className={`text-sm font-semibold ${especial ? "text-white" : "text-foreground"}`}>
-                      Vulnerabilidade
+                      Por que essa combinação exige atenção?
                     </p>
                     <p className={`mt-1 text-sm leading-relaxed ${especial ? "text-white/90" : "text-muted-foreground"}`}>
-                      {def.vulnerabilidade}
+                      {def.impactoOperacional}
                     </p>
+                    <Collapsible>
+                      <CollapsibleTrigger
+                        className={`mt-2 text-xs underline underline-offset-2 ${especial ? "text-white/70 hover:text-white" : "text-muted-foreground hover:text-foreground"}`}
+                      >
+                        Ver explicação técnica
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <p className={`mt-2 text-sm leading-relaxed ${especial ? "text-white/80" : "text-muted-foreground"}`}>
+                          {def.vulnerabilidade}
+                        </p>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
 
                   <div
@@ -139,7 +167,7 @@ export function TesteCombinacaoCritica({ colaboradorId, dataTeste }: TesteCombin
 
                   <Button asChild size="sm" variant={especial ? "secondary" : "outline"} className="mt-3 rounded-xl">
                     <Link href={`/empresas/${caso.empresaId}/combinacoes/${caso.id}`}>
-                      Ver detalhes e registrar tratativa
+                      Iniciar tratativa recomendada
                       <ArrowRight className="size-4" />
                     </Link>
                   </Button>

@@ -133,6 +133,14 @@ export default function TesteDetail() {
   // rotina, outra de encaminhamento imediato). Uma unica acao prevalece.
   const acaoRecomendada = temCombinacaoCritica && defCritico ? defCritico.protocolo : recomendacaoDoTeste(teste);
 
+  // Resumo executivo -- sintese de 1 paragrafo pra responder em segundos "o
+  // que aconteceu e o que fazer", sem precisar ler os cards abaixo primeiro.
+  const resumoSituacao = temCombinacaoCritica && defCritico
+    ? `${colaborador.nome} apresentou ${teste.classificacao.toLowerCase()} no teste ${teste.tipo}. A combinação entre ${defCritico.fatores.join(" e ")} indicou a necessidade de avaliação complementar antes do retorno à atividade.`
+    : teste.status === "baixo"
+      ? `${colaborador.nome} apresentou ${teste.classificacao.toLowerCase()} no teste ${teste.tipo}. Nenhum fator exige atenção imediata.`
+      : `${colaborador.nome} apresentou ${teste.classificacao.toLowerCase()} no teste ${teste.tipo}. Veja a ação recomendada antes de novas atividades.`;
+
   return (
     <Layout>
       <Breadcrumb
@@ -165,6 +173,17 @@ export default function TesteDetail() {
           </Link>
         </Button>
       </div>
+
+      <Card className="w-full border-primary/20 bg-primary/5 shadow-sm">
+        <CardContent className="space-y-2 p-6">
+          <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Resumo da situação</p>
+          <p className="text-base leading-relaxed text-foreground">{resumoSituacao}</p>
+          <p className="pt-1 text-sm">
+            <span className="font-medium text-muted-foreground">Próximo passo recomendado: </span>
+            <span className="font-semibold">{acaoRecomendada}</span>
+          </p>
+        </CardContent>
+      </Card>
 
       <Card className="w-full shadow-sm">
         <CardContent className="space-y-6 p-6">
@@ -293,6 +312,44 @@ export default function TesteDetail() {
         </CardContent>
       </Card>
 
+      <Card className="w-full py-0 shadow-sm">
+        <CardHeader className="px-6 pt-6">
+          <CardTitle className="text-lg">Integridade do teste</CardTitle>
+        </CardHeader>
+        <CardContent className="px-6 pb-6">
+          {perguntasPuladas.length === 0 ? (
+            <p className="flex items-center gap-2 text-sm text-emerald-700">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Todas as perguntas foram respondidas.
+            </p>
+          ) : (
+            <>
+              <p className="flex items-center gap-2 text-sm font-medium text-amber-700">
+                <AlertTriangle className="size-4 shrink-0" />
+                {perguntasPuladas.length} pergunta{perguntasPuladas.length > 1 ? "s" : ""} não respondida
+                {perguntasPuladas.length > 1 ? "s" : ""} — considere isso ao avaliar o resultado.
+              </p>
+              <Accordion type="multiple" defaultValue={perguntasPuladas.map((_, i) => `pp-${i}`)} className="mt-2">
+                {perguntasPuladas.map((p, i) => (
+                  <AccordionItem key={i} value={`pp-${i}`}>
+                    <AccordionTrigger>{p.fator}</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="rounded-xl bg-muted/40 p-4">
+                        <p className="text-sm font-medium text-red-600">Pergunta pulada</p>
+                        <p className="mt-1 text-sm">{p.pergunta}</p>
+                        <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                          Motivo: {p.motivo}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       {temCombinacaoCritica && (
         <TesteCombinacaoCritica colaboradorId={colaborador.id} dataTeste={teste.data} />
       )}
@@ -321,6 +378,10 @@ export default function TesteDetail() {
           </div>
           <CollapsibleContent>
             <CardContent className="border-t px-6 py-5">
+              <p className="mb-3 text-xs text-muted-foreground">
+                Cada fator é medido de 0 a 75. A pontuação geral do teste (0 a 100) é uma escala diferente,
+                calculada sobre o conjunto dos 10 fatores.
+              </p>
               <div className="h-[420px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
@@ -354,145 +415,101 @@ export default function TesteDetail() {
         </Card>
       </Collapsible>
 
-      {/* Resultados do Teste (esquerda) pareado com Perguntas puladas +
-          Historico de tratativas empilhados (direita) -- Perguntas puladas
-          costuma ser bem mais curto que Resultados do Teste, entao o
-          Historico de tratativas preenche o espaco vazio que sobraria
-          embaixo dele em vez de deixar a coluna da direita mais curta. */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
-        <Collapsible defaultOpen className="w-full">
-          <Card className="w-full gap-0 py-0 shadow-sm">
-            <div className="flex items-center justify-between gap-4 px-6 py-5">
-              <div>
-                <CardTitle className="text-lg">Resultados do Teste</CardTitle>
-                <p className="text-sm text-muted-foreground">Fatores que precisam de atenção neste teste</p>
-              </div>
-              <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
-                <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-              </CollapsibleTrigger>
+      <Collapsible defaultOpen className="w-full">
+        <Card className="w-full gap-0 py-0 shadow-sm">
+          <div className="flex items-center justify-between gap-4 px-6 py-5">
+            <div>
+              <CardTitle className="text-lg">Resultados do Teste</CardTitle>
+              <p className="text-sm text-muted-foreground">Fatores que precisam de atenção neste teste</p>
             </div>
-            <CollapsibleContent>
-              <CardContent className="border-t px-6 py-5">
-                {resultadosEmAtencao.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum fator em atenção — os 10 fatores estão em baixo risco neste teste.
-                  </p>
-                ) : (
-                  <>
-                    <Accordion type="multiple" defaultValue={resultadosEmAtencao.map((r) => r.nome)}>
-                      {resultadosEmAtencao.map((r) => {
-                        const risco = classificarRiscoDT(r.nota);
-                        const Icon = risco === "alto" ? AlertCircle : AlertTriangle;
-                        const boxClass =
-                          risco === "alto"
-                            ? "border-red-200 bg-red-50 text-red-800"
-                            : "border-amber-200 bg-amber-50 text-amber-800";
-                        return (
-                          <AccordionItem key={r.nome} value={r.nome}>
-                            <AccordionTrigger>
-                              <span className="flex flex-1 items-center justify-between gap-3">
-                                <span className="font-medium">{r.nome}</span>
-                                <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
-                              </span>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <div className={`rounded-xl border p-4 ${boxClass}`}>
-                                <p className="font-semibold">{RISCO_LABEL[risco]}</p>
-                                <p className="mt-1 text-sm">{descricaoRiscoFator(r.nome, risco)}</p>
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        );
-                      })}
-                    </Accordion>
-                    {quantidadeBaixo > 0 && (
-                      <p className="mt-3 text-xs text-muted-foreground">
-                        Os outros {quantidadeBaixo} fatores estão em baixo risco (veja o gráfico acima).
-                      </p>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        <div className="flex flex-col gap-6">
-          <Collapsible defaultOpen className="w-full">
-            <Card className="w-full gap-0 py-0 shadow-sm">
-              <div className="flex items-center justify-between gap-4 px-6 py-5">
-                <CardTitle className="text-lg">Perguntas puladas</CardTitle>
-                <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
-                  <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent>
-                <CardContent className="border-t px-6 py-5">
-                  {perguntasPuladas.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Nenhuma pergunta foi pulada neste teste.</p>
-                  ) : (
-                    <Accordion type="multiple" defaultValue={perguntasPuladas.map((_, i) => `pp-${i}`)}>
-                      {perguntasPuladas.map((p, i) => (
-                        <AccordionItem key={i} value={`pp-${i}`}>
-                          <AccordionTrigger>{p.fator}</AccordionTrigger>
+            <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
+              <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent>
+            <CardContent className="border-t px-6 py-5">
+              {resultadosEmAtencao.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nenhum fator em atenção — os 10 fatores estão em baixo risco neste teste.
+                </p>
+              ) : (
+                <>
+                  <Accordion type="multiple" defaultValue={resultadosEmAtencao.map((r) => r.nome)}>
+                    {resultadosEmAtencao.map((r) => {
+                      const risco = classificarRiscoDT(r.nota);
+                      const Icon = risco === "alto" ? AlertCircle : AlertTriangle;
+                      const boxClass =
+                        risco === "alto"
+                          ? "border-red-200 bg-red-50 text-red-800"
+                          : "border-amber-200 bg-amber-50 text-amber-800";
+                      return (
+                        <AccordionItem key={r.nome} value={r.nome}>
+                          <AccordionTrigger>
+                            <span className="flex flex-1 items-center justify-between gap-3">
+                              <span className="font-medium">{r.nome}</span>
+                              <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
+                            </span>
+                          </AccordionTrigger>
                           <AccordionContent>
-                            <div className="rounded-xl bg-muted/40 p-4">
-                              <p className="text-sm font-medium text-red-600">Pergunta pulada</p>
-                              <p className="mt-1 text-sm">{p.pergunta}</p>
-                              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-                                Motivo: {p.motivo}
-                              </div>
+                            <div className={`rounded-xl border p-4 ${boxClass}`}>
+                              <p className="font-semibold">{RISCO_LABEL[risco]}</p>
+                              <p className="mt-1 text-sm">{descricaoRiscoFator(risco)}</p>
                             </div>
                           </AccordionContent>
                         </AccordionItem>
-                      ))}
-                    </Accordion>
+                      );
+                    })}
+                  </Accordion>
+                  {quantidadeBaixo > 0 && (
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Os outros {quantidadeBaixo} fatores estão em baixo risco (veja o gráfico acima).
+                    </p>
                   )}
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-
-          <Card className="w-full py-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-              <div>
-                <CardTitle className="text-lg">Histórico de tratativas</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Conversas, feedbacks e encaminhamentos registrados para {colaborador.nome}
-                </p>
-              </div>
-              <TratativaDialog
-                colaboradorNome={colaborador.nome}
-                onRegistrar={(t) => setTratativas((prev) => [t, ...prev])}
-              />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              {tratativas.length === 0 ? (
-                <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                  Nenhuma tratativa registrada ainda. Use "Registrar tratativa" para
-                  documentar a primeira ação com este funcionário.
-                </p>
-              ) : (
-                <ul className="space-y-4">
-                  {tratativas.map((t) => (
-                    <li key={t.id} className="rounded-xl border p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <Badge variant="secondary" className="rounded-lg px-2.5 py-1">
-                          {t.tipo}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {t.data} · {t.autor}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm text-foreground">{t.observacao}</p>
-                    </li>
-                  ))}
-                </ul>
+                </>
               )}
             </CardContent>
-          </Card>
-        </div>
-      </div>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
+      <Card className="w-full py-0 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
+          <div>
+            <CardTitle className="text-lg">Histórico de tratativas</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Conversas, feedbacks e encaminhamentos registrados para {colaborador.nome}
+            </p>
+          </div>
+          <TratativaDialog
+            colaboradorNome={colaborador.nome}
+            onRegistrar={(t) => setTratativas((prev) => [t, ...prev])}
+          />
+        </CardHeader>
+        <CardContent className="px-6 pb-6">
+          {tratativas.length === 0 ? (
+            <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+              Nenhuma tratativa registrada ainda. Use "Registrar tratativa" para
+              documentar a primeira ação com este funcionário.
+            </p>
+          ) : (
+            <ul className="space-y-4">
+              {tratativas.map((t) => (
+                <li key={t.id} className="rounded-xl border p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <Badge variant="secondary" className="rounded-lg px-2.5 py-1">
+                      {t.tipo}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {t.data} · {t.autor}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-foreground">{t.observacao}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <Collapsible className="w-full">
         <Card className="w-full gap-0 py-0 shadow-sm">
