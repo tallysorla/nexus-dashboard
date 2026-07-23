@@ -131,7 +131,10 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   // em vez de um numero calculado a partir de dado inexistente).
   const semDadosSuficientes = colaborador.totalTestesEea === 0 || colaborador.totalTestesDt === 0;
   const mediaEea = mediaEea7Dias(colaborador.serieEea);
-  const tendenciaEeaValor = ultimoDt ? tendenciaEeaVsUltimoDt(mediaEea, ultimoDt.pontuacao) : 0;
+  // Usa colaborador.dt (o mesmo valor do card "Ultima pontuacao DT" ao lado)
+  // em vez do registro isolado do historico, pra nunca poder divergir do que
+  // ja esta exibido na tela.
+  const tendenciaEeaValor = ultimoDt ? tendenciaEeaVsUltimoDt(mediaEea, colaborador.dt) : 0;
   const tendencia = tendenciaDoFator(tendenciaEeaValor);
   const TendenciaIcon = TENDENCIA_ICON[tendencia];
 
@@ -196,7 +199,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
                 <span>Média EEA</span>
               </div>
               <div className="mt-1 flex items-center justify-between gap-2">
-                <span className="text-2xl font-semibold text-foreground">{formatPontuacao(ultimoDt!.pontuacao)}</span>
+                <span className="text-2xl font-semibold text-foreground">{formatPontuacao(colaborador.dt)}</span>
                 <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
                 <span className={`text-2xl font-semibold ${TENDENCIA_VALOR_CLASSE[tendencia]}`}>
                   {formatPontuacao(mediaEea)}
