@@ -18,7 +18,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { Bar, BarChart, CartesianGrid, Cell, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ReferenceArea, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
@@ -38,17 +38,17 @@ const chartConfig = {
     label: "DT",
     color: "var(--chart-2)",
   },
-  dtTratativa: {
-    label: "DT",
-    color: "var(--chart-3)",
-  },
 } satisfies ChartConfig;
 
 export function DtChartSection({ data }: DtChartSectionProps) {
   const [range, setRange] = useState<Range>("6");
 
-  const meses = Math.min(Number(range), data.length);
-  const visibleData = data.slice(-meses);
+  // So o ciclo mensal regular aparece no grafico -- pontos de tratativa (DT
+  // antecipado) ficam de fora, pra nao misturar dois motivos de teste
+  // diferentes na mesma evolucao.
+  const dadosMensais = data.filter((ponto) => ponto.origem !== "tratativa");
+  const meses = Math.min(Number(range), dadosMensais.length);
+  const visibleData = dadosMensais.slice(-meses);
   const media =
     visibleData.length > 0
       ? Math.round(visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length)
@@ -75,9 +75,7 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-64">
-                Teste mais aprofundado, aplicado periodicamente ou como{" "}
-                <span className="text-[var(--chart-3)]">tratativa</span> (barras azuis). A linha
-                tracejada é a média do período.
+                Teste mais aprofundado, aplicado periodicamente ao longo do ciclo mensal.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -91,21 +89,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
           </Tabs>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <p className="text-sm text-muted-foreground">
-            Aplicado mensalmente ou em tratativas · Média do período: {media}
-          </p>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full" style={{ backgroundColor: "var(--chart-2)" }} />
-              Ciclo mensal
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full" style={{ backgroundColor: "var(--chart-3)" }} />
-              Tratativa
-            </span>
-          </div>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Aplicado mensalmente · Média do período: {media}
+        </p>
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
@@ -125,16 +111,14 @@ export function DtChartSection({ data }: DtChartSectionProps) {
               content={
                 <ChartTooltipContent
                   indicator="dot"
-                  formatter={(value, _name, item) => {
-                    const origem = (item?.payload as PontoDt | undefined)?.origem;
-                    const cor = origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)";
+                  formatter={(value) => {
                     const risco = classificarRisco(Number(value));
                     return (
                       <div className="flex w-full flex-col gap-1">
                         <div className="flex items-center justify-between gap-3">
                           <span className="flex items-center gap-1.5 text-muted-foreground">
-                            <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
-                            DT · {origem === "tratativa" ? "Tratativa" : "Ciclo mensal"}
+                            <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: "var(--color-dt)" }} />
+                            DT
                           </span>
                           <span className="font-medium text-foreground">{value}</span>
                         </div>
@@ -150,24 +134,15 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 />
               }
             />
-            <Bar dataKey="dt" radius={[6, 6, 0, 0]} maxBarSize={48}>
-              {visibleData.map((ponto) => (
-                <Cell
-                  key={ponto.date}
-                  fill={ponto.origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)"}
-                />
-              ))}
-            </Bar>
-            {/* Faixas e linha de media desenhadas por ultimo (depois das
-                barras) para nunca ficarem escondidas atras de uma barra alta.
-                Sem texto dentro do grafico: qualquer posicao fixa (canto da
-                faixa, altura da media) eventualmente coincide com alguma
-                barra alta e fica ilegivel -- a legenda de cor fica no
-                cabecalho do card e no tooltip, fora da area de plotagem. */}
+            <Bar dataKey="dt" fill="var(--color-dt)" radius={[6, 6, 0, 0]} maxBarSize={48} />
+            {/* Faixas desenhadas por ultimo (depois das barras) para nunca
+                ficarem escondidas atras de uma barra alta. Sem texto dentro
+                do grafico: qualquer posicao fixa eventualmente coincide com
+                alguma barra alta e fica ilegivel -- a legenda de cor fica no
+                tooltip, fora da area de plotagem. */}
             <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
             <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
             <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceLine y={media} stroke="var(--color-dt)" strokeDasharray="4 4" strokeOpacity={0.6} />
           </BarChart>
         </ChartContainer>
       </CardContent>
