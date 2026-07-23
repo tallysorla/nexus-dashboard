@@ -192,6 +192,16 @@ export function tendenciaEeaVsUltimoDt(eeaAtual: number, dtAtual: number): numbe
   return Math.round(((eeaAtual - dtAtual) / dtAtual) * 100);
 }
 
+// Media dos ultimos 7 dias de EEA (serie diaria) -- usada como o lado "atual"
+// da comparacao com o ultimo DT, em vez do EEA de um unico dia, pra nao expor
+// o gestor a ruido de dia a dia numa comparacao que so faz sentido olhando a
+// tendencia recente.
+export function mediaEea7Dias(serieEea: PontoEea[]): number {
+  const janela = serieEea.slice(-7);
+  const media = janela.reduce((soma, p) => soma + p.eea, 0) / janela.length;
+  return Math.round(media * 10) / 10;
+}
+
 export function parseDataBr(data: string): Date {
   const [dia, mes, ano] = data.split("/").map(Number);
   return new Date(ano, mes - 1, dia);

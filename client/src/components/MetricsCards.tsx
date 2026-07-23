@@ -6,11 +6,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CalendarClock, Info, type LucideIcon } from "lucide-react";
+import { ArrowRight, CalendarClock, Info, Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
+  mediaEea7Dias,
   parseDataBr,
   statusDoFator,
   tendenciaDoFator,
@@ -34,21 +35,30 @@ type KpiCardProps = {
   // valor. Fica antes do badge de risco pra seguir a leitura "quanto, quando,
   // qual o nivel".
   meta?: ReactNode;
-  badge?: string;
+  badge?: ReactNode;
   badgeClassName?: string;
   sublabel?: string;
   tooltip?: string;
   extra?: ReactNode;
 };
 
-// Subir e melhorar aqui (nota mais alta de EEA/DT normalizado = mais bem
-// estar), entao a seta de tendencia usa verde pra "subindo" e vermelho pra
-// "descendo" -- a leitura intuitiva de "seta pra cima = bom".
-const TENDENCIA_VALOR_CLASSE: Record<Tendencia, string> = {
-  subindo: "text-emerald-600",
-  descendo: "text-red-600",
-  estavel: "text-muted-foreground",
+const TENDENCIA_ICON: Record<Tendencia, LucideIcon> = {
+  subindo: TrendingUp,
+  descendo: TrendingDown,
+  estavel: Minus,
 };
+
+const TENDENCIA_BADGE_CLASS: Record<Tendencia, string> = {
+  subindo: RISCO_BADGE_CLASS.baixo,
+  descendo: RISCO_BADGE_CLASS.alto,
+  estavel: "border-slate-200 bg-slate-50 text-slate-700",
+};
+
+// "3,0" em vez de "3" -- casa com a media do EEA (que quase sempre tem uma
+// casa decimal) sem o DT parecer um numero de tipo diferente ao lado dela.
+function formatPontuacao(valor: number): string {
+  return valor.toFixed(1).replace(".", ",");
+}
 
 export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, meta, badge, badgeClassName, sublabel, tooltip, extra }: KpiCardProps) {
   return (
@@ -77,10 +87,10 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
           </Tooltip>
         )}
       </div>
-      <p className="text-3xl font-semibold tracking-tight">
+      <div className="text-3xl font-semibold tracking-tight">
         {value}
         {valueSuffix && <span className="text-sm font-medium text-muted-foreground">{valueSuffix}</span>}
-      </p>
+      </div>
       {meta}
       {badge && (
         <Badge
@@ -111,8 +121,10 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   // realizados -- sem os dois, nao ha o que comparar (mostra blank state
   // em vez de um numero calculado a partir de dado inexistente).
   const semDadosSuficientes = colaborador.totalTestesEea === 0 || colaborador.totalTestesDt === 0;
-  const tendenciaEeaValor = tendenciaEeaVsUltimoDt(colaborador.eea, colaborador.dt);
+  const mediaEea = mediaEea7Dias(colaborador.serieEea);
+  const tendenciaEeaValor = ultimoDt ? tendenciaEeaVsUltimoDt(mediaEea, ultimoDt.pontuacao) : 0;
   const tendencia = tendenciaDoFator(tendenciaEeaValor);
+  const TendenciaIcon = TENDENCIA_ICON[tendencia];
 
   return (
     <>
@@ -152,7 +164,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
       />
       {semDadosSuficientes ? (
         <KpiCard
-          label="Tendência (EEA)"
+          label="Tendência"
           value={<span className="text-muted-foreground">—</span>}
           badge="Sem dados suficientes"
           badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
@@ -163,18 +175,32 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
                 ? "Aguardando o primeiro teste EEA"
                 : "Aguardando o primeiro teste DT"
           }
-          tooltip="A tendência compara o EEA mais recente com o último DT realizado. Ela só aparece depois que o funcionário tiver pelo menos um teste de cada tipo."
+          tooltip="A tendência compara a média do EEA nos últimos 7 dias com o último DT realizado. Ela só aparece depois que o funcionário tiver pelo menos um teste de cada tipo."
         />
       ) : (
         <KpiCard
-          label="Tendência (EEA)"
-          value={<span className={TENDENCIA_VALOR_CLASSE[tendencia]}>{variacaoLabel(tendenciaEeaValor)}</span>}
-          badge={statusDoFator(tendencia)}
-          badgeClassName={
-            tendencia === "descendo" ? RISCO_BADGE_CLASS.alto : "border-slate-200 bg-slate-50 text-slate-700"
+          label="Tendência"
+          value={
+            <div className="flex items-center gap-2 text-base">
+              <div className="flex flex-col leading-tight">
+                <span className="text-xs font-normal text-muted-foreground">DT ({ultimoDt!.data.slice(0, 5)})</span>
+                <span className="font-medium text-muted-foreground">{formatPontuacao(ultimoDt!.pontuacao)}</span>
+              </div>
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+              <div className="flex flex-col leading-tight">
+                <span className="text-xs font-normal text-muted-foreground">Média EEA</span>
+                <span className="text-xl font-semibold text-foreground">{formatPontuacao(mediaEea)}</span>
+              </div>
+            </div>
           }
-          sublabel="EEA atual em relação ao último DT realizado"
-          tooltip="O DT é o teste de referência mais aprofundado. Compara o EEA mais recente com o resultado do último DT (na mesma escala) para indicar se o funcionário está piorando ou melhorando desde essa última avaliação."
+          badge={
+            <span className="flex items-center gap-1">
+              <TendenciaIcon className="size-3.5" />
+              {variacaoLabel(tendenciaEeaValor)} {statusDoFator(tendencia)}
+            </span>
+          }
+          badgeClassName={TENDENCIA_BADGE_CLASS[tendencia]}
+          tooltip="Compara a média do EEA nos últimos 7 dias com a pontuação do último DT realizado (o teste de referência, mais aprofundado), para indicar se o funcionário está melhorando ou piorando desde essa última avaliação."
         />
       )}
     </>
