@@ -114,8 +114,8 @@ export function DtChartSection({ data }: DtChartSectionProps) {
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
             <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
             <YAxis
-              domain={[0, 750]}
-              ticks={[0, 150, 300, 450, 600, 750]}
+              domain={[0, 10]}
+              ticks={[0, 2, 4, 6, 8, 10]}
               interval={0}
               axisLine={false}
               tickLine={false}
@@ -128,7 +128,7 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                   formatter={(value, _name, item) => {
                     const origem = (item?.payload as PontoDt | undefined)?.origem;
                     const cor = origem === "tratativa" ? "var(--color-dtTratativa)" : "var(--color-dt)";
-                    const risco = classificarRisco(Math.round((Number(value) / 750) * 100));
+                    const risco = classificarRisco(Number(value));
                     return (
                       <div className="flex w-full flex-col gap-1">
                         <div className="flex items-center justify-between gap-3">
@@ -164,9 +164,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 faixa, altura da media) eventualmente coincide com alguma
                 barra alta e fica ilegivel -- a legenda de cor fica no
                 cabecalho do card e no tooltip, fora da area de plotagem. */}
-            <ReferenceArea y1={0} y2={225} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={225} y2={450} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={450} y2={750} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
             <ReferenceLine y={media} stroke="var(--color-dt)" strokeDasharray="4 4" strokeOpacity={0.6} />
           </BarChart>
         </ChartContainer>

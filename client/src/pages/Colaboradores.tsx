@@ -101,10 +101,10 @@ export default function Colaboradores() {
                       {c.setor} · {c.local}
                     </TableCell>
                     <TableCell className="px-4 py-4 font-medium">
-                      {c.eea}/100
+                      {c.eea}/10
                     </TableCell>
                     <TableCell className="px-4 py-4 font-medium">
-                      {c.dt}/750
+                      {c.dt}/10
                     </TableCell>
                     <TableCell className="px-4 py-4">
                       <Badge

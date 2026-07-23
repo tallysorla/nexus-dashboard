@@ -39,7 +39,7 @@ import {
 import {
   RISCO_LABEL,
   autorizacaoDoTeste,
-  classificarRiscoDT,
+  classificarRisco,
   duracaoDoTeste,
   getColaboradorById,
   horaDoTeste,
@@ -321,7 +321,7 @@ export default function NovoTesteDetail() {
       <CardContent className="px-6 pb-6">
         <div className="divide-y">
           {resultados.map((r) => {
-            const risco = classificarRiscoDT(r.nota);
+            const risco = classificarRisco(r.nota);
             const relacionado = fatoresRelacionados.has(r.nome);
             return (
               <div key={r.nome} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2.5">
@@ -449,7 +449,7 @@ export default function NovoTesteDetail() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Pontuação total</p>
-              <p className="mt-1 text-lg font-bold">{teste.pontuacao} / 100</p>
+              <p className="mt-1 text-lg font-bold">{teste.pontuacao} / 10</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Status</p>
@@ -650,7 +650,7 @@ export default function NovoTesteDetail() {
                           <TableCell className="px-4 py-3">
                             {t.data} · {horaDoTeste(colaborador.id, t.id)}
                           </TableCell>
-                          <TableCell className="px-4 py-3">{t.pontuacao} / 100</TableCell>
+                          <TableCell className="px-4 py-3">{t.pontuacao} / 10</TableCell>
                           <TableCell className="px-4 py-3">
                             <span className={STATUS_TEXT_CLASS[t.status]}>{t.classificacao}</span>
                           </TableCell>

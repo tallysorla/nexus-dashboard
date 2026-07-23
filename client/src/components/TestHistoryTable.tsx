@@ -129,7 +129,7 @@ export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps
                     {test.data}
                   </TableCell>
                   <TableCell className="px-4 py-4 font-semibold">
-                    {test.pontuacao}/100
+                    {test.pontuacao}/10
                   </TableCell>
                   <TableCell className="px-4 py-4">
                     <Badge

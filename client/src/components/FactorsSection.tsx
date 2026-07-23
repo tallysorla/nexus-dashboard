@@ -16,7 +16,7 @@ import { Award, CalendarClock, ClipboardCheck, Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRiscoDT,
+  classificarRisco,
   parseDataBr,
   type Fator,
   type TesteHistorico,
@@ -30,7 +30,7 @@ type FactorsSectionProps = {
 };
 
 function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolean }) {
-  const risco = classificarRiscoDT(factor.nota);
+  const risco = classificarRisco(factor.nota);
 
   return (
     <div className="flex items-center gap-3">
@@ -99,7 +99,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTe
   // secoes (que ficariam cheias de badges "Baixo risco" repetidos). Isso
   // independe do toggle: "tudo bem" e um resumo do colaborador como um todo.
   const semFatorEmAtencao = [...fatoresDestaque, ...fatoresAdicionais].every(
-    (factor) => classificarRiscoDT(factor.nota) === "baixo",
+    (factor) => classificarRisco(factor.nota) === "baixo",
   );
 
   // Diferente do caso acima: aqui HA fatores em atencao, so nao nessa origem

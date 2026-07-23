@@ -34,7 +34,7 @@ import {
 import {
   RISCO_LABEL,
   autorizacaoDoTeste,
-  classificarRiscoDT,
+  classificarRisco,
   descricaoRiscoFator,
   duracaoDoTeste,
   getColaboradorById,
@@ -113,7 +113,7 @@ export default function TesteDetail() {
   // accordion de Resultados do Teste so precisa detalhar em texto os que
   // exigem atencao, sem repetir os 10 de novo (a maioria fica baixo risco
   // na pratica).
-  const resultadosEmAtencao = resultados.filter((r) => classificarRiscoDT(r.nota) !== "baixo");
+  const resultadosEmAtencao = resultados.filter((r) => classificarRisco(r.nota) !== "baixo");
   const quantidadeBaixo = resultados.length - resultadosEmAtencao.length;
 
   const acaoBoxClass =
@@ -204,7 +204,7 @@ export default function TesteDetail() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Pontuação total</p>
-              <p className="mt-1 text-xl font-bold">{teste.pontuacao} / 100</p>
+              <p className="mt-1 text-xl font-bold">{teste.pontuacao} / 10</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
@@ -379,8 +379,8 @@ export default function TesteDetail() {
           <CollapsibleContent>
             <CardContent className="border-t px-6 py-5">
               <p className="mb-3 text-xs text-muted-foreground">
-                Cada fator é medido de 0 a 10. A pontuação geral do teste (0 a 100) é uma escala diferente,
-                calculada sobre o conjunto dos 10 fatores.
+                Cada fator e a pontuação geral do teste são medidos de 0 a 10, mas em escalas
+                calculadas de forma independente uma da outra.
               </p>
               <div className="h-[420px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -404,7 +404,7 @@ export default function TesteDetail() {
                     />
                     <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
                       {resultados.map((r) => (
-                        <Cell key={r.nome} fill={RISCO_HEX[classificarRiscoDT(r.nota)]} />
+                        <Cell key={r.nome} fill={RISCO_HEX[classificarRisco(r.nota)]} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -436,7 +436,7 @@ export default function TesteDetail() {
                 <>
                   <Accordion type="multiple" defaultValue={resultadosEmAtencao.map((r) => r.nome)}>
                     {resultadosEmAtencao.map((r) => {
-                      const risco = classificarRiscoDT(r.nota);
+                      const risco = classificarRisco(r.nota);
                       const Icon = risco === "alto" ? AlertCircle : AlertTriangle;
                       const boxClass =
                         risco === "alto"

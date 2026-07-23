@@ -107,8 +107,8 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
           <ChartContainer config={chartConfig} className="aspect-auto h-72 w-14 shrink-0">
             <AreaChart data={visibleData} margin={{ left: 8, right: 4, top: 8, bottom: 8 }}>
               <YAxis
-                domain={[0, 100]}
-                ticks={[0, 25, 50, 75, 100]}
+                domain={[0, 10]}
+                ticks={[0, 2, 4, 6, 8, 10]}
                 interval={0}
                 width={40}
                 axisLine={false}
@@ -143,7 +143,7 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                   height={dias > 14 ? 40 : 24}
                   style={{ fontSize: "12px" }}
                 />
-                <YAxis domain={[0, 100]} hide />
+                <YAxis domain={[0, 10]} hide />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
@@ -181,9 +181,9 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                     dentro do grafico: qualquer posicao fixa eventualmente
                     coincide com o traçado e fica ilegivel -- a legenda de
                     cor fica no tooltip, fora da area de plotagem. */}
-                <ReferenceArea y1={0} y2={30} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={30} y2={60} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={60} y2={100} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
               </AreaChart>
             </ChartContainer>
           </div>

@@ -115,19 +115,11 @@ export const RISCO_BADGE_CLASS: Record<RiskLevel, string> = {
   baixo: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
-// Pontuacao = indice de bem-estar normalizado (0-100, quanto maior melhor).
-// Faixas usadas de forma consistente em toda a aplicacao (indice geral e
-// fatores): > 60 -> baixo risco, 31-60 -> medio risco, <= 30 -> alto risco.
+// Toda pontuacao do app (EEA atual, DT atual, cada fator e a pontuacao geral
+// de cada teste no historico) usa a MESMA escala normalizada 0-10, quanto
+// maior melhor (mais seguro) -- uma unica funcao de classificacao serve pra
+// tudo, sem precisar reconciliar escalas diferentes entre indices.
 export function classificarRisco(pontuacao: number): RiskLevel {
-  if (pontuacao > 60) return "baixo";
-  if (pontuacao > 30) return "medio";
-  return "alto";
-}
-
-// Fatores em atencao usam 0-10 por fator, quanto maior melhor. Mesmas
-// proporcoes de classificarRisco (>60%/31-60%/<=30% de 10), para que um fator
-// e o indice geral classifiquem o mesmo numero da mesma forma.
-export function classificarRiscoDT(pontuacao: number): RiskLevel {
   if (pontuacao > 6) return "baixo";
   if (pontuacao > 3) return "medio";
   return "alto";
@@ -135,12 +127,14 @@ export function classificarRiscoDT(pontuacao: number): RiskLevel {
 
 // EEA e feito todo dia pelo colaborador -> um ponto por dia dos ultimos 90
 // dias, terminando exatamente no valor atual (colaborador.eea) para nao
-// destoar do KPI "EEA atual" mostrado no topo da tela.
+// destoar do KPI "EEA atual" mostrado no topo da tela. Os pontos mantem uma
+// casa decimal (a curva fica mais suave), mas o valor final bate exatamente
+// com o inteiro de colaborador.eea.
 const DIAS_SERIE_EEA = 90;
 const DATA_FINAL_SERIE_EEA = new Date(2026, 6, 6);
 
 function serieEea(valorAtual: number): PontoEea[] {
-  const valorInicial = Math.max(5, valorAtual - 20);
+  const valorInicial = Math.max(0.5, valorAtual - 2);
 
   return Array.from({ length: DIAS_SERIE_EEA }, (_, i) => {
     const dia = new Date(DATA_FINAL_SERIE_EEA);
@@ -150,8 +144,8 @@ function serieEea(valorAtual: number): PontoEea[] {
     const progresso = i / (DIAS_SERIE_EEA - 1);
     const tendencia = valorInicial + (valorAtual - valorInicial) * progresso;
     const ehUltimoDia = i === DIAS_SERIE_EEA - 1;
-    const ruido = ehUltimoDia ? 0 : Math.sin(i * 1.7) * 2.5 + Math.sin(i * 0.35) * 1.5;
-    const eea = Math.max(0, Math.min(100, Math.round(tendencia + ruido)));
+    const ruido = ehUltimoDia ? 0 : Math.sin(i * 1.7) * 0.25 + Math.sin(i * 0.35) * 0.15;
+    const eea = Math.max(0, Math.min(10, Math.round((tendencia + ruido) * 10) / 10));
 
     return { date, eea };
   });
@@ -169,7 +163,7 @@ const DATA_FINAL_SERIE_DT = new Date(2026, 6, 6);
 // mensal normal -- por exemplo, quando uma sequencia de EEA em alto risco leva
 // o gestor a pedir um DT antes do previsto.
 function serieDt(valorAtual: number, pontosTratativa: number[] = []): PontoDt[] {
-  const valorInicial = Math.max(40, valorAtual - 260);
+  const valorInicial = Math.max(0.5, valorAtual - 3.5);
 
   return Array.from({ length: MESES_SERIE_DT }, (_, i) => {
     const mes = new Date(DATA_FINAL_SERIE_DT);
@@ -179,8 +173,8 @@ function serieDt(valorAtual: number, pontosTratativa: number[] = []): PontoDt[] 
     const progresso = i / (MESES_SERIE_DT - 1);
     const tendencia = valorInicial + (valorAtual - valorInicial) * progresso;
     const ehUltimoMes = i === MESES_SERIE_DT - 1;
-    const ruido = ehUltimoMes ? 0 : Math.sin(i * 1.3) * 30 + Math.sin(i * 0.6) * 18;
-    const dt = Math.max(0, Math.min(750, Math.round(tendencia + ruido)));
+    const ruido = ehUltimoMes ? 0 : Math.sin(i * 1.3) * 0.4 + Math.sin(i * 0.6) * 0.24;
+    const dt = Math.max(0, Math.min(10, Math.round((tendencia + ruido) * 10) / 10));
     const origem: "mensal" | "tratativa" = pontosTratativa.includes(i) ? "tratativa" : "mensal";
 
     return { date, dt, origem };
@@ -191,12 +185,11 @@ function serieDt(valorAtual: number, pontosTratativa: number[] = []): PontoDt[] 
 // (mais profundo, feito com bem menos frequencia) -- os EEAs diarios feitos
 // depois dele devem ser comparados contra esse baseline para indicar se o
 // funcionario esta melhorando ou piorando desde a ultima avaliacao
-// aprofundada, e nao contra a propria media historica do EEA. Normaliza o DT
-// (0-750) pra mesma escala do EEA (0-100) antes de comparar.
+// aprofundada, e nao contra a propria media historica do EEA. EEA e DT ja
+// estao na mesma escala (0-10), entao a comparacao e direta.
 export function tendenciaEeaVsUltimoDt(eeaAtual: number, dtAtual: number): number {
-  const dtBaseline = (dtAtual / 750) * 100;
-  if (dtBaseline === 0) return 0;
-  return Math.round(((eeaAtual - dtBaseline) / dtBaseline) * 100);
+  if (dtAtual === 0) return 0;
+  return Math.round(((eeaAtual - dtAtual) / dtAtual) * 100);
 }
 
 export function parseDataBr(data: string): Date {
@@ -256,8 +249,8 @@ export const colaboradores: Colaborador[] = [
     cpf: "301.552.118-20",
     idade: 34,
     dataAdmissao: "12/03/2019",
-    eea: 26,
-    dt: 223,
+    eea: 3,
+    dt: 3,
     risco: "alto",
     totalTestesEea: 86,
     totalTestesDt: 7,
@@ -267,16 +260,16 @@ export const colaboradores: Colaborador[] = [
       { rank: 3, nome: "Insegurança", nota: 5, variacaoPercentual: 6, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Inquietação", "Cansaço", "Insegurança"]),
-    serieEea: serieEea(26),
-    serieDt: serieDt(223, [MESES_SERIE_DT - 1]),
+    serieEea: serieEea(3),
+    serieDt: serieDt(3, [MESES_SERIE_DT - 1]),
     historicoTestes: [
-      { id: "t1", data: "03/07/2026", tipo: "DT", pontuacao: 18, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Inquietação, Cansaço, Preocupação excessiva" },
-      { id: "t2", data: "26/06/2026", tipo: "EEA", pontuacao: 25, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Inquietação, Cansaço" },
-      { id: "t3", data: "19/06/2026", tipo: "EEA", pontuacao: 39, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço, Preocupação excessiva" },
-      { id: "t4", data: "12/06/2026", tipo: "EEA", pontuacao: 45, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Insegurança, Cansaço" },
-      { id: "t5", data: "05/06/2026", tipo: "DT", pontuacao: 62, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-      { id: "t6", data: "29/05/2026", tipo: "EEA", pontuacao: 66, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t7", data: "22/05/2026", tipo: "EEA", pontuacao: 71, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t1", data: "03/07/2026", tipo: "DT", pontuacao: 2, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Inquietação, Cansaço, Preocupação excessiva" },
+      { id: "t2", data: "26/06/2026", tipo: "EEA", pontuacao: 3, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Inquietação, Cansaço" },
+      { id: "t3", data: "19/06/2026", tipo: "EEA", pontuacao: 4, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço, Preocupação excessiva" },
+      { id: "t4", data: "12/06/2026", tipo: "EEA", pontuacao: 5, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Insegurança, Cansaço" },
+      { id: "t5", data: "05/06/2026", tipo: "DT", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t6", data: "29/05/2026", tipo: "EEA", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t7", data: "22/05/2026", tipo: "EEA", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
     ],
     historicoTratativas: [
       {
@@ -300,8 +293,8 @@ export const colaboradores: Colaborador[] = [
     cpf: "118.904.337-55",
     idade: 29,
     dataAdmissao: "04/07/2021",
-    eea: 42,
-    dt: 410,
+    eea: 4,
+    dt: 5,
     risco: "medio",
     totalTestesEea: 102,
     totalTestesDt: 5,
@@ -311,16 +304,16 @@ export const colaboradores: Colaborador[] = [
       { rank: 3, nome: "Insegurança", nota: 8, variacaoPercentual: 3, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Preocupação excessiva", "Cansaço", "Insegurança"]),
-    serieEea: serieEea(42),
-    serieDt: serieDt(410),
+    serieEea: serieEea(4),
+    serieDt: serieDt(5),
     historicoTestes: [
-      { id: "t1", data: "01/07/2026", tipo: "DT", pontuacao: 42, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva, Qualidade do sono" },
-      { id: "t2", data: "24/06/2026", tipo: "EEA", pontuacao: 48, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
-      { id: "t3", data: "17/06/2026", tipo: "EEA", pontuacao: 67, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t4", data: "10/06/2026", tipo: "EEA", pontuacao: 72, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-      { id: "t5", data: "03/06/2026", tipo: "DT", pontuacao: 75, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t6", data: "27/05/2026", tipo: "EEA", pontuacao: 78, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-      { id: "t7", data: "20/05/2026", tipo: "EEA", pontuacao: 81, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t1", data: "01/07/2026", tipo: "DT", pontuacao: 4, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva, Qualidade do sono" },
+      { id: "t2", data: "24/06/2026", tipo: "EEA", pontuacao: 5, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
+      { id: "t3", data: "17/06/2026", tipo: "EEA", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t4", data: "10/06/2026", tipo: "EEA", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t5", data: "03/06/2026", tipo: "DT", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t6", data: "27/05/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t7", data: "20/05/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
     ],
     historicoTratativas: [],
   },
@@ -336,8 +329,8 @@ export const colaboradores: Colaborador[] = [
     cpf: "452.110.889-03",
     idade: 41,
     dataAdmissao: "22/09/2015",
-    eea: 24,
-    dt: 140,
+    eea: 2,
+    dt: 2,
     risco: "alto",
     totalTestesEea: 74,
     totalTestesDt: 8,
@@ -347,16 +340,16 @@ export const colaboradores: Colaborador[] = [
       { rank: 3, nome: "Cansaço", nota: 4, variacaoPercentual: -2, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Raiva ou irritabilidade", "Preocupação excessiva", "Cansaço"]),
-    serieEea: serieEea(24),
-    serieDt: serieDt(140, [MESES_SERIE_DT - 1]),
+    serieEea: serieEea(2),
+    serieDt: serieDt(2, [MESES_SERIE_DT - 1]),
     historicoTestes: [
-      { id: "t1", data: "05/07/2026", tipo: "DT", pontuacao: 12, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Perda de foco, Raiva ou irritabilidade" },
-      { id: "t2", data: "28/06/2026", tipo: "EEA", pontuacao: 16, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Cansaço" },
-      { id: "t3", data: "21/06/2026", tipo: "EEA", pontuacao: 21, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade" },
-      { id: "t4", data: "14/06/2026", tipo: "EEA", pontuacao: 35, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
-      { id: "t5", data: "07/06/2026", tipo: "DT", pontuacao: 40, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço" },
-      { id: "t6", data: "31/05/2026", tipo: "EEA", pontuacao: 48, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Raiva ou irritabilidade" },
-      { id: "t7", data: "24/05/2026", tipo: "EEA", pontuacao: 53, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço" },
+      { id: "t1", data: "05/07/2026", tipo: "DT", pontuacao: 1, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Perda de foco, Raiva ou irritabilidade" },
+      { id: "t2", data: "28/06/2026", tipo: "EEA", pontuacao: 2, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Cansaço" },
+      { id: "t3", data: "21/06/2026", tipo: "EEA", pontuacao: 2, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade" },
+      { id: "t4", data: "14/06/2026", tipo: "EEA", pontuacao: 4, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
+      { id: "t5", data: "07/06/2026", tipo: "DT", pontuacao: 4, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço" },
+      { id: "t6", data: "31/05/2026", tipo: "EEA", pontuacao: 5, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Raiva ou irritabilidade" },
+      { id: "t7", data: "24/05/2026", tipo: "EEA", pontuacao: 5, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço" },
     ],
     historicoTratativas: [
       {
@@ -387,8 +380,8 @@ export const colaboradores: Colaborador[] = [
     cpf: "770.223.145-61",
     idade: 26,
     dataAdmissao: "08/01/2023",
-    eea: 68,
-    dt: 540,
+    eea: 7,
+    dt: 7,
     risco: "baixo",
     totalTestesEea: 95,
     totalTestesDt: 4,
@@ -398,16 +391,16 @@ export const colaboradores: Colaborador[] = [
       { rank: 3, nome: "Qualidade do sono", nota: 9, variacaoPercentual: 5, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("baixo", ["Cansaço", "Insegurança", "Qualidade do sono"]),
-    serieEea: serieEea(68),
-    serieDt: serieDt(540),
+    serieEea: serieEea(7),
+    serieDt: serieDt(7),
     historicoTestes: [
-      { id: "t1", data: "02/07/2026", tipo: "EEA", pontuacao: 70, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t2", data: "25/06/2026", tipo: "EEA", pontuacao: 73, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t3", data: "18/06/2026", tipo: "EEA", pontuacao: 76, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-      { id: "t4", data: "11/06/2026", tipo: "DT", pontuacao: 78, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Qualidade do sono" },
-      { id: "t5", data: "04/06/2026", tipo: "EEA", pontuacao: 79, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t6", data: "28/05/2026", tipo: "DT", pontuacao: 81, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-      { id: "t7", data: "21/05/2026", tipo: "EEA", pontuacao: 82, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Qualidade do sono" },
+      { id: "t1", data: "02/07/2026", tipo: "EEA", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t2", data: "25/06/2026", tipo: "EEA", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t3", data: "18/06/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t4", data: "11/06/2026", tipo: "DT", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Qualidade do sono" },
+      { id: "t5", data: "04/06/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t6", data: "28/05/2026", tipo: "DT", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t7", data: "21/05/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Qualidade do sono" },
     ],
     historicoTratativas: [],
   },
@@ -423,8 +416,8 @@ export const colaboradores: Colaborador[] = [
     cpf: "509.317.662-84",
     idade: 37,
     dataAdmissao: "17/05/2018",
-    eea: 31,
-    dt: 270,
+    eea: 4,
+    dt: 4,
     risco: "medio",
     totalTestesEea: 68,
     totalTestesDt: 6,
@@ -434,16 +427,16 @@ export const colaboradores: Colaborador[] = [
       { rank: 3, nome: "Insegurança", nota: 7, variacaoPercentual: -1, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Cansaço", "Cansaço mental", "Insegurança"]),
-    serieEea: serieEea(31),
-    serieDt: serieDt(270),
+    serieEea: serieEea(4),
+    serieDt: serieDt(4),
     historicoTestes: [
-      { id: "t1", data: "04/07/2026", tipo: "EEA", pontuacao: 34, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço, Cansaço mental" },
-      { id: "t2", data: "27/06/2026", tipo: "DT", pontuacao: 37, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço mental, Desmotivação" },
-      { id: "t3", data: "20/06/2026", tipo: "EEA", pontuacao: 41, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço mental" },
-      { id: "t4", data: "13/06/2026", tipo: "EEA", pontuacao: 55, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Insegurança" },
-      { id: "t5", data: "06/06/2026", tipo: "DT", pontuacao: 63, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t6", data: "30/05/2026", tipo: "EEA", pontuacao: 69, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-      { id: "t7", data: "23/05/2026", tipo: "EEA", pontuacao: 72, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço mental" },
+      { id: "t1", data: "04/07/2026", tipo: "EEA", pontuacao: 4, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço, Cansaço mental" },
+      { id: "t2", data: "27/06/2026", tipo: "DT", pontuacao: 4, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço mental, Desmotivação" },
+      { id: "t3", data: "20/06/2026", tipo: "EEA", pontuacao: 4, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço mental" },
+      { id: "t4", data: "13/06/2026", tipo: "EEA", pontuacao: 6, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Insegurança" },
+      { id: "t5", data: "06/06/2026", tipo: "DT", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t6", data: "30/05/2026", tipo: "EEA", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t7", data: "23/05/2026", tipo: "EEA", pontuacao: 7, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço mental" },
     ],
     historicoTratativas: [],
   },
@@ -462,8 +455,8 @@ export const colaboradores: Colaborador[] = [
     cpf: "203.884.771-09",
     idade: 22,
     dataAdmissao: "01/07/2026",
-    eea: 78,
-    dt: 750,
+    eea: 8,
+    dt: 10,
     risco: "baixo",
     totalTestesEea: 4,
     totalTestesDt: 0,
@@ -473,13 +466,13 @@ export const colaboradores: Colaborador[] = [
       { rank: 3, nome: "Perda de foco", nota: 9, variacaoPercentual: -1, origem: "EEA" },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("baixo", ["Insegurança", "Cansaço", "Perda de foco"]),
-    serieEea: serieEea(78),
+    serieEea: serieEea(8),
     serieDt: [],
     historicoTestes: [
-      { id: "t1", data: "05/07/2026", tipo: "EEA", pontuacao: 78, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-      { id: "t2", data: "04/07/2026", tipo: "EEA", pontuacao: 81, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t3", data: "03/07/2026", tipo: "EEA", pontuacao: 84, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Perda de foco" },
-      { id: "t4", data: "02/07/2026", tipo: "EEA", pontuacao: 86, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t1", data: "05/07/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
+      { id: "t2", data: "04/07/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
+      { id: "t3", data: "03/07/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Perda de foco" },
+      { id: "t4", data: "02/07/2026", tipo: "EEA", pontuacao: 9, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
     ],
     historicoTratativas: [],
   },
@@ -543,10 +536,10 @@ export function resultadosCompletosDoTeste(
   teste: TesteHistorico
 ): { nome: string; nota: number; critico: boolean }[] {
   const criticos = fatoresDoTeste(teste);
-  // pontuacaoRisco recupera a leitura "quanto maior pior" (0-75 equivalente)
+  // pontuacaoRisco recupera a leitura "quanto maior pior" (equivalente 0-100)
   // so para reaproveitar a mesma logica proporcional de sempre; o valor final
   // retornado ja sai na escala nova (0-10, quanto maior melhor).
-  const pontuacaoRisco = 100 - teste.pontuacao;
+  const pontuacaoRisco = 100 - teste.pontuacao * 10;
   return TODOS_FATORES.map((nome, i) => {
     const rankCritico = criticos.indexOf(nome);
     if (rankCritico >= 0) {
