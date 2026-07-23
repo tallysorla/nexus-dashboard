@@ -181,9 +181,9 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                     dentro do grafico: qualquer posicao fixa eventualmente
                     coincide com o traçado e fica ilegivel -- a legenda de
                     cor fica no tooltip, fora da area de plotagem. */}
-                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={0} y2={30} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={30} y2={60} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={60} y2={100} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
               </AreaChart>
             </ChartContainer>
           </div>

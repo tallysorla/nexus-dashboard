@@ -41,12 +41,12 @@ type KpiCardProps = {
   extra?: ReactNode;
 };
 
-// Subir e piorar aqui (nota mais alta de EEA/DT normalizado = mais risco),
-// entao a seta de tendencia usa vermelho pra "subindo" e verde pra
-// "descendo" -- o oposto do que "seta pra cima = bom" sugeriria a olho nu.
+// Subir e melhorar aqui (nota mais alta de EEA/DT normalizado = mais bem
+// estar), entao a seta de tendencia usa verde pra "subindo" e vermelho pra
+// "descendo" -- a leitura intuitiva de "seta pra cima = bom".
 const TENDENCIA_VALOR_CLASSE: Record<Tendencia, string> = {
-  subindo: "text-red-600",
-  descendo: "text-emerald-600",
+  subindo: "text-emerald-600",
+  descendo: "text-red-600",
   estavel: "text-muted-foreground",
 };
 
@@ -172,7 +172,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
           value={<span className={TENDENCIA_VALOR_CLASSE[tendencia]}>{variacaoLabel(tendenciaEeaValor)}</span>}
           badge={statusDoFator(tendencia)}
           badgeClassName={
-            tendencia === "subindo" ? RISCO_BADGE_CLASS.alto : "border-slate-200 bg-slate-50 text-slate-700"
+            tendencia === "descendo" ? RISCO_BADGE_CLASS.alto : "border-slate-200 bg-slate-50 text-slate-700"
           }
           sublabel="EEA atual em relação ao último DT realizado"
           tooltip="O DT é o teste de referência mais aprofundado. Compara o EEA mais recente com o resultado do último DT (na mesma escala) para indicar se o funcionário está piorando ou melhorando desde essa última avaliação."

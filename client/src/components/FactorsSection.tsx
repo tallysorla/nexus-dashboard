@@ -53,13 +53,13 @@ function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolea
                 {RISCO_LABEL[risco]}
               </Badge>
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/75</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/10</p>
           </>
         ) : (
           <>
             <p className="font-medium">{factor.nome}</p>
             <div className="mt-0.5 flex items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">nota {factor.nota}/75</p>
+              <p className="text-xs text-muted-foreground">nota {factor.nota}/10</p>
               <Badge
                 variant="outline"
                 className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}

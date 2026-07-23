@@ -164,9 +164,9 @@ export function DtChartSection({ data }: DtChartSectionProps) {
                 faixa, altura da media) eventualmente coincide com alguma
                 barra alta e fica ilegivel -- a legenda de cor fica no
                 cabecalho do card e no tooltip, fora da area de plotagem. */}
-            <ReferenceArea y1={525} y2={750} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={300} y2={525} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={0} y2={300} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={0} y2={225} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={225} y2={450} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={450} y2={750} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
             <ReferenceLine y={media} stroke="var(--color-dt)" strokeDasharray="4 4" strokeOpacity={0.6} />
           </BarChart>
         </ChartContainer>

@@ -333,10 +333,10 @@ export default function NovoTesteDetail() {
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${(r.nota / 75) * 100}%`, backgroundColor: RISCO_HEX[risco] }}
+                      style={{ width: `${(r.nota / 10) * 100}%`, backgroundColor: RISCO_HEX[risco] }}
                     />
                   </div>
-                  <span className="w-12 shrink-0 text-right text-xs text-muted-foreground">{r.nota}/75</span>
+                  <span className="w-12 shrink-0 text-right text-xs text-muted-foreground">{r.nota}/10</span>
                 </div>
                 <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${STATUS_TEXT_CLASS[risco]}`}>
                   {RISCO_LABEL[risco]}

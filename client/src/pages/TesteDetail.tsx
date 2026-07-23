@@ -379,7 +379,7 @@ export default function TesteDetail() {
           <CollapsibleContent>
             <CardContent className="border-t px-6 py-5">
               <p className="mb-3 text-xs text-muted-foreground">
-                Cada fator é medido de 0 a 75. A pontuação geral do teste (0 a 100) é uma escala diferente,
+                Cada fator é medido de 0 a 10. A pontuação geral do teste (0 a 100) é uma escala diferente,
                 calculada sobre o conjunto dos 10 fatores.
               </p>
               <div className="h-[420px] w-full">
@@ -388,8 +388,8 @@ export default function TesteDetail() {
                     <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
                     <XAxis
                       type="number"
-                      domain={[0, 75]}
-                      ticks={[0, 15, 30, 45, 60, 75]}
+                      domain={[0, 10]}
+                      ticks={[0, 2, 4, 6, 8, 10]}
                       axisLine={false}
                       tickLine={false}
                       style={{ fontSize: "12px" }}
