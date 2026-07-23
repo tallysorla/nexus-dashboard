@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Router as WouterRouter, Switch } from "wouter";
+import { Route, Router as WouterRouter, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ProfileProvider } from "./contexts/ProfileContext";
@@ -49,6 +50,31 @@ function Router() {
   );
 }
 
+// Bloqueio de rotas para o build compartilhado com stakeholders externos:
+// mesmo que o item correspondente na Sidebar esteja travado com cadeado,
+// nada impede alguem de digitar a URL direto na barra de enderecos -- este
+// guard fecha essa brecha redirecionando qualquer rota fora da allowlist de
+// volta para /funcionarios. So os testes acessados a partir do historico de
+// um funcionario (nao a lista agregada em /empresas/:cid/testes) ficam
+// liberados, por fazerem parte do proprio fluxo de Funcionarios.
+const ROTAS_PERMITIDAS = [
+  /^\/funcionarios$/,
+  /^\/funcionarios\/[^/]+$/,
+  /^\/empresas\/[^/]+\/testes\/[^/]+\/[^/]+$/,
+];
+
+function RouteGuard({ children }: { children: React.ReactNode }) {
+  const [location, navigate] = useLocation();
+  const permitida = ROTAS_PERMITIDAS.some((padrao) => padrao.test(location));
+
+  useEffect(() => {
+    if (!permitida) navigate("/funcionarios", { replace: true });
+  }, [location, permitida, navigate]);
+
+  if (!permitida) return null;
+  return <>{children}</>;
+}
+
 // NOTE: About Theme
 // - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
 //   to keep consistent foreground/background color across components
@@ -73,7 +99,9 @@ function App() {
           <Toaster />
           <WouterRouter base={routerBase}>
             <ProfileProvider>
-              <Router />
+              <RouteGuard>
+                <Router />
+              </RouteGuard>
             </ProfileProvider>
           </WouterRouter>
         </TooltipProvider>

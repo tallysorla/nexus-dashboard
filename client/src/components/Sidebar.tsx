@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   FileText,
   LayoutDashboard,
+  Lock,
   LogOut,
   ShieldCheck,
   Users,
@@ -23,6 +24,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useEmpresaScope, useProfile, type NavKey } from "@/contexts/ProfileContext";
 import { getEmpresaById } from "@/lib/mock-empresas";
 
@@ -36,6 +42,21 @@ const NAV_META: Record<NavKey, { icon: LucideIcon; label: string; href: (cid: st
   usuarios: { icon: ShieldCheck, label: "Usuários & acessos", href: (cid) => `/empresas/${cid}/usuarios` },
   dados: { icon: Building, label: "Dados da empresa", href: (cid) => `/empresas/${cid}/dados` },
 };
+
+// Ordem canonica com todas as areas do produto -- exibida sempre inteira,
+// mesmo quando o perfil ativo so libera um subconjunto (ex.: stakeholder),
+// para o item bloqueado aparecer com cadeado em vez de simplesmente sumir do
+// menu (deixa claro que a area existe mas nao esta liberada nesta visao).
+const TODOS_OS_NAV: NavKey[] = [
+  "overview",
+  "filiais",
+  "func",
+  "testes",
+  "risco",
+  "aplicar",
+  "usuarios",
+  "dados",
+];
 
 // So renderizado quando ha uma empresa no escopo (ver Layout.tsx) -- no
 // diretorio global (sem empresa escolhida) a sidebar inteira fica oculta,
@@ -84,12 +105,35 @@ export function Sidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
               {cid &&
-                profile.nav.map((navKey) => {
+                TODOS_OS_NAV.map((navKey) => {
                   const meta = NAV_META[navKey];
+                  const liberado = profile.nav.includes(navKey);
                   const href = meta.href(cid);
                   const hrefPath = href.split("?")[0];
                   const isActive =
-                    navKey === "overview" ? location === hrefPath : location.startsWith(hrefPath);
+                    liberado && (navKey === "overview" ? location === hrefPath : location.startsWith(hrefPath));
+
+                  if (!liberado) {
+                    return (
+                      <SidebarMenuItem key={navKey}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <SidebarMenuButton
+                              size="lg"
+                              disabled
+                              aria-disabled="true"
+                              className="cursor-not-allowed rounded-xl px-3 text-sm font-medium text-muted-foreground opacity-60"
+                            >
+                              <meta.icon className="size-4" />
+                              <span className="group-data-[collapsible=icon]:hidden">{meta.label}</span>
+                              <Lock className="ml-auto size-3.5 shrink-0 group-data-[collapsible=icon]:hidden" />
+                            </SidebarMenuButton>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">Bloqueado nesta visualização</TooltipContent>
+                        </Tooltip>
+                      </SidebarMenuItem>
+                    );
+                  }
 
                   return (
                     <SidebarMenuItem key={navKey}>

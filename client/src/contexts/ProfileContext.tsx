@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "wouter";
 import { ANDRADE_ID, FILIAL_MATRIZ_SP } from "@/lib/mock-empresas";
 
-export type ProfileKey = "wesafety" | "empresa" | "filial" | "avaliador";
+export type ProfileKey = "wesafety" | "empresa" | "filial" | "avaliador" | "stakeholder";
 
 export type NavKey =
   | "overview"
@@ -59,6 +59,18 @@ export const PROFILES: Record<ProfileKey, ProfileDef> = {
     empresaId: ANDRADE_ID,
     filialId: FILIAL_MATRIZ_SP,
     nav: ["func", "aplicar"],
+    canExit: false,
+  },
+  // Visualizacao para compartilhar com stakeholders externos: so Funcionarios
+  // fica liberado, o resto do menu aparece bloqueado (ver Sidebar.tsx) e nao
+  // ha como sair desse escopo (canExit false, sem "Ver como" no Header).
+  stakeholder: {
+    key: "stakeholder",
+    label: "Visualização stakeholder",
+    scopeLabel: "Transportadora Andrade",
+    empresaId: ANDRADE_ID,
+    filialId: null,
+    nav: ["func"],
     canExit: false,
   },
 };
@@ -118,10 +130,22 @@ export const PERMS: Record<ProfileKey, PermissaoArea[]> = {
     { area: "Usuários & acessos", acesso: false, observacao: "Não pode cadastrar outros avaliadores" },
     { area: "Dados da empresa", acesso: false, observacao: "" },
   ],
+  stakeholder: [
+    { area: "Empresas (diretório global)", acesso: false, observacao: "" },
+    { area: "Visão geral", acesso: false, observacao: "" },
+    { area: "Filiais / NOPs", acesso: false, observacao: "" },
+    { area: "Funcionários", acesso: true, observacao: "Visualização externa, somente leitura" },
+    { area: "Testes", acesso: false, observacao: "" },
+    { area: "Aplicar teste", acesso: false, observacao: "" },
+    { area: "Combinações Críticas", acesso: false, observacao: "" },
+    { area: "Usuários & acessos", acesso: false, observacao: "" },
+    { area: "Dados da empresa", acesso: false, observacao: "" },
+  ],
 };
 
 function rotaPadrao(profile: ProfileDef): string {
   if (profile.key === "wesafety") return "/";
+  if (profile.key === "stakeholder") return "/funcionarios";
   if (profile.nav.includes("overview")) return `/empresas/${profile.empresaId}`;
   if (profile.key === "avaliador") return `/empresas/${profile.empresaId}/aplicar-teste`;
   return `/empresas/${profile.empresaId}`;
@@ -136,7 +160,10 @@ type ProfileContextType = {
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
-  const [profileKey, setProfileKey] = useState<ProfileKey>("wesafety");
+  // Build compartilhado externamente: comeca travado no perfil de
+  // stakeholder (so Funcionarios) em vez de Admin WeSafety. Ver
+  // Sidebar.tsx/App.tsx para o bloqueio de menu e rotas correspondente.
+  const [profileKey, setProfileKey] = useState<ProfileKey>("stakeholder");
   const [, navigate] = useLocation();
 
   const setProfile = (key: ProfileKey) => {

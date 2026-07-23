@@ -143,24 +143,26 @@ export default function TesteDetail() {
 
   return (
     <Layout>
-      <Breadcrumb
-        items={[
-          { label: "Empresas", href: "/" },
-          { label: empresa.nome, href: `/empresas/${empresa.id}` },
-          ...(filial
-            ? [
-                { label: "Filiais / NOPs", href: `/empresas/${empresa.id}/filiais` },
-                { label: filial.nome, href: `/empresas/${empresa.id}/filiais/${filial.id}` },
-              ]
-            : []),
-          { label: "Testes", href: voltarHref },
-          { label: teste.data },
-        ]}
-      />
+      {profile.key !== "stakeholder" && (
+        <Breadcrumb
+          items={[
+            { label: "Empresas", href: "/" },
+            { label: empresa.nome, href: `/empresas/${empresa.id}` },
+            ...(filial
+              ? [
+                  { label: "Filiais / NOPs", href: `/empresas/${empresa.id}/filiais` },
+                  { label: filial.nome, href: `/empresas/${empresa.id}/filiais/${filial.id}` },
+                ]
+              : []),
+            { label: "Testes", href: voltarHref },
+            { label: teste.data },
+          ]}
+        />
+      )}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <Link
-          href={voltarHref}
+          href={profile.key === "stakeholder" ? `/funcionarios/${colaborador.id}` : voltarHref}
           className="inline-flex items-center gap-1.5 text-2xl font-semibold tracking-tight hover:text-muted-foreground"
         >
           <ArrowLeft className="size-5" />
