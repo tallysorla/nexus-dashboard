@@ -29,7 +29,9 @@ type FactorsSectionProps = {
   historicoTestes: TesteHistorico[];
 };
 
-function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolean }) {
+type FatorExibido = { rank: number; nome: string; nota: number };
+
+function FatorRow({ factor, compact = false }: { factor: FatorExibido; compact?: boolean }) {
   const risco = classificarRisco(factor.nota);
 
   return (
@@ -77,13 +79,25 @@ function FatorRow({ factor, compact = false }: { factor: Fator; compact?: boolea
 export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTestes }: FactorsSectionProps) {
   const [tipoFiltro, setTipoFiltro] = useState<TipoTeste>("EEA");
 
-  // Cada fator ja carrega sua propria origem (EEA ou DT -- ver comentario em
-  // origemDaNota, mock-colaboradores.ts). O toggle filtra por essa origem em
-  // vez de recalcular notas, entao e esperado que a aba DT fique vazia pra
-  // colaboradores sem nenhum fator ainda confirmado por um teste DT.
-  const destaqueFiltrado = fatoresDestaque.filter((f) => f.origem === tipoFiltro);
-  const adicionaisFiltrado = fatoresAdicionais.filter((f) => f.origem === tipoFiltro);
-  const [principal, ...resto] = destaqueFiltrado;
+  // EEA e DT avaliam os MESMOS 10 fatores -- o toggle nunca esconde fatores,
+  // so troca qual nota exibir (a do ultimo EEA ou a do ultimo DT).
+  const notaExibida = (f: Fator) => (tipoFiltro === "EEA" ? f.notaEea : f.notaDt);
+  const destaqueExibido: FatorExibido[] = fatoresDestaque.map((f) => ({
+    rank: f.rank,
+    nome: f.nome,
+    nota: notaExibida(f),
+  }));
+  const adicionaisExibido: FatorExibido[] = fatoresAdicionais.map((f) => ({
+    rank: f.rank,
+    nome: f.nome,
+    nota: notaExibida(f),
+  }));
+  const [principal, ...resto] = destaqueExibido;
+
+  // So relevante pra DT: sem nenhum teste DT ainda, nao ha nota de DT real
+  // pra mostrar (diferente de EEA, que todo colaborador ja tem desde o
+  // primeiro dia).
+  const semTesteDt = tipoFiltro === "DT" && !historicoTestes.some((t) => t.tipo === "DT");
 
   const ultimoTeste = [...historicoTestes]
     .filter((t) => t.tipo === tipoFiltro)
@@ -94,17 +108,13 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTe
     setTipoFiltro(value as TipoTeste);
   }
 
-  // Se nenhum dos 10 fatores acompanhados chegou a risco medio/alto, nao ha
-  // nada pra destacar -- mostra um estado vazio positivo em vez das duas
-  // secoes (que ficariam cheias de badges "Baixo risco" repetidos). Isso
-  // independe do toggle: "tudo bem" e um resumo do colaborador como um todo.
-  const semFatorEmAtencao = [...fatoresDestaque, ...fatoresAdicionais].every(
-    (factor) => classificarRisco(factor.nota) === "baixo",
-  );
-
-  // Diferente do caso acima: aqui HA fatores em atencao, so nao nessa origem
-  // especifica selecionada no toggle.
-  const semFatorNestaOrigem = !semFatorEmAtencao && destaqueFiltrado.length === 0 && adicionaisFiltrado.length === 0;
+  // Se nenhum dos 10 fatores (na nota do teste selecionado) chegou a risco
+  // medio/alto, nao ha nada pra destacar -- mostra um estado vazio positivo
+  // em vez das duas secoes (que ficariam cheias de badges "Baixo risco"
+  // repetidos).
+  const semFatorEmAtencao =
+    !semTesteDt &&
+    [...destaqueExibido, ...adicionaisExibido].every((factor) => classificarRisco(factor.nota) === "baixo");
 
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
@@ -180,47 +190,42 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTe
               </div>
             </div>
           </div>
-        ) : semFatorNestaOrigem ? (
+        ) : semTesteDt ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
-            <p className="text-sm font-medium">Nenhum fator de origem {tipoFiltro} no momento</p>
+            <p className="text-sm font-medium">Nenhum teste DT realizado ainda</p>
             <p className="max-w-xs text-xs text-muted-foreground">
-              {tipoFiltro === "DT"
-                ? "Nenhum fator deste colaborador foi confirmado por um teste DT ainda. Os fatores em atenção seguem sendo acompanhados pelo EEA diário."
-                : "Todos os fatores em atenção deste colaborador já foram confirmados por um teste DT."}
+              Assim que o primeiro DT for aplicado, os 10 fatores passam a ser exibidos também com
+              base nele. Por enquanto, veja a aba EEA.
             </p>
           </div>
         ) : (
           <div className="space-y-5">
-            {destaqueFiltrado.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Maior risco no momento
-                </p>
-                {principal && (
-                  <div className="-mx-4 rounded-xl border bg-muted/30 p-4">
-                    <FatorRow factor={principal} />
-                  </div>
-                )}
-                <div className="space-y-4">
-                  {resto.map((factor) => (
-                    <FatorRow key={factor.rank} factor={factor} compact />
-                  ))}
+            <div className="space-y-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Maior risco no momento
+              </p>
+              {principal && (
+                <div className="-mx-4 rounded-xl border bg-muted/30 p-4">
+                  <FatorRow factor={principal} />
                 </div>
+              )}
+              <div className="space-y-4">
+                {resto.map((factor) => (
+                  <FatorRow key={factor.rank} factor={factor} compact />
+                ))}
               </div>
-            )}
+            </div>
 
-            {adicionaisFiltrado.length > 0 && (
-              <div className="space-y-3 border-t pt-4">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Outros fatores acompanhados
-                </p>
-                <div className="space-y-4">
-                  {adicionaisFiltrado.map((factor) => (
-                    <FatorRow key={factor.rank} factor={factor} compact />
-                  ))}
-                </div>
+            <div className="space-y-3 border-t pt-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Outros fatores acompanhados
+              </p>
+              <div className="space-y-4">
+                {adicionaisExibido.map((factor) => (
+                  <FatorRow key={factor.rank} factor={factor} compact />
+                ))}
               </div>
-            )}
+            </div>
           </div>
         )}
       </CardContent>

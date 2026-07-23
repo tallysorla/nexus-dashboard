@@ -4,16 +4,21 @@ export type Tendencia = "subindo" | "estavel" | "descendo";
 
 export type TipoTeste = "EEA" | "DT";
 
-// nota = 0-10 por fator, quanto maior melhor (mais seguro). variacaoPercentual
-// = sinal indica a direcao real: positivo = melhorando, negativo = piorando.
-// tendencia e status sao sempre derivados dela, nunca digitados a mao, para
-// nao correr o risco de um "+4%" aparecer como "Piorando".
+// EEA e DT sao dois testes independentes, mas cada um avalia os MESMOS 10
+// fatores psicossociais -- nao ha fatores exclusivos de um teste ou de
+// outro. Por isso cada fator carrega duas notas (0-10, quanto maior melhor):
+// notaEea (com base no ultimo EEA) e notaDt (com base no ultimo DT). O
+// toggle EEA/DT na tela so troca QUAL nota e exibida, nunca esconde fatores.
+// variacaoPercentual = sinal indica a direcao real: positivo = melhorando,
+// negativo = piorando. tendencia e status sao sempre derivados dela, nunca
+// digitados a mao, para nao correr o risco de um "+4%" aparecer como
+// "Piorando".
 export type Fator = {
   rank: number;
   nome: string;
-  nota: number;
+  notaEea: number;
+  notaDt: number;
   variacaoPercentual: number;
-  origem: TipoTeste;
 };
 
 export function tendenciaDoFator(variacaoPercentual: number): Tendencia {
@@ -223,25 +228,20 @@ export const TODOS_FATORES = [
   "Desmotivação",
 ] as const;
 
-// Fatores com nota <= 3 (30% de 10, alto risco) partem do princípio de que
-// já foram confirmados por um teste DT (mais profundo); os demais são
-// acompanhados pelo EEA (diário), que é quem normalmente detecta a variação
-// primeiro.
-function origemDaNota(nota: number): TipoTeste {
-  return nota <= 3 ? "DT" : "EEA";
-}
-
 function gerarFatoresAdicionais(risco: RiskLevel, destaque: string[]): Fator[] {
   const baseNota = risco === "alto" ? 6 : risco === "medio" ? 7 : 8;
   return TODOS_FATORES.filter((nome) => !destaque.includes(nome)).map((nome, i) => {
     const variacaoPercentual = i % 3 === 0 ? -1 : i % 3 === 1 ? 2 + (i % 3) : -(3 + (i % 3));
-    const nota = Math.min(9, baseNota + Math.floor(i / 2));
+    const notaEea = Math.min(9, baseNota + Math.floor(i / 2));
+    // Pequena variacao deterministica entre as duas notas -- o DT e o teste
+    // mais aprofundado, mas nao precisa bater exatamente com o EEA diario.
+    const notaDt = Math.max(0, Math.min(10, notaEea + (i % 2 === 0 ? 1 : -1)));
     return {
       rank: 4 + i,
       nome,
-      nota,
+      notaEea,
+      notaDt,
       variacaoPercentual,
-      origem: origemDaNota(nota),
     };
   });
 }
@@ -265,9 +265,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 86,
     totalTestesDt: 7,
     fatoresDestaque: [
-      { rank: 1, nome: "Inquietação", nota: 1, variacaoPercentual: -12, origem: "DT" },
-      { rank: 2, nome: "Cansaço", nota: 4, variacaoPercentual: -2, origem: "EEA" },
-      { rank: 3, nome: "Insegurança", nota: 5, variacaoPercentual: 6, origem: "EEA" },
+      { rank: 1, nome: "Inquietação", notaEea: 2, notaDt: 1, variacaoPercentual: -12 },
+      { rank: 2, nome: "Cansaço", notaEea: 4, notaDt: 3, variacaoPercentual: -2 },
+      { rank: 3, nome: "Insegurança", notaEea: 5, notaDt: 6, variacaoPercentual: 6 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Inquietação", "Cansaço", "Insegurança"]),
     serieEea: serieEea(3),
@@ -309,9 +309,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 102,
     totalTestesDt: 5,
     fatoresDestaque: [
-      { rank: 1, nome: "Preocupação excessiva", nota: 4, variacaoPercentual: -8, origem: "EEA" },
-      { rank: 2, nome: "Cansaço", nota: 6, variacaoPercentual: -1, origem: "EEA" },
-      { rank: 3, nome: "Insegurança", nota: 8, variacaoPercentual: 3, origem: "EEA" },
+      { rank: 1, nome: "Preocupação excessiva", notaEea: 4, notaDt: 5, variacaoPercentual: -8 },
+      { rank: 2, nome: "Cansaço", notaEea: 6, notaDt: 5, variacaoPercentual: -1 },
+      { rank: 3, nome: "Insegurança", notaEea: 8, notaDt: 7, variacaoPercentual: 3 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Preocupação excessiva", "Cansaço", "Insegurança"]),
     serieEea: serieEea(4),
@@ -345,9 +345,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 74,
     totalTestesDt: 8,
     fatoresDestaque: [
-      { rank: 1, nome: "Raiva ou irritabilidade", nota: 1, variacaoPercentual: -18, origem: "DT" },
-      { rank: 2, nome: "Preocupação excessiva", nota: 3, variacaoPercentual: -2, origem: "DT" },
-      { rank: 3, nome: "Cansaço", nota: 4, variacaoPercentual: -2, origem: "EEA" },
+      { rank: 1, nome: "Raiva ou irritabilidade", notaEea: 2, notaDt: 1, variacaoPercentual: -18 },
+      { rank: 2, nome: "Preocupação excessiva", notaEea: 4, notaDt: 3, variacaoPercentual: -2 },
+      { rank: 3, nome: "Cansaço", notaEea: 4, notaDt: 4, variacaoPercentual: -2 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Raiva ou irritabilidade", "Preocupação excessiva", "Cansaço"]),
     serieEea: serieEea(2),
@@ -396,9 +396,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 95,
     totalTestesDt: 4,
     fatoresDestaque: [
-      { rank: 1, nome: "Cansaço", nota: 7, variacaoPercentual: -2, origem: "EEA" },
-      { rank: 2, nome: "Insegurança", nota: 8, variacaoPercentual: 4, origem: "EEA" },
-      { rank: 3, nome: "Qualidade do sono", nota: 9, variacaoPercentual: 5, origem: "EEA" },
+      { rank: 1, nome: "Cansaço", notaEea: 7, notaDt: 7, variacaoPercentual: -2 },
+      { rank: 2, nome: "Insegurança", notaEea: 8, notaDt: 8, variacaoPercentual: 4 },
+      { rank: 3, nome: "Qualidade do sono", notaEea: 9, notaDt: 9, variacaoPercentual: 5 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("baixo", ["Cansaço", "Insegurança", "Qualidade do sono"]),
     serieEea: serieEea(7),
@@ -432,9 +432,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 68,
     totalTestesDt: 6,
     fatoresDestaque: [
-      { rank: 1, nome: "Cansaço", nota: 3, variacaoPercentual: -9, origem: "EEA" },
-      { rank: 2, nome: "Cansaço mental", nota: 5, variacaoPercentual: -2, origem: "EEA" },
-      { rank: 3, nome: "Insegurança", nota: 7, variacaoPercentual: -1, origem: "EEA" },
+      { rank: 1, nome: "Cansaço", notaEea: 3, notaDt: 4, variacaoPercentual: -9 },
+      { rank: 2, nome: "Cansaço mental", notaEea: 5, notaDt: 5, variacaoPercentual: -2 },
+      { rank: 3, nome: "Insegurança", notaEea: 7, notaDt: 6, variacaoPercentual: -1 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Cansaço", "Cansaço mental", "Insegurança"]),
     serieEea: serieEea(4),
@@ -471,9 +471,9 @@ export const colaboradores: Colaborador[] = [
     totalTestesEea: 4,
     totalTestesDt: 0,
     fatoresDestaque: [
-      { rank: 1, nome: "Insegurança", nota: 8, variacaoPercentual: -2, origem: "EEA" },
-      { rank: 2, nome: "Cansaço", nota: 8, variacaoPercentual: 1, origem: "EEA" },
-      { rank: 3, nome: "Perda de foco", nota: 9, variacaoPercentual: -1, origem: "EEA" },
+      { rank: 1, nome: "Insegurança", notaEea: 8, notaDt: 8, variacaoPercentual: -2 },
+      { rank: 2, nome: "Cansaço", notaEea: 8, notaDt: 8, variacaoPercentual: 1 },
+      { rank: 3, nome: "Perda de foco", notaEea: 9, notaDt: 9, variacaoPercentual: -1 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("baixo", ["Insegurança", "Cansaço", "Perda de foco"]),
     serieEea: serieEea(8),
