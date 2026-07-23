@@ -44,6 +44,7 @@ export default function ColaboradorProfile() {
         <FactorsSection
           fatoresDestaque={colaborador.fatoresDestaque}
           fatoresAdicionais={colaborador.fatoresAdicionais}
+          historicoTestes={colaborador.historicoTestes}
         />
         <div className="flex flex-col gap-6">
           <EeaChartSection data={colaborador.serieEea} />
