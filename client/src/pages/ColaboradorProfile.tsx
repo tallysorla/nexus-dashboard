@@ -32,10 +32,7 @@ export default function ColaboradorProfile() {
         Voltar para funcionários
       </Link>
 
-      <div className="space-y-1">
-        <h2 className="text-lg font-semibold leading-none">Detalhes do funcionário</h2>
-        <p className="text-sm text-muted-foreground">Resultado mais recente por indicador · há 1 mês</p>
-      </div>
+      <h2 className="text-lg font-semibold leading-none">Detalhes do funcionário</h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiMiniCards colaborador={colaborador} />

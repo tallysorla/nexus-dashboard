@@ -6,11 +6,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info, type LucideIcon } from "lucide-react";
+import { CalendarClock, Info, type LucideIcon } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
+  parseDataBr,
   statusDoFator,
   tendenciaDoFator,
   tendenciaEeaVsUltimoDt,
@@ -29,6 +30,10 @@ type KpiCardProps = {
   label: string;
   value: ReactNode;
   valueSuffix?: string;
+  // Renderiza entre o valor e o badge -- ex.: data do teste que gerou esse
+  // valor. Fica antes do badge de risco pra seguir a leitura "quanto, quando,
+  // qual o nivel".
+  meta?: ReactNode;
   badge?: string;
   badgeClassName?: string;
   sublabel?: string;
@@ -45,7 +50,7 @@ const TENDENCIA_VALOR_CLASSE: Record<Tendencia, string> = {
   estavel: "text-muted-foreground",
 };
 
-export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, badge, badgeClassName, sublabel, tooltip, extra }: KpiCardProps) {
+export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, meta, badge, badgeClassName, sublabel, tooltip, extra }: KpiCardProps) {
   return (
     <Card className="gap-3 rounded-2xl p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
@@ -76,6 +81,7 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
         {value}
         {valueSuffix && <span className="text-sm font-medium text-muted-foreground">{valueSuffix}</span>}
       </p>
+      {meta}
       {badge && (
         <Badge
           variant={badgeClassName ? "outline" : "secondary"}
@@ -95,6 +101,13 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   const dtProgress = Math.round((colaborador.dt / 750) * 100);
   const dtRisco = classificarRisco(dtProgress);
 
+  const ultimoEea = [...colaborador.historicoTestes]
+    .filter((t) => t.tipo === "EEA")
+    .sort((a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime())[0];
+  const ultimoDt = [...colaborador.historicoTestes]
+    .filter((t) => t.tipo === "DT")
+    .sort((a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime())[0];
+
   // A tendencia so faz sentido quando ja existe pelo menos 1 EEA e 1 DT
   // realizados -- sem os dois, nao ha o que comparar (mostra blank state
   // em vez de um numero calculado a partir de dado inexistente).
@@ -105,18 +118,34 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
   return (
     <>
       <KpiCard
-        label="Índice EEA"
+        label="Última pontuação EEA"
         value={String(colaborador.eea)}
         valueSuffix="/100"
+        meta={
+          ultimoEea && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CalendarClock className="size-3.5" />
+              Teste em {ultimoEea.data}
+            </span>
+          )
+        }
         badge={RISCO_LABEL[eeaRisco]}
         badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
         sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
         tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
       />
       <KpiCard
-        label="Índice DT"
+        label="Última pontuação DT"
         value={String(colaborador.dt)}
         valueSuffix="/750"
+        meta={
+          ultimoDt && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CalendarClock className="size-3.5" />
+              Teste em {ultimoDt.data}
+            </span>
+          )
+        }
         badge={RISCO_LABEL[dtRisco]}
         badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
         sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
@@ -150,37 +179,5 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         />
       )}
     </>
-  );
-}
-
-export function MetricsCards({ colaborador }: MetricsCardsProps) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold leading-none">Últimos testes realizados</h2>
-          <p className="text-sm text-muted-foreground">Resultado mais recente por indicador · há 1 mês</p>
-        </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              aria-label="Sobre EEA e DT"
-              className="mt-1 text-muted-foreground hover:text-foreground"
-            >
-              <Info className="size-4" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-64">
-            EEA é diário e DT é um teste mais aprofundado e periódico — as escalas são diferentes,
-            por isso aparecem separadas.
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <KpiMiniCards colaborador={colaborador} />
-      </div>
-    </div>
   );
 }
