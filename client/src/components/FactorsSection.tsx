@@ -119,35 +119,35 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTe
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
       <CardHeader className="flex flex-col gap-4 px-6 pt-6 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex items-start gap-2">
-          <div className="space-y-0.5">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5">
             <CardTitle className="text-lg">Principais fatores em atenção</CardTitle>
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <span>Os 10 fatores acompanhados, com base no último {tipoFiltro} realizado</span>
-            </p>
-            {ultimoTeste && (
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CalendarClock className="size-3.5" />
-                Teste em {ultimoTeste.data}
-              </p>
-            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Sobre os fatores em atenção"
+                  className="shrink-0 text-muted-foreground hover:text-foreground"
+                >
+                  <Info className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-72">
+                Lista dos fatores com maior impacto no último teste {tipoFiltro}, ordenados da maior
+                para a menor criticidade. Use o toggle para ver os fatores já confirmados pelo EEA
+                (diário) ou pelo DT (avaliação aprofundada).
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label="Sobre os fatores em atenção"
-                className="shrink-0 text-muted-foreground hover:text-foreground"
-              >
-                <Info className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-72">
-              Lista dos fatores com maior impacto no último teste {tipoFiltro}, ordenados da maior
-              para a menor criticidade. Use o toggle para ver os fatores já confirmados pelo EEA
-              (diário) ou pelo DT (avaliação aprofundada).
-            </TooltipContent>
-          </Tooltip>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span>Os 10 fatores acompanhados, com base no último {tipoFiltro} realizado</span>
+          </p>
+          {ultimoTeste && (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CalendarClock className="size-3.5" />
+              Teste em {ultimoTeste.data}
+            </p>
+          )}
         </div>
 
         <ToggleGroup
@@ -155,7 +155,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTe
           variant="outline"
           value={tipoFiltro}
           onValueChange={updateTipoFiltro}
-          className="h-11 shrink-0 rounded-xl bg-card"
+          className="h-11 shrink-0 rounded-xl bg-card shadow-none"
         >
           <ToggleGroupItem value="EEA" className="px-4 text-xs">EEA</ToggleGroupItem>
           <ToggleGroupItem value="DT" className="px-4 text-xs">DT</ToggleGroupItem>
