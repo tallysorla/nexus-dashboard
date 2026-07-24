@@ -29,6 +29,11 @@ import {
 
 type DtChartSectionProps = {
   data: PontoDt[];
+  // Opcional: esconde os numeros do eixo Y (0-10), deixando so as faixas de
+  // fundo coloridas como referencia de risco. So passado pela tela
+  // /nfuncionarios em iteracao -- omitido, o grafico fica exatamente como no
+  // /funcionarios publico.
+  ocultarEscala?: boolean;
 };
 
 type Range = "3" | "6" | "12";
@@ -40,7 +45,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function DtChartSection({ data }: DtChartSectionProps) {
+export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
   const [range, setRange] = useState<Range>("6");
 
   // So o ciclo mensal regular aparece no grafico -- pontos de tratativa (DT
@@ -103,6 +108,8 @@ export function DtChartSection({ data }: DtChartSectionProps) {
               domain={[0, 10]}
               ticks={[0, 2, 4, 6, 8, 10]}
               interval={0}
+              width={ocultarEscala ? 8 : undefined}
+              tick={!ocultarEscala}
               axisLine={false}
               tickLine={false}
               style={{ fontSize: "12px" }}

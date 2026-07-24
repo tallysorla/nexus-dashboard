@@ -113,8 +113,9 @@ export default function NFuncionarioProfile() {
             data={colaborador.serieEea}
             dtReferencia={colaborador.totalTestesDt > 0 ? colaborador.dt : undefined}
             linhaNeutra
+            ocultarEscala
           />
-          <DtChartSection data={colaborador.serieDt} />
+          <DtChartSection data={colaborador.serieDt} ocultarEscala />
         </div>
       </div>
 

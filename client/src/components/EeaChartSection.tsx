@@ -43,6 +43,11 @@ type EeaChartSectionProps = {
   // comunica o nivel de risco sao as faixas de fundo, nao a linha. So
   // passado pela tela /nfuncionarios em iteracao.
   linhaNeutra?: boolean;
+  // Opcional: esconde os numeros do eixo Y (0-10), deixando so as faixas de
+  // fundo coloridas como referencia de risco. So passado pela tela
+  // /nfuncionarios em iteracao -- omitido, o grafico fica exatamente como no
+  // /funcionarios publico.
+  ocultarEscala?: boolean;
 };
 
 const COR_LINHA_NEUTRA = "#1e3a5f";
@@ -59,7 +64,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function EeaChartSection({ data, dtReferencia, linhaNeutra }: EeaChartSectionProps) {
+export function EeaChartSection({ data, dtReferencia, linhaNeutra, ocultarEscala }: EeaChartSectionProps) {
   const [range, setRange] = useState<Range>("90");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -121,13 +126,17 @@ export function EeaChartSection({ data, dtReferencia, linhaNeutra }: EeaChartSec
               da lateral somem quando o grafico rola para os dias recentes.
               top/bottom precisam ser identicos aos do grafico principal ao
               lado, senao os dois ficam desalinhados verticalmente. */}
-          <ChartContainer config={chartConfig} className="aspect-auto h-72 w-14 shrink-0">
+          <ChartContainer
+            config={chartConfig}
+            className={`aspect-auto h-72 shrink-0 ${ocultarEscala ? "w-4" : "w-14"}`}
+          >
             <AreaChart data={visibleData} margin={{ left: 8, right: 4, top: 8, bottom: 8 }}>
               <YAxis
                 domain={[0, 10]}
                 ticks={[0, 2, 4, 6, 8, 10]}
                 interval={0}
-                width={40}
+                width={ocultarEscala ? 8 : 40}
+                tick={!ocultarEscala}
                 axisLine={false}
                 tickLine={false}
                 style={{ fontSize: "12px" }}
