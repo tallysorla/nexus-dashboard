@@ -220,7 +220,7 @@ export function EeaChartSection({ data, dtReferencia, linhaNeutra }: EeaChartSec
                     strokeDasharray="5 4"
                     ifOverflow="visible"
                     label={{
-                      value: `DT: ${dtReferencia}/10`,
+                      value: "Último DT",
                       position: "insideTopRight",
                       fill: "var(--chart-2)",
                       fontSize: 11,
