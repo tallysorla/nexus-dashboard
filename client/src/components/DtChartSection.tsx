@@ -48,6 +48,7 @@ const chartConfig = {
 export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
   const [range, setRange] = useState<Range>("6");
 
+  const semDados = data.length === 0;
   // So o ciclo mensal regular aparece no grafico -- pontos de tratativa (DT
   // antecipado) ficam de fora, pra nao misturar dois motivos de teste
   // diferentes na mesma evolucao.
@@ -95,11 +96,19 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
         </div>
 
         <p className="text-sm text-muted-foreground">
-          Aplicado mensalmente · Média do período: {media}
+          {semDados ? "Nenhum teste DT realizado ainda" : `Aplicado mensalmente · Média do período: ${media}`}
         </p>
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
+        {semDados ? (
+          <div className="flex h-72 flex-col items-center justify-center gap-2 text-center">
+            <p className="text-sm font-medium">Nenhum teste DT realizado ainda</p>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              Assim que o funcionário realizar o primeiro teste DT, a evolução aparece aqui.
+            </p>
+          </div>
+        ) : (
         <ChartContainer config={chartConfig} className="aspect-auto h-72 w-full">
           <BarChart data={visibleData} margin={{ left: 8, right: 20, top: 8, bottom: 8 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
@@ -152,6 +161,7 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
             <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
           </BarChart>
         </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );

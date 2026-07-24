@@ -103,20 +103,38 @@ export default function NFuncionarios() {
                       {c.setor} · {c.local}
                     </TableCell>
                     <TableCell className="px-4 py-4">
-                      <Badge
-                        variant="outline"
-                        className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRisco(c.eea)]}`}
-                      >
-                        {RISCO_LABEL[classificarRisco(c.eea)]}
-                      </Badge>
+                      {c.totalTestesEea === 0 ? (
+                        <Badge
+                          variant="outline"
+                          className="rounded-lg px-2.5 py-1 border-slate-200 bg-slate-50 text-slate-700"
+                        >
+                          Sem teste
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRisco(c.eea)]}`}
+                        >
+                          {RISCO_LABEL[classificarRisco(c.eea)]}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="px-4 py-4">
-                      <Badge
-                        variant="outline"
-                        className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRisco(c.dt)]}`}
-                      >
-                        {RISCO_LABEL[classificarRisco(c.dt)]}
-                      </Badge>
+                      {c.totalTestesDt === 0 ? (
+                        <Badge
+                          variant="outline"
+                          className="rounded-lg px-2.5 py-1 border-slate-200 bg-slate-50 text-slate-700"
+                        >
+                          Sem teste
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRisco(c.dt)]}`}
+                        >
+                          {RISCO_LABEL[classificarRisco(c.dt)]}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="px-4 py-4 text-right">
                       <Button

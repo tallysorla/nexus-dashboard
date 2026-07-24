@@ -101,18 +101,27 @@ export default function Colaboradores() {
                       {c.setor} · {c.local}
                     </TableCell>
                     <TableCell className="px-4 py-4 font-medium">
-                      {c.eea}/10
+                      {c.totalTestesEea > 0 ? `${c.eea}/10` : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="px-4 py-4 font-medium">
-                      {c.dt}/10
+                      {c.totalTestesDt > 0 ? `${c.dt}/10` : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="px-4 py-4">
-                      <Badge
-                        variant="outline"
-                        className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[c.risco]}`}
-                      >
-                        {RISCO_LABEL[c.risco]}
-                      </Badge>
+                      {c.totalTestesEea === 0 && c.totalTestesDt === 0 ? (
+                        <Badge
+                          variant="outline"
+                          className="rounded-lg px-2.5 py-1 border-slate-200 bg-slate-50 text-slate-700"
+                        >
+                          Sem teste realizado
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[c.risco]}`}
+                        >
+                          {RISCO_LABEL[c.risco]}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="px-4 py-4 text-right">
                       <Button

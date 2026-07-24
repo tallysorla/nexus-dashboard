@@ -449,9 +449,9 @@ export const colaboradores: Colaborador[] = [
     historicoTratativas: [],
   },
   {
-    // Funcionario recem-admitido: ja fez EEA (diario, comeca no primeiro dia)
-    // mas ainda nao teve nenhum DT (periodico/mais raro) -- cenario real de
-    // blank state pro card de Tendencia em MetricsCards.tsx.
+    // Funcionario recem-admitido: ainda nao fez nenhum teste, nem EEA
+    // (diario) nem DT (periodico) -- cenario real de blank state completo
+    // (KPIs, fatores, graficos e listagem), nao so o card de Tendencia.
     id: "bruno-teixeira",
     nome: "Bruno Teixeira",
     cargo: "Auxiliar de Logística",
@@ -463,10 +463,10 @@ export const colaboradores: Colaborador[] = [
     cpf: "203.884.771-09",
     idade: 22,
     dataAdmissao: "01/07/2026",
-    eea: 8,
-    dt: 10,
+    eea: 0,
+    dt: 0,
     risco: "baixo",
-    totalTestesEea: 4,
+    totalTestesEea: 0,
     totalTestesDt: 0,
     fatoresDestaque: [
       { rank: 1, nome: "Insegurança", notaEea: 8, notaDt: 8, variacaoPercentual: -2 },
@@ -474,14 +474,9 @@ export const colaboradores: Colaborador[] = [
       { rank: 3, nome: "Perda de foco", notaEea: 9, notaDt: 9, variacaoPercentual: -1 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("baixo", ["Insegurança", "Cansaço", "Perda de foco"]),
-    serieEea: serieEea(8),
+    serieEea: [],
     serieDt: [],
-    historicoTestes: [
-      { id: "t1", data: "05/07/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-      { id: "t2", data: "04/07/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
-      { id: "t3", data: "03/07/2026", tipo: "EEA", pontuacao: 8, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Perda de foco" },
-      { id: "t4", data: "02/07/2026", tipo: "EEA", pontuacao: 9, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
-    ],
+    historicoTestes: [],
     historicoTratativas: [],
   },
 ];

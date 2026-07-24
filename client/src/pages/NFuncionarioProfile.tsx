@@ -56,48 +56,70 @@ export default function NFuncionarioProfile() {
       <h2 className="text-lg font-semibold leading-none">Detalhes do funcionário</h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <KpiCard
-          label="Última pontuação EEA"
-          value={
-            <Badge
-              variant="outline"
-              className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[eeaRisco]}`}
-            >
-              {RISCO_LABEL[eeaRisco]}
-            </Badge>
-          }
-          meta={
-            ultimoEea && (
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CalendarClock className="size-3.5" />
-                Teste em {ultimoEea.data}
-              </span>
-            )
-          }
-          sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
-          tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
-        />
-        <KpiCard
-          label="Última pontuação DT"
-          value={
-            <Badge
-              variant="outline"
-              className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[dtRisco]}`}
-            >
-              {RISCO_LABEL[dtRisco]}
-            </Badge>
-          }
-          meta={
-            ultimoDt && (
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CalendarClock className="size-3.5" />
-                Teste em {ultimoDt.data}
-              </span>
-            )
-          }
-          sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
-          tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
-        />
+        {colaborador.totalTestesEea === 0 ? (
+          <KpiCard
+            label="Última pontuação EEA"
+            value={<span className="text-muted-foreground">—</span>}
+            badge="Sem teste realizado"
+            badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
+            sublabel="Aguardando o primeiro teste EEA"
+            tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
+          />
+        ) : (
+          <KpiCard
+            label="Última pontuação EEA"
+            value={
+              <Badge
+                variant="outline"
+                className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[eeaRisco]}`}
+              >
+                {RISCO_LABEL[eeaRisco]}
+              </Badge>
+            }
+            meta={
+              ultimoEea && (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CalendarClock className="size-3.5" />
+                  Teste em {ultimoEea.data}
+                </span>
+              )
+            }
+            sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
+            tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
+          />
+        )}
+        {colaborador.totalTestesDt === 0 ? (
+          <KpiCard
+            label="Última pontuação DT"
+            value={<span className="text-muted-foreground">—</span>}
+            badge="Sem teste realizado"
+            badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
+            sublabel="Aguardando o primeiro teste DT"
+            tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
+          />
+        ) : (
+          <KpiCard
+            label="Última pontuação DT"
+            value={
+              <Badge
+                variant="outline"
+                className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[dtRisco]}`}
+              >
+                {RISCO_LABEL[dtRisco]}
+              </Badge>
+            }
+            meta={
+              ultimoDt && (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CalendarClock className="size-3.5" />
+                  Teste em {ultimoDt.data}
+                </span>
+              )
+            }
+            sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
+            tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
+          />
+        )}
         <UserCard colaborador={colaborador} />
       </div>
 

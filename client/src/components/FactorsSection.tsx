@@ -116,10 +116,12 @@ export function FactorsSection({
   }));
   const [principal, ...resto] = destaqueExibido;
 
-  // So relevante pra DT: sem nenhum teste DT ainda, nao ha nota de DT real
-  // pra mostrar (diferente de EEA, que todo colaborador ja tem desde o
-  // primeiro dia).
-  const semTesteDt = tipoFiltro === "DT" && !historicoTestes.some((t) => t.tipo === "DT");
+  // Sem nenhum teste do tipo selecionado (EEA ou DT) ainda, nao ha nota real
+  // pra mostrar -- cobre tanto o caso "so falta o DT" (comum, DT e periodico)
+  // quanto um funcionario recem-admitido que ainda nao fez teste nenhum.
+  const outroTipo: TipoTeste = tipoFiltro === "EEA" ? "DT" : "EEA";
+  const semTesteDoTipo = !historicoTestes.some((t) => t.tipo === tipoFiltro);
+  const semTesteOutroTipo = !historicoTestes.some((t) => t.tipo === outroTipo);
 
   const ultimoTeste = [...historicoTestes]
     .filter((t) => t.tipo === tipoFiltro)
@@ -135,7 +137,7 @@ export function FactorsSection({
   // em vez das duas secoes (que ficariam cheias de badges "Baixo risco"
   // repetidos).
   const semFatorEmAtencao =
-    !semTesteDt &&
+    !semTesteDoTipo &&
     [...destaqueExibido, ...adicionaisExibido].every((factor) => classificarRisco(factor.nota) === "baixo");
 
   return (
@@ -162,7 +164,11 @@ export function FactorsSection({
             </Tooltip>
           </div>
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <span>Os 10 fatores acompanhados, com base no último {tipoFiltro} realizado</span>
+            <span>
+              {semTesteDoTipo
+                ? `Os 10 fatores acompanhados, assim que o primeiro ${tipoFiltro} for realizado`
+                : `Os 10 fatores acompanhados, com base no último ${tipoFiltro} realizado`}
+            </span>
           </p>
           {ultimoTeste && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -212,12 +218,13 @@ export function FactorsSection({
               </div>
             </div>
           </div>
-        ) : semTesteDt ? (
+        ) : semTesteDoTipo ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
-            <p className="text-sm font-medium">Nenhum teste DT realizado ainda</p>
+            <p className="text-sm font-medium">Nenhum teste {tipoFiltro} realizado ainda</p>
             <p className="max-w-xs text-xs text-muted-foreground">
-              Assim que o primeiro DT for aplicado, os 10 fatores passam a ser exibidos também com
-              base nele. Por enquanto, veja a aba EEA.
+              {semTesteOutroTipo
+                ? "Assim que o funcionário realizar o primeiro teste, os 10 fatores acompanhados passam a aparecer aqui."
+                : `Assim que o primeiro ${tipoFiltro} for aplicado, os 10 fatores passam a ser exibidos também com base nele. Por enquanto, veja a aba ${outroTipo}.`}
             </p>
           </div>
         ) : (

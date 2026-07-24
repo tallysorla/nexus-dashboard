@@ -68,6 +68,7 @@ export function EeaChartSection({ data, dtReferencia, linhaNeutra, ocultarEscala
   const [range, setRange] = useState<Range>("90");
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const semDados = data.length === 0;
   const dias = range === "all" ? data.length : Math.min(Number(range), data.length);
   const visibleData = data.slice(-dias);
   const chartWidth = Math.max(MIN_CHART_WIDTH, visibleData.length * PX_PER_DAY);
@@ -117,10 +118,20 @@ export function EeaChartSection({ data, dtReferencia, linhaNeutra, ocultarEscala
           </Tabs>
         </div>
 
-        <p className="text-sm text-muted-foreground">Aplicado todos os dias</p>
+        <p className="text-sm text-muted-foreground">
+          {semDados ? "Nenhum teste EEA realizado ainda" : "Aplicado todos os dias"}
+        </p>
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
+        {semDados ? (
+          <div className="flex h-72 flex-col items-center justify-center gap-2 text-center">
+            <p className="text-sm font-medium">Nenhum teste EEA realizado ainda</p>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              Assim que o funcionário realizar o primeiro teste EEA, a evolução aparece aqui.
+            </p>
+          </div>
+        ) : (
         <div className="flex">
           {/* Eixo Y fixo: nao pode rolar junto com os dados, senao os numeros
               da lateral somem quando o grafico rola para os dias recentes.
@@ -241,6 +252,7 @@ export function EeaChartSection({ data, dtReferencia, linhaNeutra, ocultarEscala
             </ChartContainer>
           </div>
         </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -134,40 +134,62 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
 
   return (
     <>
-      <KpiCard
-        label="Última pontuação EEA"
-        value={String(colaborador.eea)}
-        valueSuffix="/10"
-        meta={
-          ultimoEea && (
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CalendarClock className="size-3.5" />
-              Teste em {ultimoEea.data}
-            </span>
-          )
-        }
-        badge={RISCO_LABEL[eeaRisco]}
-        badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
-        sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
-        tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
-      />
-      <KpiCard
-        label="Última pontuação DT"
-        value={String(colaborador.dt)}
-        valueSuffix="/10"
-        meta={
-          ultimoDt && (
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CalendarClock className="size-3.5" />
-              Teste em {ultimoDt.data}
-            </span>
-          )
-        }
-        badge={RISCO_LABEL[dtRisco]}
-        badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
-        sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
-        tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
-      />
+      {colaborador.totalTestesEea === 0 ? (
+        <KpiCard
+          label="Última pontuação EEA"
+          value={<span className="text-muted-foreground">—</span>}
+          badge="Sem teste realizado"
+          badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
+          sublabel="Aguardando o primeiro teste EEA"
+          tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
+        />
+      ) : (
+        <KpiCard
+          label="Última pontuação EEA"
+          value={String(colaborador.eea)}
+          valueSuffix="/10"
+          meta={
+            ultimoEea && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarClock className="size-3.5" />
+                Teste em {ultimoEea.data}
+              </span>
+            )
+          }
+          badge={RISCO_LABEL[eeaRisco]}
+          badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
+          sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
+          tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
+        />
+      )}
+      {colaborador.totalTestesDt === 0 ? (
+        <KpiCard
+          label="Última pontuação DT"
+          value={<span className="text-muted-foreground">—</span>}
+          badge="Sem teste realizado"
+          badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
+          sublabel="Aguardando o primeiro teste DT"
+          tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
+        />
+      ) : (
+        <KpiCard
+          label="Última pontuação DT"
+          value={String(colaborador.dt)}
+          valueSuffix="/10"
+          meta={
+            ultimoDt && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarClock className="size-3.5" />
+                Teste em {ultimoDt.data}
+              </span>
+            )
+          }
+          badge={RISCO_LABEL[dtRisco]}
+          badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
+          sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
+          tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
+        />
+      )}
       {semDadosSuficientes ? (
         <KpiCard
           label="Tendência"
