@@ -111,6 +111,7 @@ export default function NFuncionarioProfile() {
           <EeaChartSection
             data={colaborador.serieEea}
             dtReferencia={colaborador.totalTestesDt > 0 ? colaborador.dt : undefined}
+            riscoAtual={eeaRisco}
           />
           <DtChartSection data={colaborador.serieDt} />
         </div>

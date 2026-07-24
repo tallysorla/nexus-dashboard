@@ -25,6 +25,7 @@ import {
   RISCO_LABEL,
   classificarRisco,
   type PontoEea,
+  type RiskLevel,
 } from "@/lib/mock-colaboradores";
 
 type EeaChartSectionProps = {
@@ -34,6 +35,20 @@ type EeaChartSectionProps = {
   // tela /nfuncionarios em iteracao -- omitido, o grafico fica exatamente
   // como no /funcionarios publico.
   dtReferencia?: number;
+  // Opcional: classificacao de risco atual do colaborador, usada pra colorir
+  // a linha/preenchimento do grafico (em vez da cor fixa do tema). Sem isso,
+  // uma linha sempre verde por cima de uma faixa de fundo vermelha (alto
+  // risco) confundia os gestores -- verde por convencao le como "esta tudo
+  // bem". So passado pela tela /nfuncionarios em iteracao.
+  riscoAtual?: RiskLevel;
+};
+
+// Mesmas cores das faixas de fundo (ReferenceArea) logo abaixo, pra a linha
+// nunca contradizer a zona onde ela esta desenhada.
+const RISCO_HEX: Record<RiskLevel, string> = {
+  alto: "#dc2626",
+  medio: "#d97706",
+  baixo: "#059669",
 };
 
 type Range = "7" | "30" | "90" | "all";
@@ -48,7 +63,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function EeaChartSection({ data, dtReferencia }: EeaChartSectionProps) {
+export function EeaChartSection({ data, dtReferencia, riscoAtual }: EeaChartSectionProps) {
+  const corSerie = riscoAtual ? RISCO_HEX[riscoAtual] : "var(--color-eea)";
   const [range, setRange] = useState<Range>("90");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +102,7 @@ export function EeaChartSection({ data, dtReferencia }: EeaChartSectionProps) {
               <TooltipContent className="max-w-64">
                 Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
                 verde baixo risco.
+                {riscoAtual && " A linha usa a mesma cor do risco atual do funcionário."}
                 {dtReferencia !== undefined && " A linha tracejada mostra a pontuação do último DT realizado."}
               </TooltipContent>
             </Tooltip>
@@ -134,8 +151,8 @@ export function EeaChartSection({ data, dtReferencia }: EeaChartSectionProps) {
               <AreaChart data={visibleData} margin={{ left: 0, right: 24, top: 8, bottom: 8 }}>
                 <defs>
                   <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-eea)" stopOpacity={0.28} />
-                    <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
+                    <stop offset="5%" stopColor={corSerie} stopOpacity={0.28} />
+                    <stop offset="95%" stopColor={corSerie} stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
@@ -177,7 +194,7 @@ export function EeaChartSection({ data, dtReferencia }: EeaChartSectionProps) {
                 <Area
                   type="monotone"
                   dataKey="eea"
-                  stroke="var(--color-eea)"
+                  stroke={corSerie}
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorEea)"
