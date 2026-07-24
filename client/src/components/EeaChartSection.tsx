@@ -18,7 +18,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { Area, AreaChart, CartesianGrid, ReferenceArea, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
@@ -29,6 +29,11 @@ import {
 
 type EeaChartSectionProps = {
   data: PontoEea[];
+  // Opcional: pontuacao do ultimo DT, desenhada como linha tracejada dentro
+  // do proprio grafico do EEA (em vez de um card separado). So passado pela
+  // tela /nfuncionarios em iteracao -- omitido, o grafico fica exatamente
+  // como no /funcionarios publico.
+  dtReferencia?: number;
 };
 
 type Range = "7" | "30" | "90" | "all";
@@ -43,7 +48,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function EeaChartSection({ data }: EeaChartSectionProps) {
+export function EeaChartSection({ data, dtReferencia }: EeaChartSectionProps) {
   const [range, setRange] = useState<Range>("90");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +86,7 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
               <TooltipContent className="max-w-64">
                 Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
                 verde baixo risco.
+                {dtReferencia !== undefined && " A linha tracejada mostra a pontuação do último DT realizado."}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -184,6 +190,22 @@ export function EeaChartSection({ data }: EeaChartSectionProps) {
                 <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
                 <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
                 <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+                {dtReferencia !== undefined && (
+                  <ReferenceLine
+                    y={dtReferencia}
+                    stroke="var(--chart-2)"
+                    strokeWidth={1.5}
+                    strokeDasharray="5 4"
+                    ifOverflow="visible"
+                    label={{
+                      value: `DT: ${dtReferencia}/10`,
+                      position: "insideTopRight",
+                      fill: "var(--chart-2)",
+                      fontSize: 11,
+                      fontWeight: 500,
+                    }}
+                  />
+                )}
               </AreaChart>
             </ChartContainer>
           </div>

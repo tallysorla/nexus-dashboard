@@ -1,6 +1,5 @@
 import { Link, useParams, useSearchParams } from "wouter";
 import { Layout } from "@/components/Layout";
-import { KpiMiniCards } from "@/components/MetricsCards";
 import { FactorsSection } from "@/components/FactorsSection";
 import { EeaChartSection } from "@/components/EeaChartSection";
 import { DtChartSection } from "@/components/DtChartSection";
@@ -37,9 +36,7 @@ export default function NFuncionarioProfile() {
 
       <h2 className="text-lg font-semibold leading-none">Detalhes do funcionário</h2>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiMiniCards colaborador={colaborador} />
-
+      <div className="w-full sm:max-w-sm">
         <UserCard colaborador={colaborador} />
       </div>
 
@@ -50,7 +47,10 @@ export default function NFuncionarioProfile() {
           historicoTestes={colaborador.historicoTestes}
         />
         <div className="flex flex-col gap-6">
-          <EeaChartSection data={colaborador.serieEea} />
+          <EeaChartSection
+            data={colaborador.serieEea}
+            dtReferencia={colaborador.totalTestesDt > 0 ? colaborador.dt : undefined}
+          />
           <DtChartSection data={colaborador.serieDt} />
         </div>
       </div>
