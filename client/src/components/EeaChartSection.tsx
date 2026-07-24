@@ -18,14 +18,13 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { Area, AreaChart, CartesianGrid, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
   type PontoEea,
-  type RiskLevel,
 } from "@/lib/mock-colaboradores";
 
 type EeaChartSectionProps = {
@@ -35,21 +34,18 @@ type EeaChartSectionProps = {
   // tela /nfuncionarios em iteracao -- omitido, o grafico fica exatamente
   // como no /funcionarios publico.
   dtReferencia?: number;
-  // Opcional: classificacao de risco atual do colaborador, usada pra colorir
-  // a linha/preenchimento do grafico (em vez da cor fixa do tema). Sem isso,
-  // uma linha sempre verde por cima de uma faixa de fundo vermelha (alto
-  // risco) confundia os gestores -- verde por convencao le como "esta tudo
-  // bem". So passado pela tela /nfuncionarios em iteracao.
-  riscoAtual?: RiskLevel;
+  // Opcional: troca o preenchimento em area (cor fixa do tema) por uma linha
+  // fina com marcadores, numa cor neutra. Tentamos antes colorir a linha
+  // conforme o risco atual, mas o proprio funcionario apontou o problema: a
+  // linha passa por varios status ao longo das datas, entao uma cor unica
+  // baseada so no ponto mais recente nao representa o percurso inteiro. Uma
+  // cor neutra (sem pretender comunicar risco) evita essa contradicao -- quem
+  // comunica o nivel de risco sao as faixas de fundo, nao a linha. So
+  // passado pela tela /nfuncionarios em iteracao.
+  linhaNeutra?: boolean;
 };
 
-// Mesmas cores das faixas de fundo (ReferenceArea) logo abaixo, pra a linha
-// nunca contradizer a zona onde ela esta desenhada.
-const RISCO_HEX: Record<RiskLevel, string> = {
-  alto: "#dc2626",
-  medio: "#d97706",
-  baixo: "#059669",
-};
+const COR_LINHA_NEUTRA = "#1e3a5f";
 
 type Range = "7" | "30" | "90" | "all";
 
@@ -63,8 +59,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function EeaChartSection({ data, dtReferencia, riscoAtual }: EeaChartSectionProps) {
-  const corSerie = riscoAtual ? RISCO_HEX[riscoAtual] : "var(--color-eea)";
+export function EeaChartSection({ data, dtReferencia, linhaNeutra }: EeaChartSectionProps) {
   const [range, setRange] = useState<Range>("90");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -102,7 +97,6 @@ export function EeaChartSection({ data, dtReferencia, riscoAtual }: EeaChartSect
               <TooltipContent className="max-w-64">
                 Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
                 verde baixo risco.
-                {riscoAtual && " A linha usa a mesma cor do risco atual do funcionário."}
                 {dtReferencia !== undefined && " A linha tracejada mostra a pontuação do último DT realizado."}
               </TooltipContent>
             </Tooltip>
@@ -148,11 +142,11 @@ export function EeaChartSection({ data, dtReferencia, riscoAtual }: EeaChartSect
               className="aspect-auto h-72 w-full"
               style={{ minWidth: chartWidth }}
             >
-              <AreaChart data={visibleData} margin={{ left: 0, right: 24, top: 8, bottom: 8 }}>
+              <ComposedChart data={visibleData} margin={{ left: 0, right: 24, top: 8, bottom: 8 }}>
                 <defs>
                   <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={corSerie} stopOpacity={0.28} />
-                    <stop offset="95%" stopColor={corSerie} stopOpacity={0.02} />
+                    <stop offset="5%" stopColor="var(--color-eea)" stopOpacity={0.28} />
+                    <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
@@ -191,14 +185,25 @@ export function EeaChartSection({ data, dtReferencia, riscoAtual }: EeaChartSect
                     />
                   }
                 />
-                <Area
-                  type="monotone"
-                  dataKey="eea"
-                  stroke={corSerie}
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#colorEea)"
-                />
+                {linhaNeutra ? (
+                  <Line
+                    type="monotone"
+                    dataKey="eea"
+                    stroke={COR_LINHA_NEUTRA}
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: COR_LINHA_NEUTRA, strokeWidth: 0 }}
+                    activeDot={{ r: 5 }}
+                  />
+                ) : (
+                  <Area
+                    type="monotone"
+                    dataKey="eea"
+                    stroke="var(--color-eea)"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorEea)"
+                  />
+                )}
                 {/* Faixas desenhadas por ultimo (depois da area) para nunca
                     ficarem escondidas atras do preenchimento. Sem texto
                     dentro do grafico: qualquer posicao fixa eventualmente
@@ -223,7 +228,7 @@ export function EeaChartSection({ data, dtReferencia, riscoAtual }: EeaChartSect
                     }}
                   />
                 )}
-              </AreaChart>
+              </ComposedChart>
             </ChartContainer>
           </div>
         </div>
