@@ -42,9 +42,13 @@ const PAGE_SIZE = 5;
 type TestHistoryTableProps = {
   tests: TesteHistorico[];
   colaboradorId: string;
+  // Opcional: remove a coluna numerica "Indice de risco", deixando so a
+  // Classificacao (badge). So passado pela tela /nfuncionarios em iteracao --
+  // omitido, a tabela fica exatamente como no /funcionarios publico.
+  ocultarIndice?: boolean;
 };
 
-export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps) {
+export function TestHistoryTable({ tests, colaboradorId, ocultarIndice = false }: TestHistoryTableProps) {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<RiskLevel | "todos">("todos");
   const [tipoFilter, setTipoFilter] = useState<TipoTeste>("EEA");
@@ -116,7 +120,7 @@ export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead className="h-12 px-4">Data do teste</TableHead>
-                <TableHead className="h-12 px-4">Índice de risco</TableHead>
+                {!ocultarIndice && <TableHead className="h-12 px-4">Índice de risco</TableHead>}
                 <TableHead className="h-12 px-4">Classificação</TableHead>
                 <TableHead className="h-12 px-4">Principais fatores</TableHead>
                 <TableHead className="h-12 px-4 text-right">Ações</TableHead>
@@ -128,9 +132,11 @@ export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps
                   <TableCell className="px-4 py-4 font-medium">
                     {test.data}
                   </TableCell>
-                  <TableCell className="px-4 py-4 font-semibold">
-                    {test.pontuacao}/10
-                  </TableCell>
+                  {!ocultarIndice && (
+                    <TableCell className="px-4 py-4 font-semibold">
+                      {test.pontuacao}/10
+                    </TableCell>
+                  )}
                   <TableCell className="px-4 py-4">
                     <Badge
                       variant="outline"
@@ -159,7 +165,7 @@ export function TestHistoryTable({ tests, colaboradorId }: TestHistoryTableProps
               ))}
               {visibleTests.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={ocultarIndice ? 4 : 5} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     Nenhum teste encontrado para os filtros atuais.
                   </TableCell>
                 </TableRow>

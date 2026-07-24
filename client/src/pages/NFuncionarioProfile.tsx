@@ -106,6 +106,7 @@ export default function NFuncionarioProfile() {
           fatoresDestaque={colaborador.fatoresDestaque}
           fatoresAdicionais={colaborador.fatoresAdicionais}
           historicoTestes={colaborador.historicoTestes}
+          ocultarNota
         />
         <div className="flex flex-col gap-6">
           <EeaChartSection
@@ -117,7 +118,7 @@ export default function NFuncionarioProfile() {
         </div>
       </div>
 
-      <TestHistoryTable tests={colaborador.historicoTestes} colaboradorId={colaborador.id} />
+      <TestHistoryTable tests={colaborador.historicoTestes} colaboradorId={colaborador.id} ocultarIndice />
     </Layout>
   );
 }

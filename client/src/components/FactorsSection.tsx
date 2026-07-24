@@ -27,11 +27,24 @@ type FactorsSectionProps = {
   fatoresDestaque: Fator[];
   fatoresAdicionais: Fator[];
   historicoTestes: TesteHistorico[];
+  // Opcional: esconde a nota numerica ("nota X/10") de cada fator, deixando
+  // so o badge de status (Alto/Medio/Baixo risco). So passado pela tela
+  // /nfuncionarios em iteracao -- omitido, a secao fica exatamente como no
+  // /funcionarios publico.
+  ocultarNota?: boolean;
 };
 
 type FatorExibido = { rank: number; nome: string; nota: number };
 
-function FatorRow({ factor, compact = false }: { factor: FatorExibido; compact?: boolean }) {
+function FatorRow({
+  factor,
+  compact = false,
+  ocultarNota = false,
+}: {
+  factor: FatorExibido;
+  compact?: boolean;
+  ocultarNota?: boolean;
+}) {
   const risco = classificarRisco(factor.nota);
 
   return (
@@ -55,16 +68,20 @@ function FatorRow({ factor, compact = false }: { factor: FatorExibido; compact?:
                 {RISCO_LABEL[risco]}
               </Badge>
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/10</p>
+            {!ocultarNota && (
+              <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/10</p>
+            )}
           </>
         ) : (
           <>
             <p className="font-medium">{factor.nome}</p>
             <div className="mt-0.5 flex items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">nota {factor.nota}/10</p>
+              {!ocultarNota && (
+                <p className="text-xs text-muted-foreground">nota {factor.nota}/10</p>
+              )}
               <Badge
                 variant="outline"
-                className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
+                className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]} ${ocultarNota ? "ml-auto" : ""}`}
               >
                 {RISCO_LABEL[risco]}
               </Badge>
@@ -76,7 +93,12 @@ function FatorRow({ factor, compact = false }: { factor: FatorExibido; compact?:
   );
 }
 
-export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTestes }: FactorsSectionProps) {
+export function FactorsSection({
+  fatoresDestaque,
+  fatoresAdicionais,
+  historicoTestes,
+  ocultarNota = false,
+}: FactorsSectionProps) {
   const [tipoFiltro, setTipoFiltro] = useState<TipoTeste>("EEA");
 
   // EEA e DT avaliam os MESMOS 10 fatores -- o toggle nunca esconde fatores,
@@ -206,12 +228,12 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTe
               </p>
               {principal && (
                 <div className="-mx-4 rounded-xl border bg-muted/30 p-4">
-                  <FatorRow factor={principal} />
+                  <FatorRow factor={principal} ocultarNota={ocultarNota} />
                 </div>
               )}
               <div className="space-y-4">
                 {resto.map((factor) => (
-                  <FatorRow key={factor.rank} factor={factor} compact />
+                  <FatorRow key={factor.rank} factor={factor} compact ocultarNota={ocultarNota} />
                 ))}
               </div>
             </div>
@@ -222,7 +244,7 @@ export function FactorsSection({ fatoresDestaque, fatoresAdicionais, historicoTe
               </p>
               <div className="space-y-4">
                 {adicionaisExibido.map((factor) => (
-                  <FatorRow key={factor.rank} factor={factor} compact />
+                  <FatorRow key={factor.rank} factor={factor} compact ocultarNota={ocultarNota} />
                 ))}
               </div>
             </div>

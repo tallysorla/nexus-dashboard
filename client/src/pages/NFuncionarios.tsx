@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowRight, Search } from "lucide-react";
-import { RISCO_BADGE_CLASS, RISCO_LABEL, colaboradores } from "@/lib/mock-colaboradores";
+import { RISCO_BADGE_CLASS, RISCO_LABEL, classificarRisco, colaboradores } from "@/lib/mock-colaboradores";
 
 // Copia de Colaboradores.tsx sob /nfuncionarios -- espaco reservado pra
 // iterar no fluxo em refinamento sem tocar na tela /funcionarios ja
@@ -103,11 +103,21 @@ export default function NFuncionarios() {
                     <TableCell className="px-4 py-4 text-muted-foreground">
                       {c.setor} · {c.local}
                     </TableCell>
-                    <TableCell className="px-4 py-4 font-medium">
-                      {c.eea}/10
+                    <TableCell className="px-4 py-4">
+                      <Badge
+                        variant="outline"
+                        className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRisco(c.eea)]}`}
+                      >
+                        {RISCO_LABEL[classificarRisco(c.eea)]}
+                      </Badge>
                     </TableCell>
-                    <TableCell className="px-4 py-4 font-medium">
-                      {c.dt}/10
+                    <TableCell className="px-4 py-4">
+                      <Badge
+                        variant="outline"
+                        className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRisco(c.dt)]}`}
+                      >
+                        {RISCO_LABEL[classificarRisco(c.dt)]}
+                      </Badge>
                     </TableCell>
                     <TableCell className="px-4 py-4">
                       <Badge
