@@ -73,7 +73,6 @@ export default function NFuncionarios() {
                   <TableHead className="h-12 px-4">Setor</TableHead>
                   <TableHead className="h-12 px-4">EEA</TableHead>
                   <TableHead className="h-12 px-4">DT</TableHead>
-                  <TableHead className="h-12 px-4">Classificação</TableHead>
                   <TableHead className="h-12 px-4 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -119,14 +118,6 @@ export default function NFuncionarios() {
                         {RISCO_LABEL[classificarRisco(c.dt)]}
                       </Badge>
                     </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Badge
-                        variant="outline"
-                        className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[c.risco]}`}
-                      >
-                        {RISCO_LABEL[c.risco]}
-                      </Badge>
-                    </TableCell>
                     <TableCell className="px-4 py-4 text-right">
                       <Button
                         variant="ghost"
@@ -151,7 +142,7 @@ export default function NFuncionarios() {
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={5}
                       className="px-4 py-10 text-center text-sm text-muted-foreground"
                     >
                       Nenhum funcionário encontrado para "{query}".
