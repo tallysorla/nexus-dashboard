@@ -141,7 +141,16 @@ export default function NFuncionarioProfile() {
         </div>
       </div>
 
-      <TestHistoryTable tests={colaborador.historicoTestes} colaboradorId={colaborador.id} ocultarIndice />
+      <TestHistoryTable
+        tests={colaborador.historicoTestes}
+        colaboradorId={colaborador.id}
+        ocultarIndice
+        buildTestHref={(testId) =>
+          empresaEscopo
+            ? `/nfuncionarios/${colaborador.id}/testes/${testId}?empresa=${empresaEscopo}`
+            : `/nfuncionarios/${colaborador.id}/testes/${testId}`
+        }
+      />
     </Layout>
   );
 }

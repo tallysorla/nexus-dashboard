@@ -46,9 +46,20 @@ type TestHistoryTableProps = {
   // Classificacao (badge). So passado pela tela /nfuncionarios em iteracao --
   // omitido, a tabela fica exatamente como no /funcionarios publico.
   ocultarIndice?: boolean;
+  // Opcional: customiza o link de "Abrir detalhe do teste" por teste. So
+  // passado pela tela /nfuncionarios em iteracao, que tem sua propria pagina
+  // de detalhe do teste (privada) -- omitido, mantem o link padrao pra
+  // rota compartilhada de /empresas/.../testes usada pelo /funcionarios
+  // publico.
+  buildTestHref?: (testId: string) => string;
 };
 
-export function TestHistoryTable({ tests, colaboradorId, ocultarIndice = false }: TestHistoryTableProps) {
+export function TestHistoryTable({
+  tests,
+  colaboradorId,
+  ocultarIndice = false,
+  buildTestHref,
+}: TestHistoryTableProps) {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<RiskLevel | "todos">("todos");
   const [tipoFilter, setTipoFilter] = useState<TipoTeste>("EEA");
@@ -156,7 +167,7 @@ export function TestHistoryTable({ tests, colaboradorId, ocultarIndice = false }
                       size="icon"
                       className="size-10 rounded-xl text-primary"
                     >
-                      <Link href={`/empresas/${ANDRADE_ID}/testes/${colaboradorId}/${test.id}`}>
+                      <Link href={buildTestHref ? buildTestHref(test.id) : `/empresas/${ANDRADE_ID}/testes/${colaboradorId}/${test.id}`}>
                         <FileText className="size-4" />
                       </Link>
                     </Button>

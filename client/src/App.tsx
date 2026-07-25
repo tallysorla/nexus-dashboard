@@ -10,6 +10,7 @@ import Colaboradores from "./pages/Colaboradores";
 import ColaboradorProfile from "./pages/ColaboradorProfile";
 import NFuncionarios from "./pages/NFuncionarios";
 import NFuncionarioProfile from "./pages/NFuncionarioProfile";
+import NFuncionarioTesteDetail from "./pages/NFuncionarioTesteDetail";
 import Empresas from "./pages/Empresas";
 import EmpresaOverview from "./pages/EmpresaOverview";
 import Filiais from "./pages/Filiais";
@@ -34,6 +35,7 @@ function Router() {
       <Route path={"/funcionarios/:id"} component={ColaboradorProfile} />
       <Route path={"/nfuncionarios"} component={NFuncionarios} />
       <Route path={"/nfuncionarios/:id"} component={NFuncionarioProfile} />
+      <Route path={"/nfuncionarios/:colaboradorId/testes/:testeId"} component={NFuncionarioTesteDetail} />
       <Route path={"/empresas/:cid/filiais/:fid"} component={FilialDetail} />
       <Route path={"/empresas/:cid/filiais"} component={Filiais} />
       <Route path={"/empresas/:cid/testes/:colaboradorId/:testeId"} component={TesteDetail} />
@@ -70,6 +72,7 @@ const ROTAS_PERMITIDAS = [
   /^\/funcionarios\/[^/]+$/,
   /^\/nfuncionarios$/,
   /^\/nfuncionarios\/[^/]+$/,
+  /^\/nfuncionarios\/[^/]+\/testes\/[^/]+$/,
   /^\/empresas\/[^/]+\/testes\/[^/]+\/[^/]+$/,
 ];
 
