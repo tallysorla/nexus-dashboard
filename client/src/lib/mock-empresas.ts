@@ -343,6 +343,18 @@ export const combinacoesCasos: CombinacaoCriticaCaso[] = [
     status: "em_tratativa",
     detectadoEm: "01/07/2026",
   },
+  // Segundo caso no MESMO teste do Carlos (01/07/2026) -- so pra validar o
+  // layout com 2 cards de combinacao critica empilhados (o frame do Figma de
+  // referencia mostra 2 cards na secao "Combinacao criticas de fatores").
+  {
+    id: "caso-carlos-cc2",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "carlos-silva",
+    combinacaoId: "CC2",
+    status: "sem_tratativa",
+    detectadoEm: "01/07/2026",
+  },
   {
     id: "caso-mariana-cc8",
     empresaId: ANDRADE_ID,
