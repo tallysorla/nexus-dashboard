@@ -34,12 +34,6 @@ import {
   type DecisaoAutorizacao,
   type RiskLevel,
 } from "@/lib/mock-colaboradores";
-import {
-  casosDoColaborador,
-  getCombinacaoCriticaById,
-  type CombinacaoCriticaCaso,
-  type CombinacaoCriticaDef,
-} from "@/lib/mock-empresas";
 import NotFound from "@/pages/NotFound";
 
 const RISCO_HEX: Record<RiskLevel, string> = {
@@ -72,16 +66,18 @@ const DESCRICAO_FRAME: Record<"alto" | "medio", { titulo: string; texto: string 
   },
 };
 
-type CasoComDef = { caso: CombinacaoCriticaCaso; def: CombinacaoCriticaDef };
-
 // Copia de TesteDetail.tsx pro fluxo privado /nfuncionarios, reconstruida
 // para reproduzir fielmente as secoes e o conteudo do frame do Figma
 // referenciado (node 40003340:11034): cabecalho, cartao principal (nome,
-// CPF, badge do teste, as 4 metricas e o banner de autorizacao), combinacao
-// critica de fatores, grafico de risco, fatores com resultado negativo e
-// perguntas puladas. Sem hierarquia empresas/filiais (nfuncionarios nao
-// navega por ela), sem "Resumo da situacao", "Historico de tratativas" nem
-// "Detalhes do funcionario" -- nenhuma dessas secoes existe nesse frame.
+// CPF, badge do teste, as 4 metricas e o banner de autorizacao), grafico de
+// risco, fatores com resultado negativo e perguntas puladas. Sem hierarquia
+// empresas/filiais (nfuncionarios nao navega por ela), sem "Resumo da
+// situacao", "Historico de tratativas" nem "Detalhes do funcionario" --
+// nenhuma dessas secoes existe nesse frame. Combinacao critica de fatores
+// saiu daqui e virou o banner CombinacoesCriticasAlert no topo do PERFIL
+// (NFuncionarioProfile.tsx) -- o caso e vinculado ao colaborador em geral,
+// nao a um teste especifico (ver doc de escopo), entao nao faz sentido
+// filtrar por data do teste aberto.
 export default function NFuncionarioTesteDetail() {
   const { colaboradorId, testeId } = useParams<{ colaboradorId: string; testeId: string }>();
   const [searchParams] = useSearchParams();
@@ -118,11 +114,6 @@ export default function NFuncionarioTesteDetail() {
   const duracao = duracaoDoTeste(colaborador.id, teste.id);
 
   const resultadosEmAtencao = resultados.filter((r) => classificarRisco(r.nota) !== "baixo");
-
-  const casos: CasoComDef[] = casosDoColaborador(colaborador.id)
-    .filter((caso) => caso.detectadoEm === teste.data)
-    .map((caso) => ({ caso, def: getCombinacaoCriticaById(caso.combinacaoId) }))
-    .filter((item): item is CasoComDef => item.def !== undefined);
 
   return (
     <Layout>
@@ -213,61 +204,6 @@ export default function NFuncionarioTesteDetail() {
             ))}
         </CardContent>
       </Card>
-
-      {casos.length > 0 && (
-        <Collapsible defaultOpen className="w-full">
-          <Card className="w-full gap-0 py-0 shadow-sm">
-            <div className="flex items-center justify-between gap-4 px-6 py-5">
-              <CardTitle className="text-lg">Combinação críticas de fatores</CardTitle>
-              <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
-                <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-              </CollapsibleTrigger>
-            </div>
-            <CollapsibleContent>
-              <CardContent className="space-y-4 border-t px-6 py-5">
-                {casos.map(({ caso, def }) => (
-                  <Collapsible key={caso.id} defaultOpen className="rounded-xl border p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {def.fatores.map((f) => (
-                          <Badge
-                            key={f}
-                            variant="outline"
-                            className="rounded-full border-orange-200 bg-orange-50 px-3 py-1 text-xs text-orange-800"
-                          >
-                            {f}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge
-                          variant="outline"
-                          className="rounded-md border-amber-200 bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800"
-                        >
-                          Teste DT obrigatório
-                        </Badge>
-                        <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
-                          <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-                        </CollapsibleTrigger>
-                      </div>
-                    </div>
-                    <CollapsibleContent className="space-y-3 pt-4">
-                      <div className="rounded-lg border p-4 shadow-sm">
-                        <p className="text-sm font-bold">Vulnerabilidade</p>
-                        <p className="mt-1 text-xs text-muted-foreground">{def.vulnerabilidade}</p>
-                      </div>
-                      <div className="rounded-lg border border-amber-400 bg-amber-50/40 p-4">
-                        <p className="font-bold text-neutral-700">Protocolo</p>
-                        <p className="mt-1 text-sm text-neutral-600">{def.protocolo}</p>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                ))}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-      )}
 
       <Collapsible defaultOpen className="w-full">
         <Card className="w-full gap-0 py-0 shadow-sm">

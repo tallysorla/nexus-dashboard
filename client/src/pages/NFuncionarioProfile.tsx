@@ -1,5 +1,6 @@
 import { Link, useParams, useSearchParams } from "wouter";
 import { Layout } from "@/components/Layout";
+import { CombinacoesCriticasAlert } from "@/components/CombinacoesCriticasAlert";
 import { KpiCard } from "@/components/MetricsCards";
 import { FactorsSection } from "@/components/FactorsSection";
 import { EeaChartSection } from "@/components/EeaChartSection";
@@ -54,6 +55,8 @@ export default function NFuncionarioProfile() {
       </Link>
 
       <h2 className="text-lg font-semibold leading-none">Detalhes do funcionário</h2>
+
+      <CombinacoesCriticasAlert colaboradorId={colaborador.id} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {colaborador.totalTestesEea === 0 ? (

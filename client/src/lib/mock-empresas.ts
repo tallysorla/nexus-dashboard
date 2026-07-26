@@ -343,15 +343,29 @@ export const combinacoesCasos: CombinacaoCriticaCaso[] = [
     status: "em_tratativa",
     detectadoEm: "01/07/2026",
   },
-  // Segundo caso no MESMO teste do Carlos (01/07/2026) -- so pra validar o
-  // layout com 2 cards de combinacao critica empilhados (o frame do Figma de
-  // referencia mostra 2 cards na secao "Combinacao criticas de fatores").
+  // Segundo caso do Carlos -- so pra validar o empilhamento de multiplos
+  // cards de combinacao critica no banner do perfil (CombinacoesCriticasAlert
+  // em NFuncionarioProfile.tsx), ordenados por severidade.
   {
     id: "caso-carlos-cc2",
     empresaId: ANDRADE_ID,
     filialId: FILIAL_MATRIZ_SP,
     colaboradorId: "carlos-silva",
     combinacaoId: "CC2",
+    status: "sem_tratativa",
+    detectadoEm: "01/07/2026",
+  },
+  // Terceiro caso do Carlos, nivel ESPECIAL (a Triade de Vulnerabilidade
+  // Extrema) -- nenhum colaborador tinha esse nivel ainda; adicionado pra dar
+  // ao Carlos um exemplo completo dos 3 niveis (Especial + Critico + Alta)
+  // empilhados e ordenados, validando o destaque visual da Triade e as 3
+  // acoes especificas (WeSafety / RH / encaminhamento especializado).
+  {
+    id: "caso-carlos-cc9",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "carlos-silva",
+    combinacaoId: "CC9",
     status: "sem_tratativa",
     detectadoEm: "01/07/2026",
   },
