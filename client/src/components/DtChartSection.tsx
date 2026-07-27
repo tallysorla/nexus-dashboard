@@ -57,8 +57,8 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
   const visibleData = dadosMensais.slice(-meses);
   const media =
     visibleData.length > 0
-      ? Math.round(visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length)
-      : 0;
+      ? visibleData.reduce((sum, p) => sum + p.dt, 0) / visibleData.length
+      : undefined;
 
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
@@ -96,7 +96,9 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
         </div>
 
         <p className="text-sm text-muted-foreground">
-          {semDados ? "Nenhum teste DT realizado ainda" : `Aplicado mensalmente · Média do período: ${media}`}
+          {semDados || media === undefined
+            ? "Nenhum teste DT realizado ainda"
+            : `Aplicado mensalmente · Média do período: ${media.toFixed(1)}/10`}
         </p>
       </CardHeader>
 
@@ -117,7 +119,7 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
               domain={[0, 10]}
               ticks={[0, 2, 4, 6, 8, 10]}
               interval={0}
-              width={ocultarEscala ? 8 : undefined}
+              width={ocultarEscala ? 8 : 40}
               tick={!ocultarEscala}
               axisLine={false}
               tickLine={false}
@@ -131,13 +133,13 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
                     const risco = classificarRisco(Number(value));
                     return (
                       <div className="flex w-full flex-col gap-1">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <span className="flex items-center justify-between gap-3 text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
                             <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: "var(--color-dt)" }} />
                             DT
                           </span>
-                          <span className="font-medium text-foreground">{value}</span>
-                        </div>
+                          <span className="font-mono font-medium text-foreground">{Number(value).toFixed(1)}/10</span>
+                        </span>
                         <Badge
                           variant="outline"
                           className={`w-fit rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
@@ -150,7 +152,7 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
                 />
               }
             />
-            <Bar dataKey="dt" fill="var(--color-dt)" radius={[6, 6, 0, 0]} maxBarSize={48} />
+            <Bar dataKey="dt" fill="var(--color-dt)" radius={[6, 6, 0, 0]} maxBarSize={48} isAnimationActive={false} />
             {/* Faixas desenhadas por ultimo (depois das barras) para nunca
                 ficarem escondidas atras de uma barra alta. Sem texto dentro
                 do grafico: qualquer posicao fixa eventualmente coincide com

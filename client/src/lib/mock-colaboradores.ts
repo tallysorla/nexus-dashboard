@@ -177,6 +177,29 @@ function serieEea(valorAtual: number): PontoEea[] {
   });
 }
 
+// Variante de serieEea com oscilacao ampla o bastante pra cruzar as 3 faixas
+// de risco (baixo/medio/alto) em dias diferentes dentro do mesmo grafico --
+// serieEea() normal costuma ficar dentro de 1-2 faixas so, o que nao serve
+// pra demonstrar o tooltip trocando de classificacao. Termina exatamente no
+// valor atual no ultimo dia, igual a serieEea(), pra nao destoar do KPI.
+function serieEeaVariada(valorAtual: number): PontoEea[] {
+  const CENTRO = 5;
+  const AMPLITUDE = 4.2; // alcanca perto de 0.8 (alto) e 9.2 (baixo)
+  const PERIODO_DIAS = 17;
+
+  return Array.from({ length: DIAS_SERIE_EEA }, (_, i) => {
+    const dia = new Date(DATA_FINAL_SERIE_EEA);
+    dia.setDate(dia.getDate() - (DIAS_SERIE_EEA - 1 - i));
+    const date = `${String(dia.getDate()).padStart(2, "0")}/${String(dia.getMonth() + 1).padStart(2, "0")}`;
+
+    const ehUltimoDia = i === DIAS_SERIE_EEA - 1;
+    const onda = Math.sin((i / PERIODO_DIAS) * 2 * Math.PI) * AMPLITUDE;
+    const eea = ehUltimoDia ? valorAtual : Math.max(0.3, Math.min(9.7, CENTRO + onda));
+
+    return { date, eea: Math.round(eea * 10) / 10 };
+  });
+}
+
 // DT e feito raramente (cerca de uma vez por mes ou durante uma tratativa) ->
 // 12 pontos mensais (para permitir o filtro de 3/6/12 meses), terminando
 // exatamente no valor atual (colaborador.dt) para nao destoar do KPI "DT
@@ -333,7 +356,11 @@ export const colaboradores: Colaborador[] = [
       { rank: 3, nome: "Insegurança", notaEea: 8, notaDt: 7, variacaoPercentual: 3 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("medio", ["Preocupação excessiva", "Cansaço", "Insegurança"]),
-    serieEea: serieEea(5),
+    // serieEeaVariada (nao a serieEea padrao) -- exemplo com oscilacao ampla
+    // o bastante pra cruzar as 3 faixas de risco em dias diferentes, pra
+    // verificar o tooltip do grafico trocando de classificacao (Baixo/Medio/
+    // Alto risco) em vez de ficar sempre no mesmo nivel.
+    serieEea: serieEeaVariada(5),
     serieDt: serieDt(4),
     historicoTestes: [
       { id: "t1", data: "01/07/2026", tipo: "DT", pontuacao: 4, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva, Qualidade do sono" },

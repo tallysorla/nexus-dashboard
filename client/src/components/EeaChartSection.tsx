@@ -18,14 +18,43 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { Area, AreaChart, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ComposedChart, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
   type PontoEea,
+  type RiskLevel,
 } from "@/lib/mock-colaboradores";
+
+const NIVEL_COR: Record<RiskLevel, string> = { alto: "#dc2626", medio: "#d97706", baixo: "#059669" };
+
+type SegmentoEea = {
+  risco: RiskLevel;
+  inicio: string;
+  fim: string;
+  dias: number;
+};
+
+// Agrupa dias consecutivos com a MESMA classificacao num unico segmento --
+// base da visualizacao em timeline. Sem pontuacao, o que importa pro gestor
+// e ha quantos dias o funcionario esta num certo nivel e quando isso mudou,
+// nao cada dia isolado competindo por atencao igual aos outros 89.
+function segmentarPorRisco(dados: PontoEea[]): SegmentoEea[] {
+  const segmentos: SegmentoEea[] = [];
+  for (const ponto of dados) {
+    const risco = classificarRisco(ponto.eea);
+    const atual = segmentos[segmentos.length - 1];
+    if (atual && atual.risco === risco) {
+      atual.fim = ponto.date;
+      atual.dias += 1;
+    } else {
+      segmentos.push({ risco, inicio: ponto.date, fim: ponto.date, dias: 1 });
+    }
+  }
+  return segmentos;
+}
 
 type EeaChartSectionProps = {
   data: PontoEea[];
@@ -55,8 +84,6 @@ type EeaChartSectionProps = {
   ocultarEscala?: boolean;
 };
 
-const COR_LINHA_NEUTRA = "#1e3a5f";
-
 type Range = "7" | "30" | "90" | "all";
 
 const PX_PER_DAY = 42;
@@ -77,6 +104,17 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
   const dias = range === "all" ? data.length : Math.min(Number(range), data.length);
   const visibleData = data.slice(-dias);
   const chartWidth = Math.max(MIN_CHART_WIDTH, visibleData.length * PX_PER_DAY);
+  const segmentos = linhaNeutra ? segmentarPorRisco(visibleData) : [];
+
+  // Marcador vertical do ultimo DT: so aparece quando a propria data do teste
+  // cai dentro do periodo visivel no momento -- e um evento pontual na linha
+  // do tempo, entao faz sentido sumir quando o gestor troca pra um recorte
+  // (ex.: "7 dias") que nao inclui aquela data, em vez de ficar sempre visivel
+  // desencostado do tempo (como era a linha horizontal por nivel de risco).
+  const dtIndexNoRange = dtReferenciaData
+    ? visibleData.findIndex((p) => p.date === dtReferenciaData.slice(0, 5))
+    : -1;
+  const marcadorDtOffset = dtIndexNoRange >= 0 ? (dtIndexNoRange + 0.5) * PX_PER_DAY : null;
 
   // Ao trocar de periodo, comeca mostrando os dias mais recentes (extremidade
   // direita), ja que sao os mais relevantes para o gestor.
@@ -106,9 +144,19 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-64">
-                Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
-                verde baixo risco.
-                {dtReferencia !== undefined && " A linha tracejada mostra a pontuação do último DT realizado."}
+                {linhaNeutra ? (
+                  <>
+                    Teste diário. Cada bloco representa um período contínuo na mesma
+                    classificação de risco — vermelho alto, âmbar médio, verde baixo.
+                    {dtReferencia !== undefined && marcadorDtOffset !== null && " A linha tracejada marca a data do último DT realizado."}
+                  </>
+                ) : (
+                  <>
+                    Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
+                    verde baixo risco.
+                    {dtReferencia !== undefined && " A linha tracejada mostra a pontuação do último DT realizado."}
+                  </>
+                )}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -135,6 +183,82 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
             <p className="max-w-xs text-xs text-muted-foreground">
               Assim que o funcionário realizar o primeiro teste EEA, a evolução aparece aqui.
             </p>
+          </div>
+        ) : linhaNeutra ? (
+          // Timeline segmentada: dias consecutivos na mesma classificacao
+          // viram um unico bloco (largura = duracao), em vez de uma barra por
+          // dia -- o olho vai direto pras transicoes de risco, que e a
+          // informacao que importa pro gestor, e nao compete com 90 blocos
+          // iguais. O valor exato de um dia especifico fica na tabela de
+          // testes realizados, abaixo do grafico (ver TestHistoryTable).
+          <div ref={scrollRef} className="overflow-x-auto pb-1">
+            <div className="relative pt-6" style={{ width: chartWidth, minWidth: chartWidth }}>
+              {marcadorDtOffset !== null && (
+                <div
+                  className="pointer-events-none absolute top-6 bottom-0 z-10 border-l-2 border-dashed"
+                  style={{ left: marcadorDtOffset, borderColor: "var(--chart-2)" }}
+                >
+                  <span
+                    className="absolute -top-6 left-1 whitespace-nowrap text-[11px] font-medium"
+                    style={{ color: "var(--chart-2)" }}
+                  >
+                    Último DT · {dtReferenciaData}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex overflow-hidden rounded-lg">
+                {segmentos.map((seg, i) => {
+                  const largura = seg.dias * PX_PER_DAY;
+                  return (
+                    <Tooltip key={i}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="flex h-16 items-center justify-center"
+                          style={{
+                            width: largura,
+                            backgroundColor: NIVEL_COR[seg.risco],
+                            borderRight: i < segmentos.length - 1 ? "1px solid var(--card)" : undefined,
+                          }}
+                        >
+                          {largura >= 44 && (
+                            <span className="px-1 text-[11px] font-semibold text-white">
+                              {seg.dias} {seg.dias === 1 ? "dia" : "dias"}
+                            </span>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-col gap-1">
+                          <Badge
+                            variant="outline"
+                            className={`w-fit rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[seg.risco]}`}
+                          >
+                            {RISCO_LABEL[seg.risco]}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {seg.dias === 1 ? seg.inicio : `${seg.inicio} a ${seg.fim}`} · {seg.dias}{" "}
+                            {seg.dias === 1 ? "dia" : "dias"}
+                          </span>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+
+              <div className="mt-1.5 flex">
+                {segmentos.map((seg, i) => {
+                  const largura = seg.dias * PX_PER_DAY;
+                  const rotulo = seg.dias === 1 ? seg.inicio : `${seg.inicio} – ${seg.fim}`;
+                  return (
+                    <div key={i} style={{ width: largura }} className="flex justify-center overflow-hidden">
+                      {largura >= 64 && <span className="truncate text-[11px] text-muted-foreground">{rotulo}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         ) : (
         <div className="flex">
@@ -194,10 +318,12 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
                         const risco = classificarRisco(Number(value));
                         return (
                           <div className="flex w-full flex-col gap-1">
-                            <div className="flex items-center justify-between gap-3">
+                            <span className="flex items-center justify-between gap-3">
                               <span className="text-muted-foreground">EEA</span>
-                              <span className="font-medium text-foreground">{value}</span>
-                            </div>
+                              <span className="font-mono font-medium text-foreground">
+                                {Number(value).toFixed(1)}/10
+                              </span>
+                            </span>
                             <Badge
                               variant="outline"
                               className={`w-fit rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
@@ -210,30 +336,14 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
                     />
                   }
                 />
-                {linhaNeutra ? (
-                  <Line
-                    type="monotone"
-                    dataKey="eea"
-                    stroke={COR_LINHA_NEUTRA}
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: COR_LINHA_NEUTRA, strokeWidth: 0 }}
-                    activeDot={{ r: 5 }}
-                  />
-                ) : (
-                  <Area
-                    type="monotone"
-                    dataKey="eea"
-                    stroke="var(--color-eea)"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#colorEea)"
-                  />
-                )}
-                {/* Faixas desenhadas por ultimo (depois da area) para nunca
-                    ficarem escondidas atras do preenchimento. Sem texto
-                    dentro do grafico: qualquer posicao fixa eventualmente
-                    coincide com o traçado e fica ilegivel -- a legenda de
-                    cor fica no tooltip, fora da area de plotagem. */}
+                <Area
+                  type="monotone"
+                  dataKey="eea"
+                  stroke="var(--color-eea)"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#colorEea)"
+                />
                 <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
                 <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
                 <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />

@@ -115,8 +115,10 @@ export default function NFuncionarioProfile() {
   const empresaEscopo = searchParams.get("empresa");
   const voltarHref = empresaEscopo ? `/nfuncionarios?empresa=${empresaEscopo}` : "/nfuncionarios";
 
-  // So o status (Alto/Medio/Baixo risco) fica visivel aqui -- sem a nota
-  // numerica, a pedido explicito pra essa tela.
+  // Nota numerica (0-10) e classificacao de risco lado a lado -- restaurado a
+  // pedido do usuario apos o periodo em que essa tela mostrava so a
+  // classificacao (ver historico do componente EeaChartSection/DtChartSection
+  // e FactorsSection pros mesmos flags de ocultar, ainda la mas sem uso).
   const eeaRisco = classificarRisco(colaborador.eea);
   const dtRisco = classificarRisco(colaborador.dt);
   const ultimoEea = [...colaborador.historicoTestes]
@@ -160,14 +162,8 @@ export default function NFuncionarioProfile() {
         ) : (
           <KpiCard
             label="Última pontuação EEA"
-            value={
-              <Badge
-                variant="outline"
-                className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[eeaRisco]}`}
-              >
-                {RISCO_LABEL[eeaRisco]}
-              </Badge>
-            }
+            value={String(colaborador.eea)}
+            valueSuffix="/10"
             meta={
               ultimoEea && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -176,6 +172,8 @@ export default function NFuncionarioProfile() {
                 </span>
               )
             }
+            badge={RISCO_LABEL[eeaRisco]}
+            badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
             sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
             tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
           />
@@ -192,14 +190,8 @@ export default function NFuncionarioProfile() {
         ) : (
           <KpiCard
             label="Última pontuação DT"
-            value={
-              <Badge
-                variant="outline"
-                className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[dtRisco]}`}
-              >
-                {RISCO_LABEL[dtRisco]}
-              </Badge>
-            }
+            value={String(colaborador.dt)}
+            valueSuffix="/10"
             meta={
               ultimoDt && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -208,6 +200,8 @@ export default function NFuncionarioProfile() {
                 </span>
               )
             }
+            badge={RISCO_LABEL[dtRisco]}
+            badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
             sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
             tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
           />
@@ -261,17 +255,14 @@ export default function NFuncionarioProfile() {
           fatoresAdicionais={colaborador.fatoresAdicionais}
           todosOsFatores={[...colaborador.fatoresDestaque, ...colaborador.fatoresAdicionais]}
           historicoTestes={colaborador.historicoTestes}
-          ocultarNota
         />
         <div className="flex flex-col gap-6">
           <EeaChartSection
             data={colaborador.serieEea}
             dtReferencia={colaborador.totalTestesDt > 0 ? colaborador.dt : undefined}
             dtReferenciaData={ultimoDt?.data}
-            linhaNeutra
-            ocultarEscala
           />
-          <DtChartSection data={colaborador.serieDt} ocultarEscala />
+          <DtChartSection data={colaborador.serieDt} />
         </div>
       </div>
 
