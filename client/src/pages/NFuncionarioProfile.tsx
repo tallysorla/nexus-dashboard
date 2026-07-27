@@ -1,14 +1,17 @@
+import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "wouter";
 import { Layout } from "@/components/Layout";
-import { CombinacoesCriticasAlert } from "@/components/CombinacoesCriticasAlert";
 import { KpiCard } from "@/components/MetricsCards";
+import { InsightsSection } from "@/components/InsightsSection";
 import { FactorsSection } from "@/components/FactorsSection";
 import { EeaChartSection } from "@/components/EeaChartSection";
 import { DtChartSection } from "@/components/DtChartSection";
 import { TestHistoryTable } from "@/components/TestHistoryTable";
 import { UserCard } from "@/components/UserCard";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CalendarClock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertTriangle, ArrowLeft, CalendarClock, RotateCw } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
@@ -18,6 +21,49 @@ import {
 } from "@/lib/mock-colaboradores";
 import NotFound from "@/pages/NotFound";
 
+function NFuncionarioProfileSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-4 w-40" />
+      <Skeleton className="h-6 w-56" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <Skeleton key={i} className="h-32 rounded-2xl" />
+        ))}
+      </div>
+      <Skeleton className="h-40 rounded-2xl" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(340px,0.95fr)_minmax(0,1.45fr)]">
+        <Skeleton className="h-96 rounded-2xl" />
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-72 rounded-2xl" />
+          <Skeleton className="h-72 rounded-2xl" />
+        </div>
+      </div>
+      <Skeleton className="h-64 rounded-2xl" />
+    </div>
+  );
+}
+
+function ErroCarregamento({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed py-16 text-center">
+      <div className="flex size-12 items-center justify-center rounded-full bg-red-50">
+        <AlertTriangle className="size-6 text-red-600" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-base font-semibold">Não foi possível carregar os dados do funcionário</p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          Ocorreu um erro ao buscar as informações. Verifique sua conexão e tente novamente.
+        </p>
+      </div>
+      <Button variant="outline" className="rounded-xl" onClick={onRetry}>
+        <RotateCw className="size-4" />
+        Tentar novamente
+      </Button>
+    </div>
+  );
+}
+
 // Copia de ColaboradorProfile.tsx sob /nfuncionarios -- espaco reservado pra
 // iterar no fluxo em refinamento sem tocar na tela /funcionarios ja
 // compartilhada com o stakeholder.
@@ -25,6 +71,42 @@ export default function NFuncionarioProfile() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const colaborador = getColaboradorById(id ?? "");
+
+  // Loading simulado: a busca do colaborador aqui e sincrona (dado mock
+  // local), mas um dashboard real busca isso de uma API -- simula um atraso
+  // curto pra manter o esqueleto de carregamento sempre implementado e
+  // testavel, em vez de assumir que a rede real nunca demora.
+  const [carregando, setCarregando] = useState(true);
+  useEffect(() => {
+    setCarregando(true);
+    const timer = setTimeout(() => setCarregando(false), 400);
+    return () => clearTimeout(timer);
+  }, [id]);
+
+  // Estado de erro: nao ha uma falha de rede real possivel aqui (o dado e
+  // local), mas a tela de erro existe e pode ser exercitada via
+  // ?simular=erro na URL -- da pra times de QA validarem o estado sem
+  // precisar derrubar um backend de verdade.
+  const [erroSimulado, setErroSimulado] = useState(searchParams.get("simular") === "erro");
+  useEffect(() => {
+    setErroSimulado(searchParams.get("simular") === "erro");
+  }, [searchParams]);
+
+  if (carregando) {
+    return (
+      <Layout>
+        <NFuncionarioProfileSkeleton />
+      </Layout>
+    );
+  }
+
+  if (erroSimulado) {
+    return (
+      <Layout>
+        <ErroCarregamento onRetry={() => setErroSimulado(false)} />
+      </Layout>
+    );
+  }
 
   if (!colaborador) {
     return <NotFound />;
@@ -43,6 +125,12 @@ export default function NFuncionarioProfile() {
   const ultimoDt = [...colaborador.historicoTestes]
     .filter((t) => t.tipo === "DT")
     .sort((a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime())[0];
+  // Status de risco geral: baseado no teste mais recente, seja ele EEA ou DT
+  // -- diferente dos dois cards acima (que sao especificos de cada tipo),
+  // esse reflete "a ultima coisa que aconteceu", nao um tipo em particular.
+  const ultimoTesteGeral = [...colaborador.historicoTestes].sort(
+    (a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime()
+  )[0];
 
   return (
     <Layout>
@@ -56,8 +144,9 @@ export default function NFuncionarioProfile() {
 
       <h2 className="text-lg font-semibold leading-none">Detalhes do funcionário</h2>
 
-      <CombinacoesCriticasAlert colaboradorId={colaborador.id} />
-
+      {/* Grid voltou pra 3 colunas -- o card "Status de risco" foi ocultado
+          por hora (ver bloco comentado abaixo), a pedido do usuario, sem
+          deletar o codigo. Nao reativar sem confirmar antes. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {colaborador.totalTestesEea === 0 ? (
           <KpiCard
@@ -123,13 +212,54 @@ export default function NFuncionarioProfile() {
             tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
           />
         )}
+        {/* Card "Status de risco" ocultado por hora, a pedido do usuario --
+            codigo mantido pra reativar depois, nao apagar nem revivir sem
+            perguntar antes.
+        {!ultimoTesteGeral ? (
+          <KpiCard
+            label="Status de risco"
+            value={<span className="text-muted-foreground">—</span>}
+            badge="Sem teste realizado"
+            badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
+            sublabel="Aguardando o primeiro teste"
+            tooltip="Classificação de risco com base no teste mais recente do funcionário, seja EEA ou DT — o que tiver sido feito por último."
+          />
+        ) : (
+          <KpiCard
+            label="Status de risco"
+            value={
+              <Badge
+                variant="outline"
+                className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[ultimoTesteGeral.status]}`}
+              >
+                {ultimoTesteGeral.classificacao}
+              </Badge>
+            }
+            meta={
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CalendarClock className="size-3.5" />
+                Teste {ultimoTesteGeral.tipo} em {ultimoTesteGeral.data}
+              </span>
+            }
+            sublabel="Com base no teste mais recente"
+            tooltip="Classificação de risco com base no teste mais recente do funcionário, seja EEA ou DT — o que tiver sido feito por último."
+          />
+        )}
+        */}
         <UserCard colaborador={colaborador} />
       </div>
+
+      {/* Secao "Insights automaticos" ocultada por hora, a pedido do usuario
+          -- componente mantido em InsightsSection.tsx pra reativar depois,
+          nao apagar nem revivir sem perguntar antes.
+      <InsightsSection colaborador={colaborador} />
+      */}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(340px,0.95fr)_minmax(0,1.45fr)]">
         <FactorsSection
           fatoresDestaque={colaborador.fatoresDestaque}
           fatoresAdicionais={colaborador.fatoresAdicionais}
+          todosOsFatores={[...colaborador.fatoresDestaque, ...colaborador.fatoresAdicionais]}
           historicoTestes={colaborador.historicoTestes}
           ocultarNota
         />
@@ -137,6 +267,7 @@ export default function NFuncionarioProfile() {
           <EeaChartSection
             data={colaborador.serieEea}
             dtReferencia={colaborador.totalTestesDt > 0 ? colaborador.dt : undefined}
+            dtReferenciaData={ultimoDt?.data}
             linhaNeutra
             ocultarEscala
           />

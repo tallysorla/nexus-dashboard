@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -33,7 +34,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { FileText } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 import { RISCO_BADGE_CLASS, type RiskLevel, type TesteHistorico, type TipoTeste } from "@/lib/mock-colaboradores";
 import { ANDRADE_ID } from "@/lib/mock-empresas";
 
@@ -61,15 +62,28 @@ export function TestHistoryTable({
   buildTestHref,
 }: TestHistoryTableProps) {
   const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<RiskLevel | "todos">("todos");
   const [tipoFilter, setTipoFilter] = useState<TipoTeste>("EEA");
 
   const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
     return tests.filter((test) => {
       const matchesStatus = statusFilter === "todos" || test.status === statusFilter;
-      return matchesStatus && test.tipo === tipoFilter;
+      const matchesTipo = test.tipo === tipoFilter;
+      const matchesQuery =
+        !q ||
+        test.data.toLowerCase().includes(q) ||
+        test.classificacao.toLowerCase().includes(q) ||
+        test.fatores.toLowerCase().includes(q);
+      return matchesStatus && matchesTipo && matchesQuery;
     });
-  }, [tests, statusFilter, tipoFilter]);
+  }, [tests, query, statusFilter, tipoFilter]);
+
+  function updateQuery(value: string) {
+    setQuery(value);
+    setPage(1);
+  }
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -110,7 +124,16 @@ export function TestHistoryTable({
       </CardHeader>
 
       <CardContent className="space-y-5 px-6 pb-6">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="h-11 rounded-xl pl-9"
+              placeholder="Buscar por data, classificação ou fator..."
+              value={query}
+              onChange={(e) => updateQuery(e.target.value)}
+            />
+          </div>
           <Select value={statusFilter} onValueChange={(v) => updateStatusFilter(v as RiskLevel | "todos")}>
             <SelectTrigger className="h-11 w-full rounded-xl bg-card lg:w-48">
               <SelectValue placeholder="Status" />

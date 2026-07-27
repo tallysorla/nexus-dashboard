@@ -2,14 +2,8 @@ import { useState } from "react";
 import { Link, useParams, useSearchParams } from "wouter";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { Layout } from "@/components/Layout";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,10 +11,10 @@ import {
 } from "@/components/ui/collapsible";
 import { AutorizacaoFuncaoDialog } from "@/components/AutorizacaoFuncaoDialog";
 import {
-  AlertCircle,
   AlertTriangle,
   ArrowLeft,
   Ban,
+  Check,
   ChevronDown,
 } from "lucide-react";
 import {
@@ -34,6 +28,10 @@ import {
   type DecisaoAutorizacao,
   type RiskLevel,
 } from "@/lib/mock-colaboradores";
+import {
+  COMBINACOES_CRITICAS,
+  type NivelCombinacao,
+} from "@/lib/mock-empresas";
 import NotFound from "@/pages/NotFound";
 
 const RISCO_HEX: Record<RiskLevel, string> = {
@@ -48,36 +46,59 @@ const STATUS_TEXT_CLASS: Record<RiskLevel, string> = {
   baixo: "text-emerald-600",
 };
 
-// Textos literais do frame do Figma (node 40003340:11034) pra secao "Fatores
-// com resultado negativo" -- diferentes (mais diretivos) dos textos
-// genericos ja usados em descricaoRiscoFator() pro /funcionarios publico.
-// Mantidos aqui, locais a essa pagina, pra nao alterar o texto ja aprovado
-// da tela publica.
-const DESCRICAO_FRAME: Record<"alto" | "medio", { titulo: string; texto: string }> = {
+// Cores exatas do frame do Figma (node 40003416:88835) pra secao "Fatores
+// com resultado negativo" -- mais vivas que RISCO_BADGE_CLASS (usado no
+// resto do app), reproduzidas aqui literalmente a pedido do usuario em vez
+// de reaproveitar o token mais suave.
+const FATOR_RISCO_STYLE: Record<"alto" | "medio", { badge: string; box: string; texto: string }> = {
   alto: {
-    titulo: "Alto Risco",
+    badge: "border-[#f53838] bg-[#f53838]/12 text-[#f53838]",
+    box: "border-[#f23737] bg-[#fff2f2] text-[#666]",
     texto:
       "Os resultados do teste indicam um alto nessa categoria. Por segurança, não recomendamos que dirija no momento. É fundamental buscar descanso e, se necessário, apoio médico ou psicológico antes de retornar à atividade. Sua segurança e a de todos na via dependem disso.",
   },
   medio: {
-    titulo: "Médio risco",
+    badge: "border-[#f59e0b] bg-[#f59e0b]/12 text-[#f59e0b]",
+    box: "border-[#f39c12] bg-[#fffcf0] text-[#666]",
     texto:
       "O teste identificou Médio risco nessa categoria. Este motorista não deve ser escalado para dirigir no momento. É fundamental que ele tenha um período de descanso e, se necessário, seja encaminhado para apoio médico ou psicológico antes de retornar às atividades.",
   },
 };
 
+const FATOR_RISCO_LABEL: Record<"alto" | "medio", string> = {
+  alto: "Alto risco",
+  medio: "Médio risco",
+};
+
+// Cores da combinacao critica por nivel -- mesma paleta AAA ja usada no
+// banner do perfil (NIVEL_BADGE_CLASS de mock-empresas.ts e um estilo mais
+// claro, de outra variante visual; aqui reproduzimos o card de fundo solido
+// do frame do Figma).
+const NIVEL_COMBO_STYLE: Record<NivelCombinacao, { bg: string; ink: string; tagText: string }> = {
+  ESPECIAL: { bg: "#5b21b6", ink: "text-white", tagText: "text-[#5b21b6]" },
+  "CRÍTICO": { bg: "#991b1b", ink: "text-white", tagText: "text-[#991b1b]" },
+  ALTA: { bg: "#f59e0b", ink: "text-black", tagText: "text-[#991b1b]" },
+};
+
+const ORDEM_NIVEL: Record<NivelCombinacao, number> = { ESPECIAL: 0, "CRÍTICO": 1, ALTA: 2 };
+
 // Copia de TesteDetail.tsx pro fluxo privado /nfuncionarios, reconstruida
-// para reproduzir fielmente as secoes e o conteudo do frame do Figma
-// referenciado (node 40003340:11034): cabecalho, cartao principal (nome,
-// CPF, badge do teste, as 4 metricas e o banner de autorizacao), grafico de
-// risco, fatores com resultado negativo e perguntas puladas. Sem hierarquia
-// empresas/filiais (nfuncionarios nao navega por ela), sem "Resumo da
-// situacao", "Historico de tratativas" nem "Detalhes do funcionario" --
-// nenhuma dessas secoes existe nesse frame. Combinacao critica de fatores
-// saiu daqui e virou o banner CombinacoesCriticasAlert no topo do PERFIL
-// (NFuncionarioProfile.tsx) -- o caso e vinculado ao colaborador em geral,
-// nao a um teste especifico (ver doc de escopo), entao nao faz sentido
-// filtrar por data do teste aberto.
+// pra reproduzir com fidelidade o frame do Figma (node 40003416:88835):
+// cabecalho separado em link de volta + titulo, card principal sem a coluna
+// de Pontuacao total e sem cor no valor de Autorizacao (so o Status usa
+// cor), "Perguntas puladas" e "Fatores" trocando Accordion por grade sempre
+// visivel de 2 colunas, e "Grafico de risco" sem Collapsible (so "Perguntas
+// puladas" continua colapsavel).
+//
+// A combinacao critica deste teste e CALCULADA a partir dos proprios
+// resultados dele (nao mais de um "caso" fixo casado por data no mock): uma
+// combinacao das 9 do documento da Martha (COMBINACOES_CRITICAS) so aparece
+// quando TODOS os fatores dela estao em medio/alto risco neste teste
+// especifico. Isso evita a inconsistencia de um teste "Baixo risco" (ou um
+// EEA) acionar um alerta que nao tem nenhum fator realmente sinalizado.
+// Quando ha fator em atencao mas nenhuma combinacao bate, ou quando todos os
+// 10 fatores estao em baixo risco, aparece o estado vazio "Nenhuma
+// combinacao critica identificada" no lugar.
 export default function NFuncionarioTesteDetail() {
   const { colaboradorId, testeId } = useParams<{ colaboradorId: string; testeId: string }>();
   const [searchParams] = useSearchParams();
@@ -102,11 +123,6 @@ export default function NFuncionarioTesteDetail() {
       ? "Autorizado"
       : "Não autorizado"
     : autorizacao.label;
-  const autorizacaoColorClass = decisaoAutorizacao
-    ? decisaoAutorizacao.decisao === "autorizado"
-      ? "text-emerald-600"
-      : "text-red-600"
-    : STATUS_TEXT_CLASS[teste.status];
 
   const resultados = resultadosCompletosDoTeste(teste);
   const perguntasPuladas = perguntasPuladasDoTeste(teste);
@@ -115,15 +131,22 @@ export default function NFuncionarioTesteDetail() {
 
   const resultadosEmAtencao = resultados.filter((r) => classificarRisco(r.nota) !== "baixo");
 
+  const nomesEmAtencao = new Set(resultadosEmAtencao.map((r) => r.nome));
+  const combinacoesDetectadas = COMBINACOES_CRITICAS.filter((def) =>
+    def.fatores.every((f) => nomesEmAtencao.has(f))
+  ).sort((a, b) => ORDEM_NIVEL[a.nivel] - ORDEM_NIVEL[b.nivel]);
+
   return (
     <Layout>
       <Link
         href={perfilHref}
-        className="inline-flex items-center gap-1.5 text-2xl font-semibold tracking-tight hover:text-muted-foreground"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-5" />
-        Detalhes do teste
+        <ArrowLeft className="size-4" />
+        Voltar para funcionários
       </Link>
+
+      <h2 className="text-lg font-semibold leading-none">Detalhes do teste</h2>
 
       <Card className="w-full shadow-sm">
         <CardContent className="space-y-6 p-6">
@@ -137,22 +160,18 @@ export default function NFuncionarioTesteDetail() {
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Autorização para exercer a função</p>
-              <p className={`mt-1 text-xl font-bold ${autorizacaoColorClass}`}>{autorizacaoLabel}</p>
+          <div className="grid grid-cols-1 gap-6 text-center sm:grid-cols-3">
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="text-base text-muted-foreground">Autorização para exercer a função</p>
+              <p className="text-xl font-bold text-slate-800">{autorizacaoLabel}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Pontuação total</p>
-              <p className="mt-1 text-xl font-bold">{teste.pontuacao} / 10</p>
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="text-base text-muted-foreground">Status</p>
+              <p className={`text-xl font-bold ${STATUS_TEXT_CLASS[teste.status]}`}>{teste.classificacao}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Status</p>
-              <p className={`mt-1 text-xl font-bold ${STATUS_TEXT_CLASS[teste.status]}`}>{teste.classificacao}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Duração do teste</p>
-              <p className="mt-1 text-xl font-bold">{duracao} min</p>
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="text-base text-muted-foreground">Duração do teste</p>
+              <p className="text-xl font-bold text-slate-800">{duracao} min</p>
             </div>
           </div>
 
@@ -205,115 +224,150 @@ export default function NFuncionarioTesteDetail() {
         </CardContent>
       </Card>
 
-      <Collapsible defaultOpen className="w-full">
-        <Card className="w-full gap-0 py-0 shadow-sm">
-          <div className="flex flex-row items-center justify-between gap-4 px-6 py-5">
-            <CardTitle className="text-lg">Gráfico de risco</CardTitle>
-            <div className="flex items-center gap-4 text-sm">
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.baixo }} />
-                Baixo
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.medio }} />
-                Médio
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.alto }} />
-                Alto
-              </span>
-              <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
-                <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-              </CollapsibleTrigger>
+      <div className="w-full space-y-8 rounded-2xl border border-[#e8e8e8] bg-white p-4 shadow-sm">
+        {resultadosEmAtencao.length > 0 && (
+          <>
+            <p className="text-base font-semibold tracking-[0.48px] text-[#2a2a2a]">
+              Fatores com resultado negativo
+            </p>
+            <div className={`grid grid-cols-1 gap-6 ${resultadosEmAtencao.length > 1 ? "sm:grid-cols-2" : ""}`}>
+              {resultadosEmAtencao.map((r) => {
+                const risco = classificarRisco(r.nota) as "alto" | "medio";
+                const style = FATOR_RISCO_STYLE[risco];
+                return (
+                  <div key={r.nome} className="flex flex-col gap-6 rounded-lg border border-[#e9e9e9] p-4">
+                    <div className="flex items-center gap-2">
+                      <span className="flex-1 text-sm font-medium text-[#2e2e2e]">{r.nome}</span>
+                      <Badge variant="outline" className={`rounded-full px-2.5 py-1 ${style.badge}`}>
+                        {FATOR_RISCO_LABEL[risco]}
+                      </Badge>
+                    </div>
+                    <div className={`rounded-lg border px-6 py-4 text-xs ${style.box}`}>
+                      {style.texto}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {combinacoesDetectadas.length === 0 && (
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#e2e8f0] px-12 py-12 text-center">
+            <div className="flex size-14 items-center justify-center rounded-full bg-emerald-50">
+              <Check className="size-6 text-emerald-600" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-base font-semibold text-slate-900">
+                Nenhuma combinação crítica identificada
+              </p>
+              <p className="max-w-md text-sm text-muted-foreground">
+                Os 10 fatores acompanhados nos testes EEA e DT deste funcionário não formaram, até
+                o momento, nenhuma das combinações de risco monitoradas pela Nexus.
+              </p>
             </div>
           </div>
-          <CollapsibleContent>
-            <CardContent className="border-t px-6 py-5">
-              <div className="h-[420px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
-                    <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
-                    <XAxis
-                      type="number"
-                      domain={[0, 10]}
-                      ticks={[0, 2, 4, 6, 8, 10]}
-                      axisLine={false}
-                      tickLine={false}
-                      style={{ fontSize: "12px" }}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="nome"
-                      width={150}
-                      axisLine={false}
-                      tickLine={false}
-                      style={{ fontSize: "12px" }}
-                    />
-                    <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
-                      {resultados.map((r) => (
-                        <Cell key={r.nome} fill={RISCO_HEX[classificarRisco(r.nota)]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+        )}
+
+        {combinacoesDetectadas.map((def) => {
+          const nivelStyle = NIVEL_COMBO_STYLE[def.nivel];
+          return (
+            <div key={def.id} className="w-full overflow-hidden rounded-2xl border border-[#e2e8f0]">
+              <div
+                className="flex items-center gap-3 px-5 py-4"
+                style={{ backgroundColor: nivelStyle.bg }}
+              >
+                <span className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold ${nivelStyle.ink} ${nivelStyle.ink === "text-white" ? "border-white" : "border-black"}`}>
+                  {def.nivel === "CRÍTICO" ? "Crítico" : def.nivel === "ESPECIAL" ? "Especial" : "Alta"}
+                </span>
+                <p className={`flex-1 text-sm font-bold ${nivelStyle.ink}`}>{def.nome}</p>
               </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
-      <Collapsible defaultOpen className="w-full">
-        <Card className="w-full gap-0 py-0 shadow-sm">
-          <div className="flex items-center justify-between gap-4 px-6 py-5">
-            <CardTitle className="text-lg">Fatores com resultado negativo</CardTitle>
-            <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
-              <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-          </div>
-          <CollapsibleContent>
-            <CardContent className="border-t px-6 py-5">
-              {resultadosEmAtencao.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Nenhum fator com resultado negativo neste teste.
+              <div className="flex flex-col gap-4 bg-white p-5">
+                <p className="text-[11px] font-semibold tracking-[0.44px] text-slate-600">
+                  FATORES ENVOLVIDOS
                 </p>
-              ) : (
-                <Accordion type="multiple" defaultValue={resultadosEmAtencao.map((r) => r.nome)}>
-                  {resultadosEmAtencao.map((r) => {
-                    const risco = classificarRisco(r.nota) as "alto" | "medio";
-                    const Icon = risco === "alto" ? AlertCircle : AlertTriangle;
-                    const boxClass =
-                      risco === "alto"
-                        ? "border-red-300 bg-red-50 text-red-900"
-                        : "border-amber-400 bg-amber-50/40 text-neutral-700";
-                    const conteudo = DESCRICAO_FRAME[risco];
-                    return (
-                      <AccordionItem key={r.nome} value={r.nome}>
-                        <AccordionTrigger>
-                          <span className="flex flex-1 items-center justify-between gap-3">
-                            <span className="font-medium">{r.nome}</span>
-                            <Icon className={`size-5 shrink-0 ${STATUS_TEXT_CLASS[risco]}`} />
-                          </span>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className={`rounded-lg border p-4 ${boxClass}`}>
-                            <p className="font-bold">{conteudo.titulo}</p>
-                            <p className="mt-1 text-sm">{conteudo.texto}</p>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
-              )}
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+                <div className="flex flex-wrap gap-2">
+                  {def.fatores.map((f) => (
+                    <span
+                      key={f}
+                      className={`rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium ${nivelStyle.tagText}`}
+                    >
+                      {f}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-sm font-bold text-slate-900">Por que esta combinação foi acionada?</p>
+                <p className="text-sm leading-relaxed text-slate-600">{def.impactoOperacional}</p>
+                <div
+                  className="flex items-start gap-2.5 rounded-xl px-4 py-3.5"
+                  style={{ backgroundColor: nivelStyle.bg }}
+                >
+                  <AlertTriangle className={`mt-0.5 size-4 shrink-0 ${nivelStyle.ink}`} />
+                  <p className={`text-sm leading-relaxed ${nivelStyle.ink}`}>
+                    <span className="font-bold">Ação recomendada: </span>
+                    {def.protocolo}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <Card className="w-full gap-0 py-0 shadow-sm">
+        <div className="flex flex-row items-center justify-between gap-4 px-6 py-5">
+          <CardTitle className="text-base font-semibold tracking-[0.48px] text-[#2a2a2a]">Gráfico de risco</CardTitle>
+          <div className="flex items-center gap-4 text-sm">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.baixo }} />
+              Baixo
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.medio }} />
+              Médio
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: RISCO_HEX.alto }} />
+              Alto
+            </span>
+          </div>
+        </div>
+        <CardContent className="border-t px-6 py-5">
+          <div className="h-[420px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
+                <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
+                <XAxis
+                  type="number"
+                  domain={[0, 10]}
+                  ticks={[0, 2, 4, 6, 8, 10]}
+                  axisLine={false}
+                  tickLine={false}
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="nome"
+                  width={150}
+                  axisLine={false}
+                  tickLine={false}
+                  style={{ fontSize: "12px" }}
+                />
+                <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
+                  {resultados.map((r) => (
+                    <Cell key={r.nome} fill={RISCO_HEX[classificarRisco(r.nota)]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Collapsible defaultOpen className="w-full">
         <Card className="w-full gap-0 py-0 shadow-sm">
           <div className="flex items-center justify-between gap-4 px-6 py-5">
-            <CardTitle className="text-lg">Perguntas puladas</CardTitle>
+            <CardTitle className="text-base font-semibold tracking-[0.48px] text-[#2a2a2a]">Perguntas puladas</CardTitle>
             <CollapsibleTrigger className="group flex items-center text-muted-foreground hover:text-foreground">
               <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
             </CollapsibleTrigger>
@@ -323,22 +377,18 @@ export default function NFuncionarioTesteDetail() {
               {perguntasPuladas.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Todas as perguntas foram respondidas.</p>
               ) : (
-                <Accordion type="multiple" defaultValue={perguntasPuladas.map((_, i) => `pp-${i}`)}>
+                <div className={`grid grid-cols-1 gap-4 ${perguntasPuladas.length > 1 ? "sm:grid-cols-2" : ""}`}>
                   {perguntasPuladas.map((p, i) => (
-                    <AccordionItem key={i} value={`pp-${i}`}>
-                      <AccordionTrigger>{p.fator}</AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-3 rounded-lg bg-muted/30 p-4">
-                          <p className="text-sm font-medium text-red-600">Pergunta pulada</p>
-                          <p className="text-sm">{p.pergunta}</p>
-                          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
-                            Motivo: {p.motivo}
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
+                    <div key={i} className="space-y-3 rounded-lg border border-[#f0f0f0] px-6 py-4">
+                      <p className="text-sm font-medium text-[#2e2e2e]">{p.fator}</p>
+                      <p className="text-sm text-muted-foreground">{p.pergunta}</p>
+                      <div className="rounded-lg border border-[#e2e8f0] px-6 py-4 text-xs text-muted-foreground">
+                        <span className="font-semibold">Motivo: </span>
+                        {p.motivo}
+                      </div>
+                    </div>
                   ))}
-                </Accordion>
+                </div>
               )}
             </CardContent>
           </CollapsibleContent>

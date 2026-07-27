@@ -17,6 +17,7 @@ import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
+  ordenarFatoresPorRisco,
   parseDataBr,
   type Fator,
   type TesteHistorico,
@@ -32,6 +33,15 @@ type FactorsSectionProps = {
   // /nfuncionarios em iteracao -- omitido, a secao fica exatamente como no
   // /funcionarios publico.
   ocultarNota?: boolean;
+  // Opcional: os 10 fatores juntos (destaque + adicionais), SEM split fixo.
+  // Quando presente, o ranking "maior risco no momento" (3) vs "outros
+  // fatores acompanhados" (7) e recalculado de verdade a cada troca do
+  // toggle EEA/DT (ordenarFatoresPorRisco, com desempate alfabetico entre
+  // fatores no mesmo nivel de risco), em vez de usar o split fixo vindo do
+  // mock. So passado pela tela /nfuncionarios em iteracao -- omitido, o
+  // split continua fixo (fatoresDestaque/fatoresAdicionais como recebidos),
+  // igual ao /funcionarios publico ja validado.
+  todosOsFatores?: Fator[];
 };
 
 type FatorExibido = { rank: number; nome: string; nota: number };
@@ -98,18 +108,27 @@ export function FactorsSection({
   fatoresAdicionais,
   historicoTestes,
   ocultarNota = false,
+  todosOsFatores,
 }: FactorsSectionProps) {
   const [tipoFiltro, setTipoFiltro] = useState<TipoTeste>("EEA");
 
   // EEA e DT avaliam os MESMOS 10 fatores -- o toggle nunca esconde fatores,
-  // so troca qual nota exibir (a do ultimo EEA ou a do ultimo DT).
+  // so troca qual nota exibir (a do ultimo EEA ou a do ultimo DT). Quando
+  // todosOsFatores e passado, o proprio ranking (quais 3 sao "destaque") e
+  // recalculado por tipoFiltro; sem ele, mantem o split fixo vindo do mock.
   const notaExibida = (f: Fator) => (tipoFiltro === "EEA" ? f.notaEea : f.notaDt);
-  const destaqueExibido: FatorExibido[] = fatoresDestaque.map((f) => ({
+  const [fatoresDestaqueAtivos, fatoresAdicionaisAtivos] = todosOsFatores
+    ? (() => {
+        const ordenados = ordenarFatoresPorRisco(todosOsFatores, tipoFiltro);
+        return [ordenados.slice(0, 3), ordenados.slice(3)];
+      })()
+    : [fatoresDestaque, fatoresAdicionais];
+  const destaqueExibido: FatorExibido[] = fatoresDestaqueAtivos.map((f) => ({
     rank: f.rank,
     nome: f.nome,
     nota: notaExibida(f),
   }));
-  const adicionaisExibido: FatorExibido[] = fatoresAdicionais.map((f) => ({
+  const adicionaisExibido: FatorExibido[] = fatoresAdicionaisAtivos.map((f) => ({
     rank: f.rank,
     nome: f.nome,
     nota: notaExibida(f),

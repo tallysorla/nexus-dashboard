@@ -34,6 +34,11 @@ type EeaChartSectionProps = {
   // tela /nfuncionarios em iteracao -- omitido, o grafico fica exatamente
   // como no /funcionarios publico.
   dtReferencia?: number;
+  // Data do teste DT que originou dtReferencia -- exibida junto do rotulo da
+  // linha tracejada ("Último DT · 01/07/2026") pra deixar claro de qual
+  // avaliação aquele valor de referência veio. So faz sentido quando
+  // dtReferencia tambem esta presente.
+  dtReferenciaData?: string;
   // Opcional: troca o preenchimento em area (cor fixa do tema) por uma linha
   // fina com marcadores, numa cor neutra. Tentamos antes colorir a linha
   // conforme o risco atual, mas o proprio funcionario apontou o problema: a
@@ -64,7 +69,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function EeaChartSection({ data, dtReferencia, linhaNeutra, ocultarEscala }: EeaChartSectionProps) {
+export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeutra, ocultarEscala }: EeaChartSectionProps) {
   const [range, setRange] = useState<Range>("90");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -240,7 +245,7 @@ export function EeaChartSection({ data, dtReferencia, linhaNeutra, ocultarEscala
                     strokeDasharray="5 4"
                     ifOverflow="visible"
                     label={{
-                      value: "Último DT",
+                      value: dtReferenciaData ? `Último DT · ${dtReferenciaData}` : "Último DT",
                       position: "insideTopRight",
                       fill: "var(--chart-2)",
                       fontSize: 11,

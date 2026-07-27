@@ -76,14 +76,24 @@ export function AutorizacaoFuncaoDialog({
           Essa funcionalidade permite autorizar ou não este funcionário a exercer a função.
         </p>
         <div className="flex gap-2">
+          {/* Peso visual igual nos dois botoes -- essa e uma decisao de
+              julgamento do gestor, nao uma acao "positiva" (Autorizar) vs
+              "negativa" (Nao autorizar) com um caminho obviamente certo. Cor
+              (verde/vermelho) so aparece depois, no registro da decisao ja
+              tomada -- ali e so o retrato de um fato, nao mais um convite a
+              escolher. */}
           <Button
             variant="outline"
-            className="rounded-xl border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700"
+            className="rounded-xl"
             onClick={() => setTipo("nao_autorizar")}
           >
             Não autorizar
           </Button>
-          <Button className="rounded-xl" onClick={() => setTipo("autorizar")}>
+          <Button
+            variant="outline"
+            className="rounded-xl"
+            onClick={() => setTipo("autorizar")}
+          >
             Autorizar
           </Button>
         </div>

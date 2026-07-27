@@ -130,6 +130,27 @@ export function classificarRisco(pontuacao: number): RiskLevel {
   return "alto";
 }
 
+// Ordena os 10 fatores do mais critico pro menos critico, com base na nota
+// do tipo de teste ativo (EEA ou DT) -- quanto menor a nota, maior o risco.
+// Em caso de empate na CLASSIFICACAO de risco (Alto/Medio/Baixo) entre dois
+// ou mais fatores, eles sao ordenados entre si em ordem alfabetica (criterio
+// de aceite explicito), independente da diferenca fina na nota numerica.
+// Reatribui `rank` 1..10 pela posicao final, ja que o rank deixa de ser um
+// valor fixo do mock e passa a ser sempre derivado desta ordenacao.
+const ORDEM_RISCO: Record<RiskLevel, number> = { alto: 0, medio: 1, baixo: 2 };
+
+export function ordenarFatoresPorRisco(fatores: Fator[], tipo: TipoTeste): Fator[] {
+  const nota = (f: Fator) => (tipo === "EEA" ? f.notaEea : f.notaDt);
+  return [...fatores]
+    .sort((a, b) => {
+      const riscoA = classificarRisco(nota(a));
+      const riscoB = classificarRisco(nota(b));
+      if (riscoA !== riscoB) return ORDEM_RISCO[riscoA] - ORDEM_RISCO[riscoB];
+      return a.nome.localeCompare(b.nome, "pt-BR");
+    })
+    .map((f, i) => ({ ...f, rank: i + 1 }));
+}
+
 // EEA e feito todo dia pelo colaborador -> um ponto por dia dos ultimos 90
 // dias, terminando exatamente no valor atual (colaborador.eea) para nao
 // destoar do KPI "EEA atual" mostrado no topo da tela. Os pontos mantem uma

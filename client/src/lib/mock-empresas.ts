@@ -324,6 +324,13 @@ export function getCombinacaoCriticaById(id: string): CombinacaoCriticaDef | und
 // cujos fatores melhor batem com os fatoresDestaque reais daquele
 // colaborador, para nao inventar dado desconectado do que ja existe.
 // Joao (baixo risco em todos os fatores) fica de fora de proposito.
+//
+// Carlos Silva e Patricia Lopes tem um caso pra praticamente todo teste do
+// historicoTestes de cada um (data do caso == data do teste, pra aparecer no
+// NFuncionarioTesteDetail), cobrindo os 9 tipos de combinacao. Em cada um dos
+// dois, o teste de menor risco (baixo) fica de proposito sem nenhum caso
+// batendo -- exemplo real do estado "Nenhuma combinacao critica
+// identificada" na tela de detalhe do teste.
 export const combinacoesCasos: CombinacaoCriticaCaso[] = [
   {
     id: "caso-renata-cc5",
@@ -334,6 +341,9 @@ export const combinacoesCasos: CombinacaoCriticaCaso[] = [
     status: "sem_tratativa",
     detectadoEm: "05/07/2026",
   },
+  // Carlos Silva -- historicoTestes: t1 01/07 DT, t2 24/06 EEA, t3 17/06 EEA,
+  // t4 10/06 EEA, t5 03/06 DT, t6 27/05 EEA, t7 20/05 EEA. t7 fica sem caso
+  // (exemplo do blank state).
   {
     id: "caso-carlos-cc7",
     empresaId: ANDRADE_ID,
@@ -343,23 +353,6 @@ export const combinacoesCasos: CombinacaoCriticaCaso[] = [
     status: "em_tratativa",
     detectadoEm: "01/07/2026",
   },
-  // Segundo caso do Carlos -- so pra validar o empilhamento de multiplos
-  // cards de combinacao critica no banner do perfil (CombinacoesCriticasAlert
-  // em NFuncionarioProfile.tsx), ordenados por severidade.
-  {
-    id: "caso-carlos-cc2",
-    empresaId: ANDRADE_ID,
-    filialId: FILIAL_MATRIZ_SP,
-    colaboradorId: "carlos-silva",
-    combinacaoId: "CC2",
-    status: "sem_tratativa",
-    detectadoEm: "01/07/2026",
-  },
-  // Terceiro caso do Carlos, nivel ESPECIAL (a Triade de Vulnerabilidade
-  // Extrema) -- nenhum colaborador tinha esse nivel ainda; adicionado pra dar
-  // ao Carlos um exemplo completo dos 3 niveis (Especial + Critico + Alta)
-  // empilhados e ordenados, validando o destaque visual da Triade e as 3
-  // acoes especificas (WeSafety / RH / encaminhamento especializado).
   {
     id: "caso-carlos-cc9",
     empresaId: ANDRADE_ID,
@@ -367,7 +360,100 @@ export const combinacoesCasos: CombinacaoCriticaCaso[] = [
     colaboradorId: "carlos-silva",
     combinacaoId: "CC9",
     status: "sem_tratativa",
-    detectadoEm: "01/07/2026",
+    detectadoEm: "24/06/2026",
+  },
+  {
+    id: "caso-carlos-cc2",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "carlos-silva",
+    combinacaoId: "CC2",
+    status: "sem_tratativa",
+    detectadoEm: "17/06/2026",
+  },
+  {
+    id: "caso-carlos-cc1",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "carlos-silva",
+    combinacaoId: "CC1",
+    status: "sem_tratativa",
+    detectadoEm: "10/06/2026",
+  },
+  {
+    id: "caso-carlos-cc3",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "carlos-silva",
+    combinacaoId: "CC3",
+    status: "sem_tratativa",
+    detectadoEm: "03/06/2026",
+  },
+  {
+    id: "caso-carlos-cc4",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "carlos-silva",
+    combinacaoId: "CC4",
+    status: "sem_tratativa",
+    detectadoEm: "27/05/2026",
+  },
+  // Patricia Lopes -- historicoTestes: t1 03/07 DT, t2 26/06 EEA, t3 19/06
+  // EEA, t4 12/06 EEA, t5 05/06 DT, t6 29/05 EEA, t7 22/05 EEA. t7 fica sem
+  // caso (segundo exemplo do blank state).
+  {
+    id: "caso-patricia-cc9",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "patricia-lopes",
+    combinacaoId: "CC9",
+    status: "sem_tratativa",
+    detectadoEm: "03/07/2026",
+  },
+  {
+    id: "caso-patricia-cc3",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "patricia-lopes",
+    combinacaoId: "CC3",
+    status: "em_tratativa",
+    detectadoEm: "26/06/2026",
+  },
+  {
+    id: "caso-patricia-cc1",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "patricia-lopes",
+    combinacaoId: "CC1",
+    status: "sem_tratativa",
+    detectadoEm: "19/06/2026",
+  },
+  {
+    id: "caso-patricia-cc6",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "patricia-lopes",
+    combinacaoId: "CC6",
+    status: "sem_tratativa",
+    detectadoEm: "12/06/2026",
+  },
+  {
+    id: "caso-patricia-cc8",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "patricia-lopes",
+    combinacaoId: "CC8",
+    status: "sem_tratativa",
+    detectadoEm: "05/06/2026",
+  },
+  {
+    id: "caso-patricia-cc4",
+    empresaId: ANDRADE_ID,
+    filialId: FILIAL_MATRIZ_SP,
+    colaboradorId: "patricia-lopes",
+    combinacaoId: "CC4",
+    status: "sem_tratativa",
+    detectadoEm: "29/05/2026",
   },
   {
     id: "caso-mariana-cc8",
