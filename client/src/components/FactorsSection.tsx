@@ -33,14 +33,11 @@ type FactorsSectionProps = {
   // /nfuncionarios em iteracao -- omitido, a secao fica exatamente como no
   // /funcionarios publico.
   ocultarNota?: boolean;
-  // Opcional: os 10 fatores juntos (destaque + adicionais), SEM split fixo.
-  // Quando presente, o ranking "maior risco no momento" (3) vs "outros
-  // fatores acompanhados" (7) e recalculado de verdade a cada troca do
-  // toggle EEA/DT (ordenarFatoresPorRisco, com desempate alfabetico entre
-  // fatores no mesmo nivel de risco), em vez de usar o split fixo vindo do
-  // mock. So passado pela tela /nfuncionarios em iteracao -- omitido, o
-  // split continua fixo (fatoresDestaque/fatoresAdicionais como recebidos),
-  // igual ao /funcionarios publico ja validado.
+  // Opcional: os 10 fatores juntos (destaque + adicionais). Em ambos os
+  // casos (com ou sem esse prop), o split entre "Maior risco no momento" e
+  // "Outros fatores acompanhados" e sempre recalculado por classificacao
+  // real (medio/alto vs baixo) a cada troca do toggle EEA/DT -- nunca um
+  // numero fixo de itens, entao "Maior risco" pode ter de 0 a 10 fatores.
   todosOsFatores?: Fator[];
 };
 
@@ -116,26 +113,24 @@ export function FactorsSection({
   const [tipoFiltro, setTipoFiltro] = useState<TipoTeste>("EEA");
 
   // EEA e DT avaliam os MESMOS 10 fatores -- o toggle nunca esconde fatores,
-  // so troca qual nota exibir (a do ultimo EEA ou a do ultimo DT). Quando
-  // todosOsFatores e passado, o proprio ranking (quais 3 sao "destaque") e
-  // recalculado por tipoFiltro; sem ele, mantem o split fixo vindo do mock.
+  // so troca qual nota exibir (a do ultimo EEA ou a do ultimo DT). "Maior
+  // risco no momento" mostra SO os fatores em medio/alto risco (tamanho
+  // variavel, de 0 a 10) -- nunca preenche com fatores em baixo risco so pra
+  // completar 3 itens; esses ficam em "Outros fatores acompanhados" junto
+  // com o resto.
   const notaExibida = (f: Fator) => (tipoFiltro === "EEA" ? f.notaEea : f.notaDt);
-  const [fatoresDestaqueAtivos, fatoresAdicionaisAtivos] = todosOsFatores
-    ? (() => {
-        const ordenados = ordenarFatoresPorRisco(todosOsFatores, tipoFiltro);
-        return [ordenados.slice(0, 3), ordenados.slice(3)];
-      })()
-    : [fatoresDestaque, fatoresAdicionais];
-  const destaqueExibido: FatorExibido[] = fatoresDestaqueAtivos.map((f) => ({
+  const fatoresOrdenados = ordenarFatoresPorRisco(todosOsFatores ?? [...fatoresDestaque, ...fatoresAdicionais], tipoFiltro);
+  const fatoresExibidos: FatorExibido[] = fatoresOrdenados.map((f) => ({
     rank: f.rank,
     nome: f.nome,
     nota: notaExibida(f),
   }));
-  const adicionaisExibido: FatorExibido[] = fatoresAdicionaisAtivos.map((f) => ({
-    rank: f.rank,
-    nome: f.nome,
-    nota: notaExibida(f),
-  }));
+  const destaqueExibido = fatoresExibidos.filter(
+    (f) => classificarRiscoPorTipo(f.nota, tipoFiltro) !== "baixo"
+  );
+  const adicionaisExibido = fatoresExibidos.filter(
+    (f) => classificarRiscoPorTipo(f.nota, tipoFiltro) === "baixo"
+  );
   const [principal, ...resto] = destaqueExibido;
 
   // Sem nenhum teste do tipo selecionado (EEA ou DT) ainda, nao ha nota real
@@ -158,11 +153,7 @@ export function FactorsSection({
   // medio/alto, nao ha nada pra destacar -- mostra um estado vazio positivo
   // em vez das duas secoes (que ficariam cheias de badges "Baixo risco"
   // repetidos).
-  const semFatorEmAtencao =
-    !semTesteDoTipo &&
-    [...destaqueExibido, ...adicionaisExibido].every(
-      (factor) => classificarRiscoPorTipo(factor.nota, tipoFiltro) === "baixo"
-    );
+  const semFatorEmAtencao = !semTesteDoTipo && destaqueExibido.length === 0;
 
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
