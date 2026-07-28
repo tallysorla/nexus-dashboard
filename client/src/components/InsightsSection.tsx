@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  classificarRisco,
+  classificarRiscoEea,
   diasDesde,
   ordenarFatoresPorRisco,
   parseDataBr,
@@ -54,7 +54,7 @@ function gerarInsights(colaborador: Colaborador): Insight[] {
       iconClassName: "bg-blue-50 text-blue-600",
       titulo: `${statusDoFator(tendencia)} desde o último DT`,
       descricao: `O EEA mais recente está ${variacaoLabel(variacao)} ${
-        variacao >= 0 ? "melhor" : "pior"
+        variacao >= 0 ? "pior" : "melhor"
       } que o último DT, realizado em ${ultimoDt.data}.`,
     });
   }
@@ -65,7 +65,7 @@ function gerarInsights(colaborador: Colaborador): Insight[] {
   if (colaborador.totalTestesEea > 0) {
     const todos = [...colaborador.fatoresDestaque, ...colaborador.fatoresAdicionais];
     const [prioritario] = ordenarFatoresPorRisco(todos, "EEA");
-    const riscoPrioritario = prioritario ? classificarRisco(prioritario.notaEea) : "baixo";
+    const riscoPrioritario = prioritario ? classificarRiscoEea(prioritario.notaEea) : "baixo";
     if (prioritario && riscoPrioritario !== "baixo") {
       insights.push({
         id: "fator-prioritario",

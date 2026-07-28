@@ -23,7 +23,7 @@ import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRisco,
+  classificarRiscoDt,
   type PontoDt,
 } from "@/lib/mock-colaboradores";
 
@@ -98,7 +98,7 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
         <p className="text-sm text-muted-foreground">
           {semDados || media === undefined
             ? "Nenhum teste DT realizado ainda"
-            : `Aplicado mensalmente · Média do período: ${media.toFixed(1)}/10`}
+            : `Aplicado mensalmente · Média do período: ${Math.round(media)}/750`}
         </p>
       </CardHeader>
 
@@ -116,8 +116,8 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
             <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
             <YAxis
-              domain={[0, 10]}
-              ticks={[0, 2, 4, 6, 8, 10]}
+              domain={[0, 750]}
+              ticks={[0, 150, 300, 450, 600, 750]}
               interval={0}
               width={ocultarEscala ? 8 : 40}
               tick={!ocultarEscala}
@@ -130,7 +130,7 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
                 <ChartTooltipContent
                   indicator="dot"
                   formatter={(value) => {
-                    const risco = classificarRisco(Number(value));
+                    const risco = classificarRiscoDt(Number(value));
                     return (
                       <div className="flex w-full flex-col gap-1">
                         <span className="flex items-center justify-between gap-3 text-muted-foreground">
@@ -138,7 +138,7 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
                             <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: "var(--color-dt)" }} />
                             DT
                           </span>
-                          <span className="font-mono font-medium text-foreground">{Number(value).toFixed(1)}/10</span>
+                          <span className="font-mono font-medium text-foreground">{Math.round(Number(value))}/750</span>
                         </span>
                         <Badge
                           variant="outline"
@@ -158,9 +158,9 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
                 do grafico: qualquer posicao fixa eventualmente coincide com
                 alguma barra alta e fica ilegivel -- a legenda de cor fica no
                 tooltip, fora da area de plotagem. */}
-            <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={525} y2={750} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={300} y2={525} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={0} y2={300} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
           </BarChart>
         </ChartContainer>
         )}

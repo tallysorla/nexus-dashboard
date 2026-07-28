@@ -168,7 +168,7 @@ export function TestHistoryTable({
                   </TableCell>
                   {!ocultarIndice && (
                     <TableCell className="px-4 py-4 font-semibold">
-                      {test.pontuacao}/10
+                      {test.pontuacao}/{test.tipo === "EEA" ? 100 : 750}
                     </TableCell>
                   )}
                   <TableCell className="px-4 py-4">

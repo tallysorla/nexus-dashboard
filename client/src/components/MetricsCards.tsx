@@ -10,7 +10,8 @@ import { CalendarClock, Info, Minus, TrendingDown, TrendingUp, type LucideIcon }
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRisco,
+  classificarRiscoDt,
+  classificarRiscoEea,
   diasDesde,
   parseDataBr,
   statusDoFator,
@@ -108,8 +109,8 @@ export function KpiCard({ icon: Icon, iconClassName, label, value, valueSuffix, 
 }
 
 export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
-  const eeaRisco = classificarRisco(colaborador.eea);
-  const dtRisco = classificarRisco(colaborador.dt);
+  const eeaRisco = classificarRiscoEea(colaborador.eea);
+  const dtRisco = classificarRiscoDt(colaborador.dt);
 
   const ultimoEea = [...colaborador.historicoTestes]
     .filter((t) => t.tipo === "EEA")
@@ -147,7 +148,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         <KpiCard
           label="Última pontuação EEA"
           value={String(colaborador.eea)}
-          valueSuffix="/10"
+          valueSuffix="/100"
           meta={
             ultimoEea && (
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -175,7 +176,7 @@ export function KpiMiniCards({ colaborador }: MetricsCardsProps) {
         <KpiCard
           label="Última pontuação DT"
           value={String(colaborador.dt)}
-          valueSuffix="/10"
+          valueSuffix="/750"
           meta={
             ultimoDt && (
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground">

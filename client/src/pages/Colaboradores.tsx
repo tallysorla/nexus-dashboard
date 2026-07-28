@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowRight, Search } from "lucide-react";
-import { RISCO_BADGE_CLASS, RISCO_LABEL, colaboradores } from "@/lib/mock-colaboradores";
+import { RISCO_BADGE_CLASS, RISCO_LABEL, classificarRiscoDt, classificarRiscoEea, colaboradores } from "@/lib/mock-colaboradores";
 
 export default function Colaboradores() {
   const [query, setQuery] = useState("");
@@ -100,11 +100,23 @@ export default function Colaboradores() {
                     <TableCell className="px-4 py-4 text-muted-foreground">
                       {c.setor} · {c.local}
                     </TableCell>
-                    <TableCell className="px-4 py-4 font-medium">
-                      {c.totalTestesEea > 0 ? `${c.eea}/10` : <span className="text-muted-foreground">—</span>}
+                    <TableCell className="px-4 py-4">
+                      {c.totalTestesEea > 0 ? (
+                        <Badge variant="outline" className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRiscoEea(c.eea)]}`}>
+                          {RISCO_LABEL[classificarRiscoEea(c.eea)]}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
-                    <TableCell className="px-4 py-4 font-medium">
-                      {c.totalTestesDt > 0 ? `${c.dt}/10` : <span className="text-muted-foreground">—</span>}
+                    <TableCell className="px-4 py-4">
+                      {c.totalTestesDt > 0 ? (
+                        <Badge variant="outline" className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRiscoDt(c.dt)]}`}>
+                          {RISCO_LABEL[classificarRiscoDt(c.dt)]}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="px-4 py-4">
                       {c.totalTestesEea === 0 && c.totalTestesDt === 0 ? (

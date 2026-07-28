@@ -34,7 +34,7 @@ import {
 import {
   RISCO_LABEL,
   autorizacaoDoTeste,
-  classificarRisco,
+  classificarRiscoPorTipo,
   descricaoRiscoFator,
   duracaoDoTeste,
   getColaboradorById,
@@ -113,7 +113,8 @@ export default function TesteDetail() {
   // accordion de Resultados do Teste so precisa detalhar em texto os que
   // exigem atencao, sem repetir os 10 de novo (a maioria fica baixo risco
   // na pratica).
-  const resultadosEmAtencao = resultados.filter((r) => classificarRisco(r.nota) !== "baixo");
+  const maxEscalaTeste = teste.tipo === "EEA" ? 100 : 750;
+  const resultadosEmAtencao = resultados.filter((r) => classificarRiscoPorTipo(r.nota, teste.tipo) !== "baixo");
   const quantidadeBaixo = resultados.length - resultadosEmAtencao.length;
 
   const acaoBoxClass =
@@ -199,14 +200,10 @@ export default function TesteDetail() {
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
               <p className="text-sm text-muted-foreground">Autorização para exercer a função</p>
               <p className={`mt-1 text-xl font-bold ${autorizacaoColorClass}`}>{autorizacaoLabel}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Pontuação total</p>
-              <p className="mt-1 text-xl font-bold">{teste.pontuacao} / 10</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
@@ -381,21 +378,13 @@ export default function TesteDetail() {
           <CollapsibleContent>
             <CardContent className="border-t px-6 py-5">
               <p className="mb-3 text-xs text-muted-foreground">
-                Cada fator e a pontuação geral do teste são medidos de 0 a 10, mas em escalas
-                calculadas de forma independente uma da outra.
+                Cada fator é classificado independentemente em baixo, médio ou alto risco.
               </p>
               <div className="h-[420px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
                     <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
-                    <XAxis
-                      type="number"
-                      domain={[0, 10]}
-                      ticks={[0, 2, 4, 6, 8, 10]}
-                      axisLine={false}
-                      tickLine={false}
-                      style={{ fontSize: "12px" }}
-                    />
+                    <XAxis type="number" domain={[0, maxEscalaTeste]} hide />
                     <YAxis
                       type="category"
                       dataKey="nome"
@@ -406,7 +395,7 @@ export default function TesteDetail() {
                     />
                     <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
                       {resultados.map((r) => (
-                        <Cell key={r.nome} fill={RISCO_HEX[classificarRisco(r.nota)]} />
+                        <Cell key={r.nome} fill={RISCO_HEX[classificarRiscoPorTipo(r.nota, teste.tipo)]} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -438,7 +427,7 @@ export default function TesteDetail() {
                 <>
                   <Accordion type="multiple" defaultValue={resultadosEmAtencao.map((r) => r.nome)}>
                     {resultadosEmAtencao.map((r) => {
-                      const risco = classificarRisco(r.nota);
+                      const risco = classificarRiscoPorTipo(r.nota, teste.tipo);
                       const Icon = risco === "alto" ? AlertCircle : AlertTriangle;
                       const boxClass =
                         risco === "alto"

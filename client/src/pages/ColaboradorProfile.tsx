@@ -14,7 +14,8 @@ import { AlertTriangle, ArrowLeft, CalendarClock, RotateCw } from "lucide-react"
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRisco,
+  classificarRiscoDt,
+  classificarRiscoEea,
   getColaboradorById,
   parseDataBr,
 } from "@/lib/mock-colaboradores";
@@ -123,8 +124,8 @@ export default function ColaboradorProfile() {
   // pedido do usuario apos o periodo em que essa tela mostrava so a
   // classificacao (ver historico do componente EeaChartSection/DtChartSection
   // e FactorsSection pros mesmos flags de ocultar, ainda la mas sem uso).
-  const eeaRisco = classificarRisco(colaborador.eea);
-  const dtRisco = classificarRisco(colaborador.dt);
+  const eeaRisco = classificarRiscoEea(colaborador.eea);
+  const dtRisco = classificarRiscoDt(colaborador.dt);
   const ultimoEea = [...colaborador.historicoTestes]
     .filter((t) => t.tipo === "EEA")
     .sort((a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime())[0];
@@ -166,8 +167,14 @@ export default function ColaboradorProfile() {
         ) : (
           <KpiCard
             label="Última pontuação EEA"
-            value={String(colaborador.eea)}
-            valueSuffix="/10"
+            value={
+              <Badge
+                variant="outline"
+                className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[eeaRisco]}`}
+              >
+                {RISCO_LABEL[eeaRisco]}
+              </Badge>
+            }
             meta={
               ultimoEea && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -176,8 +183,6 @@ export default function ColaboradorProfile() {
                 </span>
               )
             }
-            badge={RISCO_LABEL[eeaRisco]}
-            badgeClassName={RISCO_BADGE_CLASS[eeaRisco]}
             sublabel={`${colaborador.totalTestesEea} testes EEA ao todo`}
             tooltip="Representa o resultado do último teste EEA realizado pelo funcionário."
           />
@@ -194,8 +199,14 @@ export default function ColaboradorProfile() {
         ) : (
           <KpiCard
             label="Última pontuação DT"
-            value={String(colaborador.dt)}
-            valueSuffix="/10"
+            value={
+              <Badge
+                variant="outline"
+                className={`w-fit rounded-lg px-3 py-1 text-base font-semibold ${RISCO_BADGE_CLASS[dtRisco]}`}
+              >
+                {RISCO_LABEL[dtRisco]}
+              </Badge>
+            }
             meta={
               ultimoDt && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -204,8 +215,6 @@ export default function ColaboradorProfile() {
                 </span>
               )
             }
-            badge={RISCO_LABEL[dtRisco]}
-            badgeClassName={RISCO_BADGE_CLASS[dtRisco]}
             sublabel={`${colaborador.totalTestesDt} testes DT ao todo`}
             tooltip="Representa o resultado do último teste DT realizado pelo funcionário."
           />
@@ -259,6 +268,7 @@ export default function ColaboradorProfile() {
           fatoresAdicionais={colaborador.fatoresAdicionais}
           todosOsFatores={[...colaborador.fatoresDestaque, ...colaborador.fatoresAdicionais]}
           historicoTestes={colaborador.historicoTestes}
+          ocultarNota
         />
         <div className="flex flex-col gap-6">
           <EeaChartSection

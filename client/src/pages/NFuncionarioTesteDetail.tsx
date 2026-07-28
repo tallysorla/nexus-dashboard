@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import {
   autorizacaoDoTeste,
-  classificarRisco,
+  classificarRiscoPorTipo,
   duracaoDoTeste,
   getColaboradorById,
   horaDoTeste,
@@ -125,11 +125,12 @@ export default function NFuncionarioTesteDetail() {
     : autorizacao.label;
 
   const resultados = resultadosCompletosDoTeste(teste);
+  const maxEscalaTeste = teste.tipo === "EEA" ? 100 : 750;
   const perguntasPuladas = perguntasPuladasDoTeste(teste);
   const hora = horaDoTeste(colaborador.id, teste.id);
   const duracao = duracaoDoTeste(colaborador.id, teste.id);
 
-  const resultadosEmAtencao = resultados.filter((r) => classificarRisco(r.nota) !== "baixo");
+  const resultadosEmAtencao = resultados.filter((r) => classificarRiscoPorTipo(r.nota, teste.tipo) !== "baixo");
 
   const nomesEmAtencao = new Set(resultadosEmAtencao.map((r) => r.nome));
   const combinacoesDetectadas = COMBINACOES_CRITICAS.filter((def) =>
@@ -232,7 +233,7 @@ export default function NFuncionarioTesteDetail() {
             </p>
             <div className={`grid grid-cols-1 gap-6 ${resultadosEmAtencao.length > 1 ? "sm:grid-cols-2" : ""}`}>
               {resultadosEmAtencao.map((r) => {
-                const risco = classificarRisco(r.nota) as "alto" | "medio";
+                const risco = classificarRiscoPorTipo(r.nota, teste.tipo) as "alto" | "medio";
                 const style = FATOR_RISCO_STYLE[risco];
                 return (
                   <div key={r.nome} className="flex flex-col gap-6 rounded-lg border border-[#e9e9e9] p-4">
@@ -337,14 +338,7 @@ export default function NFuncionarioTesteDetail() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={resultados} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
                 <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
-                <XAxis
-                  type="number"
-                  domain={[0, 10]}
-                  ticks={[0, 2, 4, 6, 8, 10]}
-                  axisLine={false}
-                  tickLine={false}
-                  style={{ fontSize: "12px" }}
-                />
+                <XAxis type="number" domain={[0, maxEscalaTeste]} hide />
                 <YAxis
                   type="category"
                   dataKey="nome"
@@ -355,7 +349,7 @@ export default function NFuncionarioTesteDetail() {
                 />
                 <Bar dataKey="nota" radius={[0, 6, 6, 0]} maxBarSize={22}>
                   {resultados.map((r) => (
-                    <Cell key={r.nome} fill={RISCO_HEX[classificarRisco(r.nota)]} />
+                    <Cell key={r.nome} fill={RISCO_HEX[classificarRiscoPorTipo(r.nota, teste.tipo)]} />
                   ))}
                 </Bar>
               </BarChart>

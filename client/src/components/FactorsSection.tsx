@@ -16,7 +16,7 @@ import { Award, CalendarClock, ClipboardCheck, Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRisco,
+  classificarRiscoPorTipo,
   ordenarFatoresPorRisco,
   parseDataBr,
   type Fator,
@@ -28,8 +28,8 @@ type FactorsSectionProps = {
   fatoresDestaque: Fator[];
   fatoresAdicionais: Fator[];
   historicoTestes: TesteHistorico[];
-  // Opcional: esconde a nota numerica ("nota X/10") de cada fator, deixando
-  // so o badge de status (Alto/Medio/Baixo risco). So passado pela tela
+  // Opcional: esconde a nota numerica ("nota X/100" ou "X/750") de cada
+  // fator, deixando so o badge de status (Alto/Medio/Baixo risco). So passado pela tela
   // /nfuncionarios em iteracao -- omitido, a secao fica exatamente como no
   // /funcionarios publico.
   ocultarNota?: boolean;
@@ -48,14 +48,17 @@ type FatorExibido = { rank: number; nome: string; nota: number };
 
 function FatorRow({
   factor,
+  tipo,
   compact = false,
   ocultarNota = false,
 }: {
   factor: FatorExibido;
+  tipo: TipoTeste;
   compact?: boolean;
   ocultarNota?: boolean;
 }) {
-  const risco = classificarRisco(factor.nota);
+  const risco = classificarRiscoPorTipo(factor.nota, tipo);
+  const sufixo = tipo === "EEA" ? "/100" : "/750";
 
   return (
     <div className="flex items-center gap-3">
@@ -79,7 +82,7 @@ function FatorRow({
               </Badge>
             </div>
             {!ocultarNota && (
-              <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}/10</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}{sufixo}</p>
             )}
           </>
         ) : (
@@ -87,7 +90,7 @@ function FatorRow({
             <p className="font-medium">{factor.nome}</p>
             <div className="mt-0.5 flex items-center justify-between gap-3">
               {!ocultarNota && (
-                <p className="text-xs text-muted-foreground">nota {factor.nota}/10</p>
+                <p className="text-xs text-muted-foreground">nota {factor.nota}{sufixo}</p>
               )}
               <Badge
                 variant="outline"
@@ -157,7 +160,9 @@ export function FactorsSection({
   // repetidos).
   const semFatorEmAtencao =
     !semTesteDoTipo &&
-    [...destaqueExibido, ...adicionaisExibido].every((factor) => classificarRisco(factor.nota) === "baixo");
+    [...destaqueExibido, ...adicionaisExibido].every(
+      (factor) => classificarRiscoPorTipo(factor.nota, tipoFiltro) === "baixo"
+    );
 
   return (
     <Card className="w-full gap-4 py-0 shadow-sm">
@@ -254,12 +259,12 @@ export function FactorsSection({
               </p>
               {principal && (
                 <div className="-mx-4 rounded-xl border bg-muted/30 p-4">
-                  <FatorRow factor={principal} ocultarNota={ocultarNota} />
+                  <FatorRow factor={principal} tipo={tipoFiltro} ocultarNota={ocultarNota} />
                 </div>
               )}
               <div className="space-y-4">
                 {resto.map((factor) => (
-                  <FatorRow key={factor.rank} factor={factor} compact ocultarNota={ocultarNota} />
+                  <FatorRow key={factor.rank} factor={factor} tipo={tipoFiltro} compact ocultarNota={ocultarNota} />
                 ))}
               </div>
             </div>
@@ -270,7 +275,7 @@ export function FactorsSection({
               </p>
               <div className="space-y-4">
                 {adicionaisExibido.map((factor) => (
-                  <FatorRow key={factor.rank} factor={factor} compact ocultarNota={ocultarNota} />
+                  <FatorRow key={factor.rank} factor={factor} tipo={tipoFiltro} compact ocultarNota={ocultarNota} />
                 ))}
               </div>
             </div>

@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowRight, Search } from "lucide-react";
-import { RISCO_BADGE_CLASS, RISCO_LABEL, classificarRisco, colaboradores } from "@/lib/mock-colaboradores";
+import { RISCO_BADGE_CLASS, RISCO_LABEL, classificarRiscoDt, classificarRiscoEea, colaboradores } from "@/lib/mock-colaboradores";
 
 // Copia de Colaboradores.tsx sob /nfuncionarios -- espaco reservado pra
 // iterar no fluxo em refinamento sem tocar na tela /funcionarios ja
@@ -113,9 +113,9 @@ export default function NFuncionarios() {
                       ) : (
                         <Badge
                           variant="outline"
-                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRisco(c.eea)]}`}
+                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRiscoEea(c.eea)]}`}
                         >
-                          {RISCO_LABEL[classificarRisco(c.eea)]}
+                          {RISCO_LABEL[classificarRiscoEea(c.eea)]}
                         </Badge>
                       )}
                     </TableCell>
@@ -130,9 +130,9 @@ export default function NFuncionarios() {
                       ) : (
                         <Badge
                           variant="outline"
-                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRisco(c.dt)]}`}
+                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRiscoDt(c.dt)]}`}
                         >
-                          {RISCO_LABEL[classificarRisco(c.dt)]}
+                          {RISCO_LABEL[classificarRiscoDt(c.dt)]}
                         </Badge>
                       )}
                     </TableCell>

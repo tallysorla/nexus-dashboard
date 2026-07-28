@@ -39,7 +39,7 @@ import {
 import {
   RISCO_LABEL,
   autorizacaoDoTeste,
-  classificarRisco,
+  classificarRiscoPorTipo,
   duracaoDoTeste,
   getColaboradorById,
   horaDoTeste,
@@ -214,6 +214,7 @@ export default function NovoTesteDetail() {
   const podeVerRisco = profile.nav.includes("risco");
 
   const resultados = resultadosCompletosDoTeste(teste);
+  const maxEscalaTeste = teste.tipo === "EEA" ? 100 : 750;
   const autorizacao = autorizacaoDoTeste(teste.status);
   const autorizacaoLabel = decisaoAutorizacao
     ? decisaoAutorizacao.decisao === "autorizado"
@@ -321,7 +322,7 @@ export default function NovoTesteDetail() {
       <CardContent className="px-6 pb-6">
         <div className="divide-y">
           {resultados.map((r) => {
-            const risco = classificarRisco(r.nota);
+            const risco = classificarRiscoPorTipo(r.nota, teste.tipo);
             const relacionado = fatoresRelacionados.has(r.nome);
             return (
               <div key={r.nome} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2.5">
@@ -333,10 +334,9 @@ export default function NovoTesteDetail() {
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${(r.nota / 10) * 100}%`, backgroundColor: RISCO_HEX[risco] }}
+                      style={{ width: `${(r.nota / maxEscalaTeste) * 100}%`, backgroundColor: RISCO_HEX[risco] }}
                     />
                   </div>
-                  <span className="w-12 shrink-0 text-right text-xs text-muted-foreground">{r.nota}/10</span>
                 </div>
                 <Badge variant="outline" className={`rounded-lg px-2 py-0.5 text-xs ${STATUS_TEXT_CLASS[risco]}`}>
                   {RISCO_LABEL[risco]}
@@ -440,16 +440,13 @@ export default function NovoTesteDetail() {
             )}
           </div>
 
-          {/* Dados especificos deste teste -- nota, duracao e autorizacao,
-              o que o usuario pediu de volta do formato antigo. */}
-          <div className="grid grid-cols-2 gap-6 rounded-xl bg-muted/30 p-4 sm:grid-cols-4">
+          {/* Dados especificos deste teste -- duracao e autorizacao, o que o
+              usuario pediu de volta do formato antigo. Sem pontuacao numerica
+              aqui -- so aparece nos graficos de Evolucao, em outro lugar. */}
+          <div className="grid grid-cols-1 gap-6 rounded-xl bg-muted/30 p-4 sm:grid-cols-3">
             <div>
               <p className="text-xs text-muted-foreground">Autorização para exercer a função</p>
               <p className={`mt-1 text-lg font-bold ${autorizacaoColorClass}`}>{autorizacaoLabel}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Pontuação total</p>
-              <p className="mt-1 text-lg font-bold">{teste.pontuacao} / 10</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Status</p>
@@ -639,7 +636,6 @@ export default function NovoTesteDetail() {
                     <TableHeader>
                       <TableRow className="bg-muted/40 hover:bg-muted/40">
                         <TableHead className="h-11 px-4">Data</TableHead>
-                        <TableHead className="h-11 px-4">Pontuação</TableHead>
                         <TableHead className="h-11 px-4">Classificação</TableHead>
                         <TableHead className="h-11 px-4" />
                       </TableRow>
@@ -650,7 +646,6 @@ export default function NovoTesteDetail() {
                           <TableCell className="px-4 py-3">
                             {t.data} · {horaDoTeste(colaborador.id, t.id)}
                           </TableCell>
-                          <TableCell className="px-4 py-3">{t.pontuacao} / 10</TableCell>
                           <TableCell className="px-4 py-3">
                             <span className={STATUS_TEXT_CLASS[t.status]}>{t.classificacao}</span>
                           </TableCell>

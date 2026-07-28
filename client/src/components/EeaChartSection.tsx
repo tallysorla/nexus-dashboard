@@ -18,19 +18,24 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { AreaChart, CartesianGrid, ComposedChart, Line, ReferenceArea, XAxis, YAxis } from "recharts";
-import { ArrowUpRight, Info, Minus, TrendingDown, TrendingUp } from "lucide-react";
-import { toast } from "sonner";
+import { Info, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
-  classificarRisco,
+  classificarRiscoDt,
+  classificarRiscoEea,
   parseDataCurta,
   type PontoDt,
   type PontoEea,
   type RiskLevel,
 } from "@/lib/mock-colaboradores";
+
+// Escala do DT (0-750) plotada no mesmo eixo Y do EEA (0-100): a linha do DT
+// vigente usa um valor ESCALADO so pra posicionamento (dtVigente * ESCALA_DT),
+// nunca exibido -- tooltip e classificacao de risco sempre usam o valor real
+// (revertendo a escala: dividir de volta por ESCALA_DT).
+const ESCALA_DT = 100 / 750;
 
 const NIVEL_COR: Record<RiskLevel, string> = { alto: "#dc2626", medio: "#d97706", baixo: "#059669" };
 // Menor numero = pior (usado so pra comparar "previsto pelo DT" x "realizado
@@ -58,7 +63,7 @@ type SegmentoEea = {
 function segmentarPorRisco(dados: PontoEea[]): SegmentoEea[] {
   const segmentos: SegmentoEea[] = [];
   for (const ponto of dados) {
-    const risco = classificarRisco(ponto.eea);
+    const risco = classificarRiscoEea(ponto.eea);
     const atual = segmentos[segmentos.length - 1];
     if (atual && atual.risco === risco) {
       atual.fim = ponto.date;
@@ -114,7 +119,7 @@ const chartConfig = {
     label: "EEA",
     color: "var(--chart-1)",
   },
-  dtVigente: {
+  dtVigenteEscalado: {
     label: "DT",
     color: "var(--chart-2)",
   },
@@ -163,16 +168,19 @@ export function EeaChartSection({
       if (parseDataCurta(p.date).getTime() <= dataPonto.getTime()) dtVigente = p.dt;
       else break;
     }
-    return { ...ponto, dtVigente };
+    return {
+      ...ponto,
+      dtVigenteEscalado: dtVigente !== undefined ? dtVigente * ESCALA_DT : undefined,
+    };
   });
 
   // Insight "previsto (DT) x realizado (EEA)": olha pra classificacao que MAIS
   // se repete no periodo visivel e compara com a classificacao do ultimo DT --
   // e essa comparacao que da o titulo (melhor/pior/dentro do previsto) e a
   // contagem "X dos ultimos Y dias" da descricao abaixo do grafico.
-  const riscoDt = dtReferencia !== undefined ? classificarRisco(dtReferencia) : undefined;
+  const riscoDt = dtReferencia !== undefined ? classificarRiscoDt(dtReferencia) : undefined;
   const contagemPorRisco = { alto: 0, medio: 0, baixo: 0 } as Record<RiskLevel, number>;
-  for (const ponto of visibleData) contagemPorRisco[classificarRisco(ponto.eea)] += 1;
+  for (const ponto of visibleData) contagemPorRisco[classificarRiscoEea(ponto.eea)] += 1;
   const riscoPredominante = (Object.keys(contagemPorRisco) as RiskLevel[]).reduce((a, b) =>
     contagemPorRisco[b] > contagemPorRisco[a] ? b : a
   );
@@ -371,8 +379,8 @@ export function EeaChartSection({
           >
             <AreaChart data={visibleData} margin={{ left: 8, right: 4, top: 8, bottom: 8 }}>
               <YAxis
-                domain={[0, 10]}
-                ticks={[0, 2, 4, 6, 8, 10]}
+                domain={[0, 100]}
+                ticks={[0, 20, 40, 60, 80, 100]}
                 interval={0}
                 width={ocultarEscala ? 8 : 40}
                 tick={!ocultarEscala}
@@ -402,21 +410,27 @@ export function EeaChartSection({
                   height={dias > 14 ? 40 : 24}
                   style={{ fontSize: "12px" }}
                 />
-                <YAxis domain={[0, 10]} hide />
+                <YAxis domain={[0, 100]} hide />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
                       indicator="dot"
                       formatter={(value, name) => {
                         if (value === undefined || value === null) return null;
-                        const risco = classificarRisco(Number(value));
-                        const rotulo = name === "dtVigente" ? "DT vigente" : "EEA";
+                        const ehDt = name === "dtVigenteEscalado";
+                        // dtVigenteEscalado so existe pra posicionar a linha no
+                        // mesmo eixo 0-100 do EEA -- aqui revertemos pro valor
+                        // real (0-750) antes de classificar/exibir.
+                        const valorReal = ehDt ? Number(value) / ESCALA_DT : Number(value);
+                        const risco = ehDt ? classificarRiscoDt(valorReal) : classificarRiscoEea(valorReal);
+                        const rotulo = ehDt ? "DT vigente" : "EEA";
+                        const sufixo = ehDt ? "/750" : "/100";
                         return (
                           <div className="flex w-full flex-col gap-1">
                             <span className="flex items-center justify-between gap-3">
                               <span className="text-muted-foreground">{rotulo}</span>
                               <span className="font-mono font-medium text-foreground">
-                                {Number(value).toFixed(1)}/10
+                                {Math.round(valorReal)}{sufixo}
                               </span>
                             </span>
                             <Badge
@@ -431,13 +445,13 @@ export function EeaChartSection({
                     />
                   }
                 />
-                <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
                 {serieDt && serieDt.length > 0 && (
                   <Line
                     type="stepAfter"
-                    dataKey="dtVigente"
+                    dataKey="dtVigenteEscalado"
                     stroke="var(--chart-2)"
                     strokeWidth={1.5}
                     strokeDasharray="5 4"
@@ -462,27 +476,16 @@ export function EeaChartSection({
         </div>
 
         {dtReferencia !== undefined && riscoDt && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t pt-4">
-            <div className="flex items-start gap-3">
-              <IconeInsight className={`mt-0.5 size-5 shrink-0 ${corInsight}`} />
-              <div>
-                <p className="text-sm font-semibold">{tituloInsight}</p>
-                <p className="text-sm text-muted-foreground">
-                  O DT de {mesAbreviado(dtReferenciaData ?? "")} previu {RISCO_LABEL[riscoDt].toLowerCase()}. O
-                  EEA ficou em {RISCO_LABEL[riscoPredominante].toLowerCase()} em {diasNoPredominante} dos
-                  últimos {visibleData.length} dias.
-                </p>
-              </div>
+          <div className="mt-4 flex items-start gap-3 border-t pt-4">
+            <IconeInsight className={`mt-0.5 size-5 shrink-0 ${corInsight}`} />
+            <div>
+              <p className="text-sm font-semibold">{tituloInsight}</p>
+              <p className="text-sm text-muted-foreground">
+                O DT de {mesAbreviado(dtReferenciaData ?? "")} previu {RISCO_LABEL[riscoDt].toLowerCase()}. O
+                EEA ficou em {RISCO_LABEL[riscoPredominante].toLowerCase()} em {diasNoPredominante} dos
+                últimos {visibleData.length} dias.
+              </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0 rounded-xl"
-              onClick={() => toast("Protótipo: detalhamento por categoria")}
-            >
-              Por categoria
-              <ArrowUpRight className="size-4" />
-            </Button>
           </div>
         )}
         </>
