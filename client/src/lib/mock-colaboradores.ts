@@ -246,6 +246,16 @@ export function parseDataBr(data: string): Date {
   return new Date(ano, mes - 1, dia);
 }
 
+// serieEea/serieDt guardam so "dd/mm" (sem ano) -- reconstroi o ano real mais
+// proximo que nao seja posterior a hoje (DATA_FINAL_SERIE_EEA por padrao).
+// Necessario pra series que cruzam a virada do ano, como os 12 meses de
+// serieDt (que comecam ainda no ano anterior quando "hoje" e no meio do ano).
+export function parseDataCurta(dataCurta: string, hoje: Date = DATA_FINAL_SERIE_EEA): Date {
+  const [dia, mes] = dataCurta.split("/").map(Number);
+  const candidato = new Date(hoje.getFullYear(), mes - 1, dia);
+  return candidato.getTime() > hoje.getTime() ? new Date(hoje.getFullYear() - 1, mes - 1, dia) : candidato;
+}
+
 // Dias corridos entre uma data (DD/MM/AAAA) e a data "hoje" simulada usada
 // no resto do app (DATA_FINAL_SERIE_EEA) -- ex.: "ha quantos dias foi o
 // ultimo DT", pra dar ao gestor uma nocao de quao desatualizada esta a

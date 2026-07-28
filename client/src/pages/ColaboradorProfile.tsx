@@ -265,6 +265,7 @@ export default function ColaboradorProfile() {
             data={colaborador.serieEea}
             dtReferencia={colaborador.totalTestesDt > 0 ? colaborador.dt : undefined}
             dtReferenciaData={ultimoDt?.data}
+            serieDt={colaborador.serieDt}
           />
           <DtChartSection data={colaborador.serieDt} />
         </div>

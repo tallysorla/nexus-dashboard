@@ -18,17 +18,31 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { Area, AreaChart, CartesianGrid, ComposedChart, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts";
-import { Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AreaChart, CartesianGrid, ComposedChart, Line, ReferenceArea, XAxis, YAxis } from "recharts";
+import { ArrowUpRight, Info, Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
   classificarRisco,
+  parseDataCurta,
+  type PontoDt,
   type PontoEea,
   type RiskLevel,
 } from "@/lib/mock-colaboradores";
 
 const NIVEL_COR: Record<RiskLevel, string> = { alto: "#dc2626", medio: "#d97706", baixo: "#059669" };
+// Menor numero = pior (usado so pra comparar "previsto pelo DT" x "realizado
+// no EEA" no insight abaixo do grafico -- nao confundir com RISCO_LABEL, que
+// e so pra exibicao).
+const ORDEM_NIVEL: Record<RiskLevel, number> = { alto: 0, medio: 1, baixo: 2 };
+const MESES_ABREV = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+function mesAbreviado(dataBr: string): string {
+  const mesIndex = Number(dataBr.split("/")[1]) - 1;
+  return MESES_ABREV[mesIndex] ?? "";
+}
 
 type SegmentoEea = {
   risco: RiskLevel;
@@ -68,6 +82,12 @@ type EeaChartSectionProps = {
   // avaliação aquele valor de referência veio. So faz sentido quando
   // dtReferencia tambem esta presente.
   dtReferenciaData?: string;
+  // Opcional: historico completo de DT do funcionario, usado pra desenhar a
+  // linha tracejada como um DEGRAU que muda de valor a cada teste DT (nao um
+  // unico valor fixo) -- o DT e mensal, entao o "DT vigente" muda mes a mes, e
+  // olhar 90 dias/todo o periodo precisa mostrar essa evolucao inteira, nao
+  // so a pontuacao do ultimo teste. Sem esse prop, a linha nao aparece.
+  serieDt?: PontoDt[];
   // Opcional: troca o preenchimento em area (cor fixa do tema) por uma linha
   // fina com marcadores, numa cor neutra. Tentamos antes colorir a linha
   // conforme o risco atual, mas o proprio funcionario apontou o problema: a
@@ -94,9 +114,20 @@ const chartConfig = {
     label: "EEA",
     color: "var(--chart-1)",
   },
+  dtVigente: {
+    label: "DT",
+    color: "var(--chart-2)",
+  },
 } satisfies ChartConfig;
 
-export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeutra, ocultarEscala }: EeaChartSectionProps) {
+export function EeaChartSection({
+  data,
+  dtReferencia,
+  dtReferenciaData,
+  serieDt,
+  linhaNeutra,
+  ocultarEscala,
+}: EeaChartSectionProps) {
   const [range, setRange] = useState<Range>("90");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -115,6 +146,57 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
     ? visibleData.findIndex((p) => p.date === dtReferenciaData.slice(0, 5))
     : -1;
   const marcadorDtOffset = dtIndexNoRange >= 0 ? (dtIndexNoRange + 0.5) * PX_PER_DAY : null;
+
+  // DT vigente por dia: pra cada dia do EEA, qual foi o ultimo teste DT
+  // realizado ate aquela data -- o DT e mensal, entao esse valor muda a cada
+  // novo teste (mes com baixo risco, mes seguinte com medio, etc.), formando
+  // um degrau ao longo do periodo em vez de uma unica linha reta com a
+  // pontuacao do ultimo DT. Sem nenhum DT ainda realizado ate aquele dia, o
+  // ponto fica sem valor (undefined) e a linha simplesmente nao comeca ainda.
+  const dtOrdenado = [...(serieDt ?? [])].sort(
+    (a, b) => parseDataCurta(a.date).getTime() - parseDataCurta(b.date).getTime()
+  );
+  const visibleDataComDt = visibleData.map((ponto) => {
+    const dataPonto = parseDataCurta(ponto.date);
+    let dtVigente: number | undefined;
+    for (const p of dtOrdenado) {
+      if (parseDataCurta(p.date).getTime() <= dataPonto.getTime()) dtVigente = p.dt;
+      else break;
+    }
+    return { ...ponto, dtVigente };
+  });
+
+  // Insight "previsto (DT) x realizado (EEA)": olha pra classificacao que MAIS
+  // se repete no periodo visivel e compara com a classificacao do ultimo DT --
+  // e essa comparacao que da o titulo (melhor/pior/dentro do previsto) e a
+  // contagem "X dos ultimos Y dias" da descricao abaixo do grafico.
+  const riscoDt = dtReferencia !== undefined ? classificarRisco(dtReferencia) : undefined;
+  const contagemPorRisco = { alto: 0, medio: 0, baixo: 0 } as Record<RiskLevel, number>;
+  for (const ponto of visibleData) contagemPorRisco[classificarRisco(ponto.eea)] += 1;
+  const riscoPredominante = (Object.keys(contagemPorRisco) as RiskLevel[]).reduce((a, b) =>
+    contagemPorRisco[b] > contagemPorRisco[a] ? b : a
+  );
+  const diasNoPredominante = contagemPorRisco[riscoPredominante];
+  // ORDEM_NIVEL maior = risco mais baixo (mais seguro) -- predominante "melhor"
+  // que o previsto pelo DT quando o EEA ficou majoritariamente num nivel mais
+  // seguro do que aquele que o DT indicava.
+  const comparacaoInsight =
+    riscoDt === undefined
+      ? "igual"
+      : ORDEM_NIVEL[riscoPredominante] > ORDEM_NIVEL[riscoDt]
+        ? "melhor"
+        : ORDEM_NIVEL[riscoPredominante] < ORDEM_NIVEL[riscoDt]
+          ? "pior"
+          : "igual";
+  const IconeInsight = comparacaoInsight === "melhor" ? TrendingUp : comparacaoInsight === "pior" ? TrendingDown : Minus;
+  const corInsight =
+    comparacaoInsight === "melhor" ? "text-emerald-600" : comparacaoInsight === "pior" ? "text-red-600" : "text-blue-600";
+  const tituloInsight =
+    comparacaoInsight === "melhor"
+      ? "EEA melhor que o previsto"
+      : comparacaoInsight === "pior"
+        ? "EEA pior que o previsto"
+        : "EEA dentro do previsto";
 
   // Ao trocar de periodo, comeca mostrando os dias mais recentes (extremidade
   // direita), ja que sao os mais relevantes para o gestor.
@@ -154,7 +236,8 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
                   <>
                     Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
                     verde baixo risco.
-                    {dtReferencia !== undefined && " A linha tracejada mostra a pontuação do último DT realizado."}
+                    {serieDt && serieDt.length > 0 &&
+                      " A linha tracejada mostra o DT vigente em cada período — ela muda de valor a cada novo teste DT realizado."}
                   </>
                 )}
               </TooltipContent>
@@ -174,6 +257,21 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
         <p className="text-sm text-muted-foreground">
           {semDados ? "Nenhum teste EEA realizado ainda" : "Aplicado todos os dias"}
         </p>
+
+        {!semDados && !linhaNeutra && (
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <span className="flex items-center gap-1.5">
+              <span className="h-0.5 w-4 rounded-full" style={{ backgroundColor: "var(--color-eea)" }} />
+              EEA diário
+            </span>
+            {serieDt && serieDt.length > 0 && (
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <span className="h-0 w-4 border-t-2 border-dashed" style={{ borderColor: "var(--chart-2)" }} />
+                DT mensal
+              </span>
+            )}
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
@@ -261,6 +359,7 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
             </div>
           </div>
         ) : (
+        <>
         <div className="flex">
           {/* Eixo Y fixo: nao pode rolar junto com os dados, senao os numeros
               da lateral somem quando o grafico rola para os dias recentes.
@@ -291,13 +390,7 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
               className="aspect-auto h-72 w-full"
               style={{ minWidth: chartWidth }}
             >
-              <ComposedChart data={visibleData} margin={{ left: 0, right: 24, top: 8, bottom: 8 }}>
-                <defs>
-                  <linearGradient id="colorEea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-eea)" stopOpacity={0.28} />
-                    <stop offset="95%" stopColor="var(--color-eea)" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
+              <ComposedChart data={visibleDataComDt} margin={{ left: 32, right: 24, top: 8, bottom: 8 }}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
                 <XAxis
                   dataKey="date"
@@ -314,12 +407,14 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
                   content={
                     <ChartTooltipContent
                       indicator="dot"
-                      formatter={(value) => {
+                      formatter={(value, name) => {
+                        if (value === undefined || value === null) return null;
                         const risco = classificarRisco(Number(value));
+                        const rotulo = name === "dtVigente" ? "DT vigente" : "EEA";
                         return (
                           <div className="flex w-full flex-col gap-1">
                             <span className="flex items-center justify-between gap-3">
-                              <span className="text-muted-foreground">EEA</span>
+                              <span className="text-muted-foreground">{rotulo}</span>
                               <span className="font-mono font-medium text-foreground">
                                 {Number(value).toFixed(1)}/10
                               </span>
@@ -336,37 +431,61 @@ export function EeaChartSection({ data, dtReferencia, dtReferenciaData, linhaNeu
                     />
                   }
                 />
-                <Area
+                <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+                {serieDt && serieDt.length > 0 && (
+                  <Line
+                    type="stepAfter"
+                    dataKey="dtVigente"
+                    stroke="var(--chart-2)"
+                    strokeWidth={1.5}
+                    strokeDasharray="5 4"
+                    dot={false}
+                    activeDot={{ r: 5 }}
+                    isAnimationActive={false}
+                    connectNulls={false}
+                  />
+                )}
+                <Line
                   type="monotone"
                   dataKey="eea"
                   stroke="var(--color-eea)"
                   strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#colorEea)"
+                  dot={{ r: 4, fill: "var(--color-eea)", strokeWidth: 0 }}
+                  activeDot={{ r: 6 }}
+                  isAnimationActive={false}
                 />
-                <ReferenceArea y1={0} y2={3} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={3} y2={6} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={6} y2={10} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
-                {dtReferencia !== undefined && (
-                  <ReferenceLine
-                    y={dtReferencia}
-                    stroke="var(--chart-2)"
-                    strokeWidth={1.5}
-                    strokeDasharray="5 4"
-                    ifOverflow="visible"
-                    label={{
-                      value: dtReferenciaData ? `Último DT · ${dtReferenciaData}` : "Último DT",
-                      position: "insideTopRight",
-                      fill: "var(--chart-2)",
-                      fontSize: 11,
-                      fontWeight: 500,
-                    }}
-                  />
-                )}
               </ComposedChart>
             </ChartContainer>
           </div>
         </div>
+
+        {dtReferencia !== undefined && riscoDt && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t pt-4">
+            <div className="flex items-start gap-3">
+              <IconeInsight className={`mt-0.5 size-5 shrink-0 ${corInsight}`} />
+              <div>
+                <p className="text-sm font-semibold">{tituloInsight}</p>
+                <p className="text-sm text-muted-foreground">
+                  O DT de {mesAbreviado(dtReferenciaData ?? "")} previu {RISCO_LABEL[riscoDt].toLowerCase()}. O
+                  EEA ficou em {RISCO_LABEL[riscoPredominante].toLowerCase()} em {diasNoPredominante} dos
+                  últimos {visibleData.length} dias.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 rounded-xl"
+              onClick={() => toast("Protótipo: detalhamento por categoria")}
+            >
+              Por categoria
+              <ArrowUpRight className="size-4" />
+            </Button>
+          </div>
+        )}
+        </>
         )}
       </CardContent>
     </Card>
