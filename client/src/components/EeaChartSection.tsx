@@ -420,18 +420,22 @@ export function EeaChartSection({
                         const ehDt = name === "dtVigenteEscalado";
                         // dtVigenteEscalado so existe pra posicionar a linha no
                         // mesmo eixo 0-100 do EEA -- aqui revertemos pro valor
-                        // real (0-750) antes de classificar/exibir.
+                        // real (0-750) antes de classificar. O DT nesse grafico
+                        // mostra so o status (sem numero); o EEA continua
+                        // mostrando a nota, ja que o grafico de evolucao e o
+                        // unico lugar do app onde a nota aparece.
                         const valorReal = ehDt ? Number(value) / ESCALA_DT : Number(value);
                         const risco = ehDt ? classificarRiscoDt(valorReal) : classificarRiscoEea(valorReal);
                         const rotulo = ehDt ? "DT vigente" : "EEA";
-                        const sufixo = ehDt ? "/750" : "/100";
                         return (
                           <div className="flex w-full flex-col gap-1">
                             <span className="flex items-center justify-between gap-3">
                               <span className="text-muted-foreground">{rotulo}</span>
-                              <span className="font-mono font-medium text-foreground">
-                                {Math.round(valorReal)}{sufixo}
-                              </span>
+                              {!ehDt && (
+                                <span className="font-mono font-medium text-foreground">
+                                  {Math.round(valorReal)}/100
+                                </span>
+                              )}
                             </span>
                             <Badge
                               variant="outline"
