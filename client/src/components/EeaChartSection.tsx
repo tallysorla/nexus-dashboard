@@ -205,6 +205,20 @@ export function EeaChartSection({
       : comparacaoInsight === "pior"
         ? "EEA pior que o previsto"
         : "EEA dentro do previsto";
+  // A descricao muda de tom conforme o resultado -- so quando o EEA esta
+  // PIOR que o previsto a contagem bruta de dias vira o foco (e o cenario
+  // que precisa de atencao); quando esta dentro do esperado ou melhor, o
+  // texto reforça isso em vez de repetir um numero de dias em risco alto/
+  // medio que soaria preocupante mesmo estando tudo dentro do previsto.
+  const mesDt = mesAbreviado(dtReferenciaData ?? "");
+  const riscoDtLabelMin = riscoDt ? RISCO_LABEL[riscoDt].toLowerCase() : "";
+  const riscoPredominanteLabelMin = RISCO_LABEL[riscoPredominante].toLowerCase();
+  const descricaoInsight =
+    comparacaoInsight === "pior"
+      ? `O último DT (${mesDt}) previu ${riscoDtLabelMin}, mas o EEA ficou em ${riscoPredominanteLabelMin} em ${diasNoPredominante} dos últimos ${visibleData.length} dias — vale reavaliar.`
+      : comparacaoInsight === "melhor"
+        ? `O EEA ficou em ${riscoPredominanteLabelMin} na maior parte do período, melhor do que o previsto pelo último DT (${mesDt}): ${riscoDtLabelMin}.`
+        : `Consistente com o previsto pelo último DT (${mesDt}): ${riscoDtLabelMin}. Sem sinais de piora no período.`;
 
   // Ao trocar de periodo, comeca mostrando os dias mais recentes (extremidade
   // direita), ja que sao os mais relevantes para o gestor.
@@ -245,7 +259,7 @@ export function EeaChartSection({
                     Teste diário. A faixa de fundo vermelha indica alto risco, âmbar médio risco e
                     verde baixo risco.
                     {serieDt && serieDt.length > 0 &&
-                      " A linha tracejada mostra o DT vigente em cada período — ela muda de valor a cada novo teste DT realizado."}
+                      " A linha tracejada mostra o DT (Diagnóstico de Tendência) vigente em cada período — ela muda de valor a cada novo teste DT realizado."}
                   </>
                 )}
               </TooltipContent>
@@ -267,15 +281,19 @@ export function EeaChartSection({
         </p>
 
         {!semDados && !linhaNeutra && (
-          <div className="flex flex-wrap items-center gap-4 text-sm">
+          // So as duas series (EEA/DT) na legenda -- o significado das cores
+          // de risco fica dentro do proprio grafico agora (rotulo "Alto/
+          // Medio/Baixo risco" escrito dentro de cada faixa, ver
+          // ReferenceArea abaixo), entao nao precisa repetir isso aqui.
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
             <span className="flex items-center gap-1.5">
-              <span className="h-0.5 w-4 rounded-full" style={{ backgroundColor: "var(--color-eea)" }} />
-              EEA diário
+              <span className="h-0.5 w-4 rounded-full" style={{ backgroundColor: "var(--chart-1)" }} />
+              EEA Diário
             </span>
             {serieDt && serieDt.length > 0 && (
               <span className="flex items-center gap-1.5 text-muted-foreground">
                 <span className="h-0 w-4 border-t-2 border-dashed" style={{ borderColor: "var(--chart-2)" }} />
-                DT mensal
+                DT Mensal
               </span>
             )}
           </div>
@@ -449,9 +467,30 @@ export function EeaChartSection({
                     />
                   }
                 />
-                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea
+                  y1={70}
+                  y2={100}
+                  fill="#dc2626"
+                  fillOpacity={0.05}
+                  ifOverflow="visible"
+                  label={{ value: "Alto risco", position: "insideRight", fill: "#dc2626", fontSize: 12, fontWeight: 600 }}
+                />
+                <ReferenceArea
+                  y1={40}
+                  y2={70}
+                  fill="#d97706"
+                  fillOpacity={0.05}
+                  ifOverflow="visible"
+                  label={{ value: "Médio risco", position: "insideRight", fill: "#d97706", fontSize: 12, fontWeight: 600 }}
+                />
+                <ReferenceArea
+                  y1={0}
+                  y2={40}
+                  fill="#059669"
+                  fillOpacity={0.05}
+                  ifOverflow="visible"
+                  label={{ value: "Baixo risco", position: "insideRight", fill: "#059669", fontSize: 12, fontWeight: 600 }}
+                />
                 {serieDt && serieDt.length > 0 && (
                   <Line
                     type="stepAfter"
@@ -484,11 +523,7 @@ export function EeaChartSection({
             <IconeInsight className={`mt-0.5 size-5 shrink-0 ${corInsight}`} />
             <div>
               <p className="text-sm font-semibold">{tituloInsight}</p>
-              <p className="text-sm text-muted-foreground">
-                O DT de {mesAbreviado(dtReferenciaData ?? "")} previu {RISCO_LABEL[riscoDt].toLowerCase()}. O
-                EEA ficou em {RISCO_LABEL[riscoPredominante].toLowerCase()} em {diasNoPredominante} dos
-                últimos {visibleData.length} dias.
-              </p>
+              <p className="text-sm text-muted-foreground">{descricaoInsight}</p>
             </div>
           </div>
         )}

@@ -243,7 +243,18 @@ export function FactorsSection({
             </p>
           </div>
         ) : (
-          <div className="space-y-5">
+          // flex-1 + justify-between numa lista UNICA (rotulo+destaque,
+          // depois cada fator como irmao direto, depois rotulo+divisor,
+          // depois cada fator adicional): quando o card cresce pra acompanhar
+          // a altura combinada dos dois graficos ao lado (grid com items
+          // stretch, ver ColaboradorProfile/NFuncionarioProfile), o espaco
+          // sobrando se distribui em incrementos iguais entre CADA fator (e
+          // ao redor do divisor) -- nunca um unico vazio concentrado. O gap-4
+          // e o minimo (usado quando nao ha sobra nenhuma); os rotulos ficam
+          // colados ao elemento seguinte porque formam um unico item flex com
+          // ele, entao nao recebem o espacamento extra distribuido entre os
+          // irmaos da lista.
+          <div className="flex flex-1 flex-col justify-between gap-4">
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Maior risco no momento
@@ -253,23 +264,21 @@ export function FactorsSection({
                   <FatorRow factor={principal} tipo={tipoFiltro} ocultarNota={ocultarNota} />
                 </div>
               )}
-              <div className="space-y-4">
-                {resto.map((factor) => (
-                  <FatorRow key={factor.rank} factor={factor} tipo={tipoFiltro} compact ocultarNota={ocultarNota} />
-                ))}
-              </div>
             </div>
+
+            {resto.map((factor) => (
+              <FatorRow key={factor.rank} factor={factor} tipo={tipoFiltro} compact ocultarNota={ocultarNota} />
+            ))}
 
             <div className="space-y-3 border-t pt-4">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Outros fatores acompanhados
               </p>
-              <div className="space-y-4">
-                {adicionaisExibido.map((factor) => (
-                  <FatorRow key={factor.rank} factor={factor} tipo={tipoFiltro} compact ocultarNota={ocultarNota} />
-                ))}
-              </div>
             </div>
+
+            {adicionaisExibido.map((factor) => (
+              <FatorRow key={factor.rank} factor={factor} tipo={tipoFiltro} compact ocultarNota={ocultarNota} />
+            ))}
           </div>
         )}
       </CardContent>
