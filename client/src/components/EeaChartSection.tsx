@@ -42,12 +42,10 @@ const NIVEL_COR: Record<RiskLevel, string> = { alto: "#dc2626", medio: "#d97706"
 // no EEA" no insight abaixo do grafico -- nao confundir com RISCO_LABEL, que
 // e so pra exibicao).
 const ORDEM_NIVEL: Record<RiskLevel, number> = { alto: 0, medio: 1, baixo: 2 };
-const MESES_ABREV = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-
-function mesAbreviado(dataBr: string): string {
-  const mesIndex = Number(dataBr.split("/")[1]) - 1;
-  return MESES_ABREV[mesIndex] ?? "";
-}
+// Versao curta minuscula de RISCO_LABEL (que e "Alto risco" etc.), usada no
+// titulo "Nível de risco {nivel} mantido" -- so precisa do nome do nivel, sem
+// repetir a palavra "risco".
+const NIVEL_LABEL_CURTO: Record<RiskLevel, string> = { alto: "alto", medio: "médio", baixo: "baixo" };
 
 type SegmentoEea = {
   risco: RiskLevel;
@@ -184,7 +182,6 @@ export function EeaChartSection({
   const riscoPredominante = (Object.keys(contagemPorRisco) as RiskLevel[]).reduce((a, b) =>
     contagemPorRisco[b] > contagemPorRisco[a] ? b : a
   );
-  const diasNoPredominante = contagemPorRisco[riscoPredominante];
   // ORDEM_NIVEL maior = risco mais baixo (mais seguro) -- predominante "melhor"
   // que o previsto pelo DT quando o EEA ficou majoritariamente num nivel mais
   // seguro do que aquele que o DT indicava.
@@ -196,29 +193,28 @@ export function EeaChartSection({
         : ORDEM_NIVEL[riscoPredominante] < ORDEM_NIVEL[riscoDt]
           ? "pior"
           : "igual";
-  const IconeInsight = comparacaoInsight === "melhor" ? TrendingUp : comparacaoInsight === "pior" ? TrendingDown : Minus;
+  // Seta pra cima = risco subindo (pior), seta pra baixo = risco caindo
+  // (melhor) -- a direcao acompanha o sentido literal do titulo ("em
+  // elevacao"/"em reducao"), nao o julgamento de valor.
+  const IconeInsight = comparacaoInsight === "pior" ? TrendingUp : comparacaoInsight === "melhor" ? TrendingDown : Minus;
   const corInsight =
     comparacaoInsight === "melhor" ? "text-emerald-600" : comparacaoInsight === "pior" ? "text-red-600" : "text-blue-600";
   const tituloInsight =
     comparacaoInsight === "melhor"
-      ? "EEA melhor que o previsto"
+      ? "Nível de risco em redução"
       : comparacaoInsight === "pior"
-        ? "EEA pior que o previsto"
-        : "EEA dentro do previsto";
-  // A descricao muda de tom conforme o resultado -- so quando o EEA esta
-  // PIOR que o previsto a contagem bruta de dias vira o foco (e o cenario
-  // que precisa de atencao); quando esta dentro do esperado ou melhor, o
-  // texto reforça isso em vez de repetir um numero de dias em risco alto/
-  // medio que soaria preocupante mesmo estando tudo dentro do previsto.
-  const mesDt = mesAbreviado(dtReferenciaData ?? "");
-  const riscoDtLabelMin = riscoDt ? RISCO_LABEL[riscoDt].toLowerCase() : "";
-  const riscoPredominanteLabelMin = RISCO_LABEL[riscoPredominante].toLowerCase();
+        ? "Nível de risco em elevação"
+        : `Nível de risco ${NIVEL_LABEL_CURTO[riscoPredominante]} mantido`;
+  // Data curta (dd/mm, sem ano) do DT de referencia -- o ano fica implicito
+  // pelo contexto (teste recente), o dia/mes ja basta pra localizar qual DT
+  // gerou a comparacao.
+  const dtCurta = dtReferenciaData ? dtReferenciaData.slice(0, 5) : "";
   const descricaoInsight =
     comparacaoInsight === "pior"
-      ? `O último DT (${mesDt}) previu ${riscoDtLabelMin}, mas o EEA ficou em ${riscoPredominanteLabelMin} em ${diasNoPredominante} dos últimos ${visibleData.length} dias — vale reavaliar.`
+      ? `Monitoramento diário (EEA) indica elevação do nível de risco avaliado no DT de ${dtCurta}. Recomenda-se reavaliação das medidas de prevenção.`
       : comparacaoInsight === "melhor"
-        ? `O EEA ficou em ${riscoPredominanteLabelMin} na maior parte do período, melhor do que o previsto pelo último DT (${mesDt}): ${riscoDtLabelMin}.`
-        : `Consistente com o previsto pelo último DT (${mesDt}): ${riscoDtLabelMin}. Sem sinais de piora no período.`;
+        ? `Monitoramento diário (EEA) indica redução do nível de risco avaliado no DT de ${dtCurta}.`
+        : `Monitoramento diário (EEA) indica manutenção do nível de risco avaliado no DT de ${dtCurta}.`;
 
   // Ao trocar de periodo, comeca mostrando os dias mais recentes (extremidade
   // direita), ja que sao os mais relevantes para o gestor.
