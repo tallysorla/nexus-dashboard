@@ -429,27 +429,21 @@ export function EeaChartSection({
                   content={
                     <ChartTooltipContent
                       indicator="dot"
-                      formatter={(value, name) => {
+                      formatter={(value) => {
                         if (value === undefined || value === null) return null;
-                        const ehDt = name === "dtVigenteEscalado";
-                        // dtVigenteEscalado so existe pra posicionar a linha no
-                        // mesmo eixo 0-100 do EEA -- aqui revertemos pro valor
-                        // real (0-750) antes de classificar. O DT nesse grafico
-                        // mostra so o status (sem numero); o EEA continua
-                        // mostrando a nota, ja que o grafico de evolucao e o
-                        // unico lugar do app onde a nota aparece.
-                        const valorReal = ehDt ? Number(value) / ESCALA_DT : Number(value);
-                        const risco = ehDt ? classificarRiscoDt(valorReal) : classificarRiscoEea(valorReal);
-                        const rotulo = ehDt ? "DT vigente" : "EEA";
+                        // dtVigenteEscalado tem tooltipType="none" (ver Line
+                        // abaixo), entao o unico item que chega aqui e o EEA --
+                        // o grafico de evolucao e o unico lugar do app onde a
+                        // nota numerica aparece.
+                        const valorReal = Number(value);
+                        const risco = classificarRiscoEea(valorReal);
                         return (
                           <div className="flex w-full flex-col gap-1">
                             <span className="flex items-center justify-between gap-3">
-                              <span className="text-muted-foreground">{rotulo}</span>
-                              {!ehDt && (
-                                <span className="font-mono font-medium text-foreground">
-                                  {Math.round(valorReal)}/100
-                                </span>
-                              )}
+                              <span className="text-muted-foreground">EEA</span>
+                              <span className="font-mono font-medium text-foreground">
+                                {Math.round(valorReal)}/100
+                              </span>
                             </span>
                             <Badge
                               variant="outline"
@@ -488,6 +482,9 @@ export function EeaChartSection({
                   label={{ value: "Baixo risco", position: "insideRight", fill: "#059669", fontSize: 12, fontWeight: 600 }}
                 />
                 {serieDt && serieDt.length > 0 && (
+                  // tooltipType="none" tira essa linha do hover (so o EEA
+                  // aparece no tooltip agora); activeDot=false pra nao deixar
+                  // um ponto destacado no hover sem nenhuma info associada.
                   <Line
                     type="stepAfter"
                     dataKey="dtVigenteEscalado"
@@ -495,7 +492,8 @@ export function EeaChartSection({
                     strokeWidth={1.5}
                     strokeDasharray="5 4"
                     dot={false}
-                    activeDot={{ r: 5 }}
+                    activeDot={false}
+                    tooltipType="none"
                     isAnimationActive={false}
                     connectNulls={false}
                   />

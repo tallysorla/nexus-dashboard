@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Award, CalendarClock, ClipboardCheck, Info } from "lucide-react";
+import { CalendarClock, Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
   RISCO_LABEL,
@@ -207,31 +207,11 @@ export function FactorsSection({
 
       <CardContent className="flex flex-1 flex-col px-6 pb-6">
         {semFatorEmAtencao ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-            <div className="flex size-24 items-center justify-center rounded-full bg-primary/10">
-              <ClipboardCheck className="size-11 text-primary" />
-            </div>
-            <div className="space-y-2">
-              <div className="space-y-1.5">
-                <p className="text-lg font-semibold">Nenhum fator em atenção</p>
-                <div className="mx-auto h-0.5 w-10 rounded-full bg-primary" />
-              </div>
-              <p className="mx-auto max-w-xs text-sm text-muted-foreground">
-                Muito bem! Esse funcionário não tem nenhum fator em atenção no momento.
-              </p>
-            </div>
-            <div className="flex w-full items-center gap-3 rounded-xl bg-primary/5 p-4 text-left">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <Award className="size-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Tudo em dia!</p>
-                <p className="text-xs text-muted-foreground">
-                  Continue acompanhando os próximos testes para manter os resultados sempre
-                  positivos.
-                </p>
-              </div>
-            </div>
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
+            <p className="text-sm font-medium">Nenhum fator em atenção</p>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              Muito bem! Esse funcionário não tem nenhum fator em atenção no momento.
+            </p>
           </div>
         ) : semTesteDoTipo ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
