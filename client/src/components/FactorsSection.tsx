@@ -210,7 +210,7 @@ export function FactorsSection({
           <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
             <p className="text-sm font-medium">Nenhum fator em atenção</p>
             <p className="max-w-xs text-xs text-muted-foreground">
-              Muito bem! Esse funcionário não tem nenhum fator em atenção no momento.
+              Esse funcionário não tem nenhum fator em atenção no momento.
             </p>
           </div>
         ) : semTesteDoTipo ? (
