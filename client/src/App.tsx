@@ -8,9 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { ProfileProvider } from "./contexts/ProfileContext";
 import Colaboradores from "./pages/Colaboradores";
 import ColaboradorProfile from "./pages/ColaboradorProfile";
-import NFuncionarios from "./pages/NFuncionarios";
-import NFuncionarioProfile from "./pages/NFuncionarioProfile";
-import NFuncionarioTesteDetail from "./pages/NFuncionarioTesteDetail";
+import FuncionarioTesteDetail from "./pages/FuncionarioTesteDetail";
 import Empresas from "./pages/Empresas";
 import EmpresaOverview from "./pages/EmpresaOverview";
 import Filiais from "./pages/Filiais";
@@ -33,9 +31,7 @@ function Router() {
       <Route path={"/"} component={Empresas} />
       <Route path={"/funcionarios"} component={Colaboradores} />
       <Route path={"/funcionarios/:id"} component={ColaboradorProfile} />
-      <Route path={"/nfuncionarios"} component={NFuncionarios} />
-      <Route path={"/nfuncionarios/:id"} component={NFuncionarioProfile} />
-      <Route path={"/nfuncionarios/:colaboradorId/testes/:testeId"} component={NFuncionarioTesteDetail} />
+      <Route path={"/funcionarios/:colaboradorId/testes/:testeId"} component={FuncionarioTesteDetail} />
       <Route path={"/empresas/:cid/filiais/:fid"} component={FilialDetail} />
       <Route path={"/empresas/:cid/filiais"} component={Filiais} />
       <Route path={"/empresas/:cid/testes/:colaboradorId/:testeId"} component={TesteDetail} />
@@ -63,16 +59,10 @@ function Router() {
 // volta para /funcionarios. So os testes acessados a partir do historico de
 // um funcionario (nao a lista agregada em /empresas/:cid/testes) ficam
 // liberados, por fazerem parte do proprio fluxo de Funcionarios.
-// /nfuncionarios e a copia de /funcionarios usada pra iterar no fluxo em
-// refinamento sem tocar na tela ja compartilhada -- nao tem link em lugar
-// nenhum da UI, entao so quem sabe a URL exata chega nela (nao ha
-// autenticacao real por tras, e so uma rota nao divulgada).
 const ROTAS_PERMITIDAS = [
   /^\/funcionarios$/,
   /^\/funcionarios\/[^/]+$/,
-  /^\/nfuncionarios$/,
-  /^\/nfuncionarios\/[^/]+$/,
-  /^\/nfuncionarios\/[^/]+\/testes\/[^/]+$/,
+  /^\/funcionarios\/[^/]+\/testes\/[^/]+$/,
   /^\/empresas\/[^/]+\/testes\/[^/]+\/[^/]+$/,
 ];
 

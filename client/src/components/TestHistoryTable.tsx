@@ -44,14 +44,12 @@ type TestHistoryTableProps = {
   tests: TesteHistorico[];
   colaboradorId: string;
   // Opcional: remove a coluna numerica "Indice de risco", deixando so a
-  // Classificacao (badge). So passado pela tela /nfuncionarios em iteracao --
-  // omitido, a tabela fica exatamente como no /funcionarios publico.
+  // Classificacao (badge).
   ocultarIndice?: boolean;
-  // Opcional: customiza o link de "Abrir detalhe do teste" por teste. So
-  // passado pela tela /nfuncionarios em iteracao, que tem sua propria pagina
-  // de detalhe do teste (privada) -- omitido, mantem o link padrao pra
-  // rota compartilhada de /empresas/.../testes usada pelo /funcionarios
-  // publico.
+  // Opcional: customiza o link de "Abrir detalhe do teste" por teste --
+  // omitido, mantem o link padrao pra rota compartilhada de
+  // /empresas/.../testes (usada por Testes.tsx, a lista agregada entre
+  // funcionarios).
   buildTestHref?: (testId: string) => string;
 };
 
@@ -155,7 +153,7 @@ export function TestHistoryTable({
               <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead className="h-12 px-4">Data do teste</TableHead>
                 {!ocultarIndice && <TableHead className="h-12 px-4">Índice de risco</TableHead>}
-                <TableHead className="h-12 px-4">Classificação</TableHead>
+                <TableHead className="h-12 px-4">Status</TableHead>
                 <TableHead className="h-12 px-4">Principais fatores</TableHead>
                 <TableHead className="h-12 px-4 text-right">Ações</TableHead>
               </TableRow>

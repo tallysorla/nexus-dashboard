@@ -26,11 +26,12 @@ function ColaboradorProfileSkeleton() {
     <div className="space-y-6">
       <Skeleton className="h-4 w-40" />
       <Skeleton className="h-6 w-56" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 3 }, (_, i) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
           <Skeleton key={i} className="h-32 rounded-2xl" />
         ))}
       </div>
+      <Skeleton className="h-40 rounded-2xl" />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(340px,0.95fr)_minmax(0,1.45fr)]">
         <Skeleton className="h-96 rounded-2xl" />
         <div className="flex flex-col gap-6">
@@ -63,15 +64,13 @@ function ErroCarregamento({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-// Tela de detalhes do funcionario, alinhada ao refinamento de 23/07 (ver
-// NFuncionarioProfile.tsx, onde essas mudancas foram iteradas antes de
-// chegar aqui): sem pontuacao numerica em nenhum lugar -- so classificacao
-// de risco --, ranking de fatores calculado de verdade (com desempate
-// alfabetico dentro do mesmo nivel de risco), tendencia como linha tracejada
-// dentro do grafico de EEA (o card "Tendencia" separado saiu de circulacao),
-// loading/erro implementados. Os cards "Status de risco" e "Insights
-// automaticos" existem no codigo mas ficam OCULTOS por hora (mesmo estado
-// da tela privada) -- nao reativar sem confirmar antes.
+// Tela de detalhes do funcionario, alinhada ao refinamento de 23/07: sem
+// pontuacao numerica em nenhum lugar -- so classificacao de risco --, ranking
+// de fatores calculado de verdade (com desempate alfabetico dentro do mesmo
+// nivel de risco), tendencia como linha tracejada dentro do grafico de EEA (o
+// card "Tendencia" separado saiu de circulacao), loading/erro implementados.
+// Os cards "Status de risco" e "Insights automaticos" existem no codigo mas
+// ficam OCULTOS por hora -- nao reativar sem confirmar antes.
 export default function ColaboradorProfile() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -132,9 +131,9 @@ export default function ColaboradorProfile() {
   const ultimoDt = [...colaborador.historicoTestes]
     .filter((t) => t.tipo === "DT")
     .sort((a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime())[0];
-  // Status de risco geral: baseado no teste mais recente, seja ele EEA ou DT.
-  // Card ocultado por hora (ver abaixo), mas a variavel fica pronta pra
-  // quando ele for reativado.
+  // Status de risco geral: baseado no teste mais recente, seja ele EEA ou DT
+  // -- diferente dos dois cards acima (que sao especificos de cada tipo),
+  // esse reflete "a ultima coisa que aconteceu", nao um tipo em particular.
   const ultimoTesteGeral = [...colaborador.historicoTestes].sort(
     (a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime()
   )[0];
@@ -151,9 +150,9 @@ export default function ColaboradorProfile() {
 
       <h2 className="text-lg font-semibold leading-none">Detalhes do funcionário</h2>
 
-      {/* Grid em 3 colunas -- o card "Status de risco" foi ocultado por hora
-          (ver bloco comentado abaixo), a pedido do usuario. Nao reativar sem
-          confirmar antes. */}
+      {/* Grid voltou pra 3 colunas -- o card "Status de risco" foi ocultado
+          por hora (ver bloco comentado abaixo), a pedido do usuario, sem
+          deletar o codigo. Nao reativar sem confirmar antes. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {colaborador.totalTestesEea === 0 ? (
           <KpiCard
@@ -285,6 +284,11 @@ export default function ColaboradorProfile() {
         tests={colaborador.historicoTestes}
         colaboradorId={colaborador.id}
         ocultarIndice
+        buildTestHref={(testId) =>
+          empresaEscopo
+            ? `/funcionarios/${colaborador.id}/testes/${testId}?empresa=${empresaEscopo}`
+            : `/funcionarios/${colaborador.id}/testes/${testId}`
+        }
       />
     </Layout>
   );

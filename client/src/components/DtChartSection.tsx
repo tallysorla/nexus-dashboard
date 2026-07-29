@@ -30,9 +30,8 @@ import {
 type DtChartSectionProps = {
   data: PontoDt[];
   // Opcional: esconde os numeros do eixo Y (0-10), deixando so as faixas de
-  // fundo coloridas como referencia de risco. So passado pela tela
-  // /nfuncionarios em iteracao -- omitido, o grafico fica exatamente como no
-  // /funcionarios publico.
+  // fundo coloridas como referencia de risco. Nenhuma tela passa esse prop
+  // hoje -- reservado pra uma eventual variante mais compacta do grafico.
   ocultarEscala?: boolean;
 };
 

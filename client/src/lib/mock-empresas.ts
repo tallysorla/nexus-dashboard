@@ -327,7 +327,7 @@ export function getCombinacaoCriticaById(id: string): CombinacaoCriticaDef | und
 //
 // Carlos Silva e Patricia Lopes tem um caso pra praticamente todo teste do
 // historicoTestes de cada um (data do caso == data do teste, pra aparecer no
-// NFuncionarioTesteDetail), cobrindo os 9 tipos de combinacao. Em cada um dos
+// FuncionarioTesteDetail), cobrindo os 9 tipos de combinacao. Em cada um dos
 // dois, o teste de menor risco (baixo) fica de proposito sem nenhum caso
 // batendo -- exemplo real do estado "Nenhuma combinacao critica
 // identificada" na tela de detalhe do teste.

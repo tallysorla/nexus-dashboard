@@ -68,9 +68,8 @@ export default function Colaboradores() {
                 <TableRow className="bg-muted/40 hover:bg-muted/40">
                   <TableHead className="h-12 px-4">Funcionário</TableHead>
                   <TableHead className="h-12 px-4">Setor</TableHead>
-                  <TableHead className="h-12 px-4">EEA</TableHead>
-                  <TableHead className="h-12 px-4">DT</TableHead>
-                  <TableHead className="h-12 px-4">Classificação</TableHead>
+                  <TableHead className="h-12 px-4">Status EEA</TableHead>
+                  <TableHead className="h-12 px-4">Status DT</TableHead>
                   <TableHead className="h-12 px-4 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -101,37 +100,36 @@ export default function Colaboradores() {
                       {c.setor} · {c.local}
                     </TableCell>
                     <TableCell className="px-4 py-4">
-                      {c.totalTestesEea > 0 ? (
-                        <Badge variant="outline" className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRiscoEea(c.eea)]}`}>
-                          {RISCO_LABEL[classificarRiscoEea(c.eea)]}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      {c.totalTestesDt > 0 ? (
-                        <Badge variant="outline" className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRiscoDt(c.dt)]}`}>
-                          {RISCO_LABEL[classificarRiscoDt(c.dt)]}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      {c.totalTestesEea === 0 && c.totalTestesDt === 0 ? (
+                      {c.totalTestesEea === 0 ? (
                         <Badge
                           variant="outline"
                           className="rounded-lg px-2.5 py-1 border-slate-200 bg-slate-50 text-slate-700"
                         >
-                          Sem teste realizado
+                          Sem teste
                         </Badge>
                       ) : (
                         <Badge
                           variant="outline"
-                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[c.risco]}`}
+                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRiscoEea(c.eea)]}`}
                         >
-                          {RISCO_LABEL[c.risco]}
+                          {RISCO_LABEL[classificarRiscoEea(c.eea)]}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      {c.totalTestesDt === 0 ? (
+                        <Badge
+                          variant="outline"
+                          className="rounded-lg px-2.5 py-1 border-slate-200 bg-slate-50 text-slate-700"
+                        >
+                          Sem teste
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[classificarRiscoDt(c.dt)]}`}
+                        >
+                          {RISCO_LABEL[classificarRiscoDt(c.dt)]}
                         </Badge>
                       )}
                     </TableCell>
@@ -159,7 +157,7 @@ export default function Colaboradores() {
                 {filtered.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={5}
                       className="px-4 py-10 text-center text-sm text-muted-foreground"
                     >
                       Nenhum funcionário encontrado para "{query}".

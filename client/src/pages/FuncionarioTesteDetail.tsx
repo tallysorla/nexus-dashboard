@@ -82,8 +82,9 @@ const NIVEL_COMBO_STYLE: Record<NivelCombinacao, { bg: string; ink: string; tagT
 
 const ORDEM_NIVEL: Record<NivelCombinacao, number> = { ESPECIAL: 0, "CRÍTICO": 1, ALTA: 2 };
 
-// Copia de TesteDetail.tsx pro fluxo privado /nfuncionarios, reconstruida
-// pra reproduzir com fidelidade o frame do Figma (node 40003416:88835):
+// Tela de detalhes do teste acessada a partir do historico de testes de um
+// funcionario (ver TestHistoryTable/ColaboradorProfile), reconstruida pra
+// reproduzir com fidelidade o frame do Figma (node 40003416:88835):
 // cabecalho separado em link de volta + titulo, card principal sem a coluna
 // de Pontuacao total e sem cor no valor de Autorizacao (so o Status usa
 // cor), "Perguntas puladas" e "Fatores" trocando Accordion por grade sempre
@@ -99,7 +100,7 @@ const ORDEM_NIVEL: Record<NivelCombinacao, number> = { ESPECIAL: 0, "CRÍTICO": 
 // Quando ha fator em atencao mas nenhuma combinacao bate, ou quando todos os
 // 10 fatores estao em baixo risco, aparece o estado vazio "Nenhuma
 // combinacao critica identificada" no lugar.
-export default function NFuncionarioTesteDetail() {
+export default function FuncionarioTesteDetail() {
   const { colaboradorId, testeId } = useParams<{ colaboradorId: string; testeId: string }>();
   const [searchParams] = useSearchParams();
 
@@ -114,8 +115,8 @@ export default function NFuncionarioTesteDetail() {
 
   const empresaEscopo = searchParams.get("empresa");
   const perfilHref = empresaEscopo
-    ? `/nfuncionarios/${colaborador.id}?empresa=${empresaEscopo}`
-    : `/nfuncionarios/${colaborador.id}`;
+    ? `/funcionarios/${colaborador.id}?empresa=${empresaEscopo}`
+    : `/funcionarios/${colaborador.id}`;
 
   const autorizacao = autorizacaoDoTeste(teste.status);
   const autorizacaoLabel = decisaoAutorizacao

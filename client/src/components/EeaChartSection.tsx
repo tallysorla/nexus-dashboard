@@ -76,9 +76,7 @@ function segmentarPorRisco(dados: PontoEea[]): SegmentoEea[] {
 type EeaChartSectionProps = {
   data: PontoEea[];
   // Opcional: pontuacao do ultimo DT, desenhada como linha tracejada dentro
-  // do proprio grafico do EEA (em vez de um card separado). So passado pela
-  // tela /nfuncionarios em iteracao -- omitido, o grafico fica exatamente
-  // como no /funcionarios publico.
+  // do proprio grafico do EEA (em vez de um card separado).
   dtReferencia?: number;
   // Data do teste DT que originou dtReferencia -- exibida junto do rotulo da
   // linha tracejada ("Último DT · 01/07/2026") pra deixar claro de qual
@@ -97,13 +95,12 @@ type EeaChartSectionProps = {
   // linha passa por varios status ao longo das datas, entao uma cor unica
   // baseada so no ponto mais recente nao representa o percurso inteiro. Uma
   // cor neutra (sem pretender comunicar risco) evita essa contradicao -- quem
-  // comunica o nivel de risco sao as faixas de fundo, nao a linha. So
-  // passado pela tela /nfuncionarios em iteracao.
+  // comunica o nivel de risco sao as faixas de fundo, nao a linha. Nenhuma
+  // tela passa esse prop hoje.
   linhaNeutra?: boolean;
   // Opcional: esconde os numeros do eixo Y (0-10), deixando so as faixas de
-  // fundo coloridas como referencia de risco. So passado pela tela
-  // /nfuncionarios em iteracao -- omitido, o grafico fica exatamente como no
-  // /funcionarios publico.
+  // fundo coloridas como referencia de risco. Nenhuma tela passa esse prop
+  // hoje -- reservado pra uma eventual variante mais compacta do grafico.
   ocultarEscala?: boolean;
 };
 

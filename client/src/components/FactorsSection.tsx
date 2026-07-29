@@ -29,9 +29,7 @@ type FactorsSectionProps = {
   fatoresAdicionais: Fator[];
   historicoTestes: TesteHistorico[];
   // Opcional: esconde a nota numerica ("nota X/100" ou "X/750") de cada
-  // fator, deixando so o badge de status (Alto/Medio/Baixo risco). So passado pela tela
-  // /nfuncionarios em iteracao -- omitido, a secao fica exatamente como no
-  // /funcionarios publico.
+  // fator, deixando so o badge de status (Alto/Medio/Baixo risco).
   ocultarNota?: boolean;
   // Opcional: os 10 fatores juntos (destaque + adicionais). Em ambos os
   // casos (com ou sem esse prop), o split entre "Maior risco no momento" e
@@ -227,7 +225,7 @@ export function FactorsSection({
           // depois cada fator como irmao direto, depois rotulo+divisor,
           // depois cada fator adicional): quando o card cresce pra acompanhar
           // a altura combinada dos dois graficos ao lado (grid com items
-          // stretch, ver ColaboradorProfile/NFuncionarioProfile), o espaco
+          // stretch, ver ColaboradorProfile), o espaco
           // sobrando se distribui em incrementos iguais entre CADA fator (e
           // ao redor do divisor) -- nunca um unico vazio concentrado. O gap-4
           // e o minimo (usado quando nao ha sobra nenhuma); os rotulos ficam
