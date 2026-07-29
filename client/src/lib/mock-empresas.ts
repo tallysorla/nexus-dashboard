@@ -107,6 +107,14 @@ export function filialIdDoColaborador(colaborador: Colaborador): string | undefi
   return LOCAL_PARA_FILIAL[colaborador.local];
 }
 
+// Caminho inverso de filialIdDoColaborador -- usado ao salvar uma edicao de
+// filial em "Dados pessoais" (FuncionarioDetailsDialog), pra converter o id
+// escolhido no select de volta pro texto que o campo `local` do colaborador
+// espera.
+export function localDaFilial(filialId: string): string | undefined {
+  return Object.entries(LOCAL_PARA_FILIAL).find(([, id]) => id === filialId)?.[0];
+}
+
 export function colaboradoresDaEmpresa(empresaId: string): Colaborador[] {
   return empresaId === ANDRADE_ID ? colaboradores : [];
 }

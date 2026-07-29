@@ -10,17 +10,32 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Field, FieldContent, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowRight, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import type { Colaborador } from "@/lib/mock-colaboradores";
+import {
+  CARGOS_DISPONIVEIS,
+  autorizacaoDoTeste,
+  parseDataBr,
+  type Colaborador,
+  type TipoJornada,
+} from "@/lib/mock-colaboradores";
+import { ANDRADE_ID, filialIdDoColaborador, getEmpresaById, localDaFilial } from "@/lib/mock-empresas";
 
 export type FuncionarioEditableFields = {
   nome: string;
   cargo: string;
-  setor: string;
-  idade: number;
+  local: string;
+  tipoJornada: TipoJornada;
 };
 
 type FuncionarioDetailsDialogProps = {
@@ -28,13 +43,33 @@ type FuncionarioDetailsDialogProps = {
   onSave: (updates: FuncionarioEditableFields) => void;
 };
 
+const DISABLED_FIELD_CLASS = "bg-muted disabled:cursor-default disabled:opacity-100";
+
 export function FuncionarioDetailsDialog({ colaborador, onSave }: FuncionarioDetailsDialogProps) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [nome, setNome] = useState(colaborador.nome);
   const [cargo, setCargo] = useState(colaborador.cargo);
-  const [setor, setSetor] = useState(colaborador.setor);
-  const [idade, setIdade] = useState(String(colaborador.idade));
+  const [filialId, setFilialId] = useState(filialIdDoColaborador(colaborador) ?? "");
+  const [tipoJornada, setTipoJornada] = useState<TipoJornada>(colaborador.tipoJornada);
+
+  const empresa = getEmpresaById(ANDRADE_ID);
+  const filiais = empresa?.filiais ?? [];
+  const filialNome = filiais.find((f) => f.id === filialId)?.nome ?? colaborador.local;
+
+  // Autorizacao para exercer a funcao nao e um campo editavel aqui -- reflete
+  // o resultado do teste mais recente do funcionario (mesma logica usada nas
+  // telas de detalhe do teste), so campo de leitura como Empresa/CPF/Matricula.
+  const ultimoTeste = [...colaborador.historicoTestes].sort(
+    (a, b) => parseDataBr(b.data).getTime() - parseDataBr(a.data).getTime()
+  )[0];
+  const autorizacaoLabel = ultimoTeste
+    ? ultimoTeste.autorizacaoDecidida
+      ? ultimoTeste.autorizacaoDecidida.decisao === "autorizado"
+        ? "Autorizado"
+        : "Não autorizado"
+      : autorizacaoDoTeste(ultimoTeste.status).label
+    : "-";
 
   const initials = colaborador.nome
     .split(" ")
@@ -47,20 +82,19 @@ export function FuncionarioDetailsDialog({ colaborador, onSave }: FuncionarioDet
     if (next) {
       setNome(colaborador.nome);
       setCargo(colaborador.cargo);
-      setSetor(colaborador.setor);
-      setIdade(String(colaborador.idade));
+      setFilialId(filialIdDoColaborador(colaborador) ?? "");
+      setTipoJornada(colaborador.tipoJornada);
       setEditing(false);
     }
     setOpen(next);
   }
 
   function handleSave() {
-    const idadeNum = Number(idade);
     onSave({
       nome: nome.trim() || colaborador.nome,
-      cargo: cargo.trim() || colaborador.cargo,
-      setor: setor.trim() || colaborador.setor,
-      idade: Number.isFinite(idadeNum) && idadeNum > 0 ? idadeNum : colaborador.idade,
+      cargo: cargo || colaborador.cargo,
+      local: localDaFilial(filialId) ?? colaborador.local,
+      tipoJornada,
     });
     toast.success("Dados atualizados", {
       description: `As informações de ${nome.trim() || colaborador.nome} foram salvas.`,
@@ -79,84 +113,136 @@ export function FuncionarioDetailsDialog({ colaborador, onSave }: FuncionarioDet
           <ArrowRight className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Dados do funcionário</DialogTitle>
+          <DialogTitle>Dados pessoais</DialogTitle>
           <DialogDescription>Informações cadastrais de {colaborador.nome}.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-3">
-          <Avatar className="size-16 shrink-0 rounded-2xl ring-2 ring-primary/10">
+        <div className="flex flex-col gap-6 sm:flex-row">
+          <Avatar className="size-28 shrink-0 self-center rounded-2xl ring-2 ring-primary/10 sm:self-start">
             <AvatarImage src={colaborador.avatarUrl} className="object-cover" />
-            <AvatarFallback className="rounded-2xl">{initials}</AvatarFallback>
+            <AvatarFallback className="rounded-2xl text-2xl">{initials}</AvatarFallback>
           </Avatar>
-          <div className="min-w-0">
-            <p className="truncate font-semibold">{nome}</p>
-            <p className="truncate text-sm text-muted-foreground">{colaborador.matricula}</p>
-          </div>
-        </div>
 
-        {editing ? (
-          <FieldGroup>
+          <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
             <Field>
-              <FieldLabel htmlFor="edit-nome">Nome completo</FieldLabel>
+              <FieldLabel>
+                Empresa <span className="text-red-500">*</span>
+              </FieldLabel>
               <FieldContent>
-                <Input id="edit-nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+                <Input disabled value={empresa?.nome ?? ""} className={DISABLED_FIELD_CLASS} />
               </FieldContent>
             </Field>
+
             <Field>
-              <FieldLabel htmlFor="edit-cargo">Cargo</FieldLabel>
-              <FieldContent>
-                <Input id="edit-cargo" value={cargo} onChange={(e) => setCargo(e.target.value)} />
-              </FieldContent>
+              <FieldLabel htmlFor="fd-filial">
+                Filial <span className="text-red-500">*</span>
+              </FieldLabel>
+              {editing ? (
+                <Select value={filialId} onValueChange={setFilialId}>
+                  <SelectTrigger id="fd-filial" className="w-full">
+                    <SelectValue placeholder="Selecione a filial" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {filiais.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <FieldContent>
+                  <Input disabled value={filialNome} className={DISABLED_FIELD_CLASS} />
+                </FieldContent>
+              )}
             </Field>
+
             <Field>
-              <FieldLabel htmlFor="edit-area">Área</FieldLabel>
-              <FieldContent>
-                <Input id="edit-area" value={setor} onChange={(e) => setSetor(e.target.value)} />
-              </FieldContent>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="edit-idade">Idade</FieldLabel>
+              <FieldLabel htmlFor="fd-nome">
+                Nome <span className="text-red-500">*</span>
+              </FieldLabel>
               <FieldContent>
                 <Input
-                  id="edit-idade"
-                  type="number"
-                  min={0}
-                  value={idade}
-                  onChange={(e) => setIdade(e.target.value)}
+                  id="fd-nome"
+                  value={nome}
+                  disabled={!editing}
+                  onChange={(e) => setNome(e.target.value)}
+                  className={!editing ? DISABLED_FIELD_CLASS : undefined}
                 />
               </FieldContent>
             </Field>
-          </FieldGroup>
-        ) : (
-          <dl className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <dt className="text-xs text-muted-foreground">Nome completo</dt>
-              <dd className="font-medium">{nome}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Matrícula</dt>
-              <dd className="font-medium">{colaborador.matricula}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Cargo</dt>
-              <dd className="font-medium">{cargo}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Área</dt>
-              <dd className="font-medium">{setor}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Idade</dt>
-              <dd className="font-medium">{idade} anos</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Data de admissão</dt>
-              <dd className="font-medium">{colaborador.dataAdmissao}</dd>
-            </div>
-          </dl>
-        )}
+
+            <Field>
+              <FieldLabel>CPF</FieldLabel>
+              <FieldContent>
+                <Input disabled value={colaborador.cpf} className={DISABLED_FIELD_CLASS} />
+              </FieldContent>
+            </Field>
+
+            <Field>
+              <FieldLabel>Matrícula</FieldLabel>
+              <FieldContent>
+                <Input disabled value={colaborador.matricula} className={DISABLED_FIELD_CLASS} />
+              </FieldContent>
+            </Field>
+
+            <Field>
+              <FieldLabel>Autorização para exercer a função</FieldLabel>
+              <FieldContent>
+                <Input disabled value={autorizacaoLabel} className={DISABLED_FIELD_CLASS} />
+              </FieldContent>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="fd-cargo">Cargo</FieldLabel>
+              {editing ? (
+                <Select value={cargo} onValueChange={setCargo}>
+                  <SelectTrigger id="fd-cargo" className="w-full">
+                    <SelectValue placeholder="Selecione o cargo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {CARGOS_DISPONIVEIS.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <FieldContent>
+                  <Input disabled value={cargo} className={DISABLED_FIELD_CLASS} />
+                </FieldContent>
+              )}
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="fd-jornada">Tipo de jornada</FieldLabel>
+              {editing ? (
+                <Select value={tipoJornada} onValueChange={(v) => setTipoJornada(v as TipoJornada)}>
+                  <SelectTrigger id="fd-jornada" className="w-full">
+                    <SelectValue placeholder="Selecione o tipo de jornada" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="Diurna">Diurna</SelectItem>
+                      <SelectItem value="Noturna">Noturna</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <FieldContent>
+                  <Input disabled value={tipoJornada} className={DISABLED_FIELD_CLASS} />
+                </FieldContent>
+              )}
+            </Field>
+          </div>
+        </div>
 
         <DialogFooter>
           {editing ? (

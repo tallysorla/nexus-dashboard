@@ -4,6 +4,8 @@ export type Tendencia = "subindo" | "estavel" | "descendo";
 
 export type TipoTeste = "EEA" | "DT";
 
+export type TipoJornada = "Diurna" | "Noturna";
+
 // EEA e DT sao dois testes independentes, mas cada um avalia os MESMOS 10
 // fatores psicossociais -- nao ha fatores exclusivos de um teste ou de
 // outro. Por isso cada fator carrega duas notas, em escalas diferentes:
@@ -97,6 +99,7 @@ export type Colaborador = {
   cpf: string;
   idade: number;
   dataAdmissao: string;
+  tipoJornada: TipoJornada;
   eea: number;
   dt: number;
   risco: RiskLevel;
@@ -358,6 +361,7 @@ export const colaboradores: Colaborador[] = [
     cpf: "301.552.118-20",
     idade: 34,
     dataAdmissao: "12/03/2019",
+    tipoJornada: "Diurna",
     eea: 70,
     dt: 600,
     risco: "alto",
@@ -402,27 +406,32 @@ export const colaboradores: Colaborador[] = [
     cpf: "118.904.337-55",
     idade: 29,
     dataAdmissao: "04/07/2021",
-    eea: 50,
+    tipoJornada: "Diurna",
+    // EEA (diario) subiu pra alto risco enquanto o ultimo DT (mensal, mais
+    // aprofundado) ainda registra medio -- cenario "em elevacao" no insight
+    // da Evolucao do EEA (ver EeaChartSection), pra ter variedade entre os
+    // colaboradores nesse card (nem todos "mantido").
+    eea: 80,
     dt: 450,
-    risco: "medio",
+    risco: "alto",
     totalTestesEea: 102,
     totalTestesDt: 5,
     fatoresDestaque: [
-      { rank: 1, nome: "Preocupação excessiva", notaEea: 60, notaDt: 375, variacaoPercentual: -8 },
-      { rank: 2, nome: "Cansaço", notaEea: 40, notaDt: 375, variacaoPercentual: -1 },
-      { rank: 3, nome: "Insegurança", notaEea: 20, notaDt: 225, variacaoPercentual: 3 },
+      { rank: 1, nome: "Preocupação excessiva", notaEea: 80, notaDt: 375, variacaoPercentual: -8 },
+      { rank: 2, nome: "Cansaço", notaEea: 60, notaDt: 375, variacaoPercentual: -1 },
+      { rank: 3, nome: "Insegurança", notaEea: 40, notaDt: 225, variacaoPercentual: 3 },
     ],
-    fatoresAdicionais: gerarFatoresAdicionais("medio", ["Preocupação excessiva", "Cansaço", "Insegurança"]),
+    fatoresAdicionais: gerarFatoresAdicionais("alto", ["Preocupação excessiva", "Cansaço", "Insegurança"]),
     // serieEeaVariada/serieDtVariada (nao as versoes padrao) -- exemplos com
     // oscilacao ampla o bastante pra cruzar as 3 faixas de risco (EEA por
     // dia, DT por mes), pra verificar o tooltip e o degrau "DT vigente"
     // trocando de classificacao (Baixo/Medio/Alto risco) em vez de ficar
     // sempre no mesmo nivel.
-    serieEea: serieEeaVariada(50),
+    serieEea: serieEeaVariada(80),
     serieDt: serieDtVariada(450),
     historicoTestes: [
       { id: "t1", data: "01/07/2026", tipo: "DT", pontuacao: 450, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva, Qualidade do sono" },
-      { id: "t2", data: "24/06/2026", tipo: "EEA", pontuacao: 50, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
+      { id: "t2", data: "24/06/2026", tipo: "EEA", pontuacao: 80, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Preocupação excessiva, Cansaço" },
       { id: "t3", data: "17/06/2026", tipo: "EEA", pontuacao: 30, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
       { id: "t4", data: "10/06/2026", tipo: "EEA", pontuacao: 30, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Insegurança" },
       { id: "t5", data: "03/06/2026", tipo: "DT", pontuacao: 150, classificacao: RISCO_LABEL.baixo, status: "baixo", fatores: "Cansaço" },
@@ -443,22 +452,29 @@ export const colaboradores: Colaborador[] = [
     cpf: "452.110.889-03",
     idade: 41,
     dataAdmissao: "22/09/2015",
-    eea: 80,
+    tipoJornada: "Diurna",
+    // EEA (diario) caiu pra medio enquanto o ultimo DT (mensal) ainda registra
+    // alto -- cenario "em reducao" no insight da Evolucao do EEA (ver
+    // EeaChartSection), pra ter variedade entre os colaboradores nesse card
+    // (nem todos "mantido"). `risco` continua "alto" pra nao subestimar o
+    // rollup de risco da filial enquanto o DT (teste mais aprofundado) nao
+    // reavaliar.
+    eea: 50,
     dt: 675,
     risco: "alto",
     totalTestesEea: 74,
     totalTestesDt: 8,
     fatoresDestaque: [
-      { rank: 1, nome: "Raiva ou irritabilidade", notaEea: 80, notaDt: 675, variacaoPercentual: -18 },
-      { rank: 2, nome: "Preocupação excessiva", notaEea: 60, notaDt: 525, variacaoPercentual: -2 },
-      { rank: 3, nome: "Cansaço", notaEea: 60, notaDt: 450, variacaoPercentual: -2 },
+      { rank: 1, nome: "Raiva ou irritabilidade", notaEea: 60, notaDt: 675, variacaoPercentual: -18 },
+      { rank: 2, nome: "Preocupação excessiva", notaEea: 40, notaDt: 525, variacaoPercentual: -2 },
+      { rank: 3, nome: "Cansaço", notaEea: 30, notaDt: 450, variacaoPercentual: -2 },
     ],
     fatoresAdicionais: gerarFatoresAdicionais("alto", ["Raiva ou irritabilidade", "Preocupação excessiva", "Cansaço"]),
-    serieEea: serieEea(80),
+    serieEea: serieEea(50),
     serieDt: serieDt(675, [MESES_SERIE_DT - 1]),
     historicoTestes: [
       { id: "t1", data: "05/07/2026", tipo: "DT", pontuacao: 675, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Perda de foco, Raiva ou irritabilidade" },
-      { id: "t2", data: "28/06/2026", tipo: "EEA", pontuacao: 80, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade, Cansaço" },
+      { id: "t2", data: "28/06/2026", tipo: "EEA", pontuacao: 50, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Raiva ou irritabilidade" },
       { id: "t3", data: "21/06/2026", tipo: "EEA", pontuacao: 80, classificacao: RISCO_LABEL.alto, status: "alto", fatores: "Raiva ou irritabilidade" },
       { id: "t4", data: "14/06/2026", tipo: "EEA", pontuacao: 60, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Preocupação excessiva" },
       { id: "t5", data: "07/06/2026", tipo: "DT", pontuacao: 450, classificacao: RISCO_LABEL.medio, status: "medio", fatores: "Cansaço" },
@@ -494,6 +510,7 @@ export const colaboradores: Colaborador[] = [
     cpf: "770.223.145-61",
     idade: 26,
     dataAdmissao: "08/01/2023",
+    tipoJornada: "Noturna",
     eea: 30,
     dt: 150,
     risco: "baixo",
@@ -530,6 +547,7 @@ export const colaboradores: Colaborador[] = [
     cpf: "509.317.662-84",
     idade: 37,
     dataAdmissao: "17/05/2018",
+    tipoJornada: "Diurna",
     eea: 60,
     dt: 450,
     risco: "medio",
@@ -569,6 +587,7 @@ export const colaboradores: Colaborador[] = [
     cpf: "203.884.771-09",
     idade: 22,
     dataAdmissao: "01/07/2026",
+    tipoJornada: "Diurna",
     eea: 0,
     dt: 0,
     risco: "baixo",
@@ -586,6 +605,11 @@ export const colaboradores: Colaborador[] = [
     historicoTratativas: [],
   },
 ];
+
+// Cargos distintos ja usados pelos colaboradores reais -- reaproveitado como
+// opcoes do select de Cargo em "Dados pessoais" (FuncionarioDetailsDialog),
+// sem inventar um catalogo de cargos separado.
+export const CARGOS_DISPONIVEIS = Array.from(new Set(colaboradores.map((c) => c.cargo)));
 
 export function getColaboradorById(id: string): Colaborador | undefined {
   return colaboradores.find((c) => c.id === id);
