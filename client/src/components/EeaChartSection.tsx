@@ -109,6 +109,13 @@ type Range = "7" | "30" | "90" | "all";
 const PX_PER_DAY = 42;
 const MIN_CHART_WIDTH = 600;
 
+// Geometria do grafico principal (h-72 = 288px), replicada aqui pra
+// posicionar o overlay HTML dos rotulos de risco (ver mais abaixo) na mesma
+// altura das faixas coloridas do SVG -- os dois usam o mesmo domain [0,100]
+// e as mesmas margens top/bottom, entao o mapeamento e identico.
+const ALTURA_GRAFICO_PX = 288;
+const MARGEM_TOPO_PX = 8;
+
 const chartConfig = {
   eea: {
     label: "EEA",
@@ -136,6 +143,18 @@ export function EeaChartSection({
   const visibleData = data.slice(-dias);
   const chartWidth = Math.max(MIN_CHART_WIDTH, visibleData.length * PX_PER_DAY);
   const segmentos = linhaNeutra ? segmentarPorRisco(visibleData) : [];
+
+  // Altura do XAxis muda com a quantidade de dias (rotulo na diagonal precisa
+  // de mais espaco) -- usada tanto no grafico quanto no calculo de onde os
+  // rotulos de risco do overlay ficam verticalmente.
+  const xAxisAlturaPx = dias > 14 ? 40 : 24;
+  const alturaPlotPx = ALTURA_GRAFICO_PX - MARGEM_TOPO_PX - (8 + xAxisAlturaPx);
+  const yParaPx = (v: number) => MARGEM_TOPO_PX + ((100 - v) / 100) * alturaPlotPx;
+  const rotuloRiscoTopPx: Record<RiskLevel, number> = {
+    alto: (yParaPx(70) + yParaPx(100)) / 2,
+    medio: (yParaPx(40) + yParaPx(70)) / 2,
+    baixo: (yParaPx(0) + yParaPx(40)) / 2,
+  };
 
   // Marcador vertical do ultimo DT: so aparece quando a propria data do teste
   // cai dentro do periodo visivel no momento -- e um evento pontual na linha
@@ -379,7 +398,7 @@ export function EeaChartSection({
           </div>
         ) : (
         <>
-        <div className="flex">
+        <div className="relative flex">
           {/* Eixo Y fixo: nao pode rolar junto com os dados, senao os numeros
               da lateral somem quando o grafico rola para os dias recentes.
               top/bottom precisam ser identicos aos do grafico principal ao
@@ -399,7 +418,7 @@ export function EeaChartSection({
                 tickLine={false}
                 style={{ fontSize: "12px" }}
               />
-              <XAxis dataKey="date" hide height={dias > 14 ? 40 : 24} />
+              <XAxis dataKey="date" hide height={xAxisAlturaPx} />
             </AreaChart>
           </ChartContainer>
 
@@ -418,7 +437,7 @@ export function EeaChartSection({
                   interval={0}
                   angle={dias > 14 ? -45 : 0}
                   textAnchor={dias > 14 ? "end" : "middle"}
-                  height={dias > 14 ? 40 : 24}
+                  height={xAxisAlturaPx}
                   style={{ fontSize: "12px" }}
                 />
                 <YAxis domain={[0, 100]} hide />
@@ -460,30 +479,9 @@ export function EeaChartSection({
                     />
                   }
                 />
-                <ReferenceArea
-                  y1={70}
-                  y2={100}
-                  fill="#dc2626"
-                  fillOpacity={0.05}
-                  ifOverflow="visible"
-                  label={{ value: "Alto risco", position: "insideRight", fill: "#dc2626", fontSize: 12, fontWeight: 600 }}
-                />
-                <ReferenceArea
-                  y1={40}
-                  y2={70}
-                  fill="#d97706"
-                  fillOpacity={0.05}
-                  ifOverflow="visible"
-                  label={{ value: "Médio risco", position: "insideRight", fill: "#d97706", fontSize: 12, fontWeight: 600 }}
-                />
-                <ReferenceArea
-                  y1={0}
-                  y2={40}
-                  fill="#059669"
-                  fillOpacity={0.05}
-                  ifOverflow="visible"
-                  label={{ value: "Baixo risco", position: "insideRight", fill: "#059669", fontSize: 12, fontWeight: 600 }}
-                />
+                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
                 {serieDt && serieDt.length > 0 && (
                   <Line
                     type="stepAfter"
@@ -508,6 +506,33 @@ export function EeaChartSection({
                 />
               </ComposedChart>
             </ChartContainer>
+          </div>
+
+          {/* Overlay HTML fixo na borda direita da area VISIVEL do grafico --
+              diferente do antigo `label` do ReferenceArea (desenhado dentro
+              do SVG, que rola junto com o conteudo e so aparecia quando o
+              scroll chegava na ponta), este div fica fora do container que
+              rola horizontalmente, entao os 3 rotulos ficam sempre visiveis
+              nao importa pra onde o historico for rolado. */}
+          <div className="pointer-events-none absolute right-2 top-0 h-72 w-fit">
+            <span
+              className="absolute right-0 -translate-y-1/2 whitespace-nowrap text-xs font-semibold"
+              style={{ top: rotuloRiscoTopPx.alto, color: "#dc2626" }}
+            >
+              Alto risco
+            </span>
+            <span
+              className="absolute right-0 -translate-y-1/2 whitespace-nowrap text-xs font-semibold"
+              style={{ top: rotuloRiscoTopPx.medio, color: "#d97706" }}
+            >
+              Médio risco
+            </span>
+            <span
+              className="absolute right-0 -translate-y-1/2 whitespace-nowrap text-xs font-semibold"
+              style={{ top: rotuloRiscoTopPx.baixo, color: "#059669" }}
+            >
+              Baixo risco
+            </span>
           </div>
         </div>
 

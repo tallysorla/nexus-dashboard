@@ -156,7 +156,7 @@ export default function ColaboradorProfile() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {colaborador.totalTestesEea === 0 ? (
           <KpiCard
-            label="Última pontuação EEA"
+            label="Status do último EEA"
             value={<span className="text-muted-foreground">—</span>}
             badge="Sem teste realizado"
             badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
@@ -165,7 +165,7 @@ export default function ColaboradorProfile() {
           />
         ) : (
           <KpiCard
-            label="Última pontuação EEA"
+            label="Status do último EEA"
             value={
               <Badge
                 variant="outline"
@@ -188,7 +188,7 @@ export default function ColaboradorProfile() {
         )}
         {colaborador.totalTestesDt === 0 ? (
           <KpiCard
-            label="Última pontuação DT"
+            label="Status do último DT"
             value={<span className="text-muted-foreground">—</span>}
             badge="Sem teste realizado"
             badgeClassName="border-slate-200 bg-slate-50 text-slate-700"
@@ -197,7 +197,7 @@ export default function ColaboradorProfile() {
           />
         ) : (
           <KpiCard
-            label="Última pontuação DT"
+            label="Status do último DT"
             value={
               <Badge
                 variant="outline"
