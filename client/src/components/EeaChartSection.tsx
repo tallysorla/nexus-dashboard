@@ -172,25 +172,24 @@ export function EeaChartSection({
     };
   });
 
-  // Insight "previsto (DT) x realizado (EEA)": olha pra classificacao que MAIS
-  // se repete no periodo visivel e compara com a classificacao do ultimo DT --
-  // e essa comparacao que da o titulo (melhor/pior/dentro do previsto) e a
-  // contagem "X dos ultimos Y dias" da descricao abaixo do grafico.
+  // Insight "previsto (DT) x realizado (EEA)": compara a classificacao do
+  // ULTIMO teste EEA feito (nao a predominante num periodo, que mudava
+  // conforme o filtro 7/30/90/todo periodo -- o mesmo funcionario nao pode
+  // "melhorar" ou "piorar" so porque o gestor trocou a aba) com a
+  // classificacao do ultimo DT. Usa `data` (serie completa), nao
+  // `visibleData`, porque o dia mais recente e o mesmo em qualquer recorte.
   const riscoDt = dtReferencia !== undefined ? classificarRiscoDt(dtReferencia) : undefined;
-  const contagemPorRisco = { alto: 0, medio: 0, baixo: 0 } as Record<RiskLevel, number>;
-  for (const ponto of visibleData) contagemPorRisco[classificarRiscoEea(ponto.eea)] += 1;
-  const riscoPredominante = (Object.keys(contagemPorRisco) as RiskLevel[]).reduce((a, b) =>
-    contagemPorRisco[b] > contagemPorRisco[a] ? b : a
-  );
-  // ORDEM_NIVEL maior = risco mais baixo (mais seguro) -- predominante "melhor"
-  // que o previsto pelo DT quando o EEA ficou majoritariamente num nivel mais
-  // seguro do que aquele que o DT indicava.
+  const ultimoPontoEea = data.length > 0 ? data[data.length - 1] : undefined;
+  const riscoUltimoEea = ultimoPontoEea ? classificarRiscoEea(ultimoPontoEea.eea) : undefined;
+  // ORDEM_NIVEL maior = risco mais baixo (mais seguro) -- ultimo EEA "melhor"
+  // que o previsto pelo DT quando ficou num nivel mais seguro do que aquele
+  // que o DT indicava.
   const comparacaoInsight =
-    riscoDt === undefined
+    riscoDt === undefined || riscoUltimoEea === undefined
       ? "igual"
-      : ORDEM_NIVEL[riscoPredominante] > ORDEM_NIVEL[riscoDt]
+      : ORDEM_NIVEL[riscoUltimoEea] > ORDEM_NIVEL[riscoDt]
         ? "melhor"
-        : ORDEM_NIVEL[riscoPredominante] < ORDEM_NIVEL[riscoDt]
+        : ORDEM_NIVEL[riscoUltimoEea] < ORDEM_NIVEL[riscoDt]
           ? "pior"
           : "igual";
   // Seta pra cima = risco subindo (pior), seta pra baixo = risco caindo
@@ -204,17 +203,18 @@ export function EeaChartSection({
       ? "Nível de risco em redução"
       : comparacaoInsight === "pior"
         ? "Nível de risco em elevação"
-        : `Nível de risco ${NIVEL_LABEL_CURTO[riscoPredominante]} mantido`;
-  // Data curta (dd/mm, sem ano) do DT de referencia -- o ano fica implicito
-  // pelo contexto (teste recente), o dia/mes ja basta pra localizar qual DT
-  // gerou a comparacao.
+        : `Nível de risco ${NIVEL_LABEL_CURTO[riscoUltimoEea ?? "baixo"]} mantido`;
+  // Datas curtas (dd/mm, sem ano) do ultimo EEA e do DT de referencia -- o
+  // ano fica implicito pelo contexto (testes recentes), o dia/mes ja basta
+  // pra deixar explicito DE QUAL teste cada classificacao veio.
+  const dataUltimoEeaCurta = ultimoPontoEea?.date ?? "";
   const dtCurta = dtReferenciaData ? dtReferenciaData.slice(0, 5) : "";
   const descricaoInsight =
     comparacaoInsight === "pior"
-      ? `Monitoramento diário (EEA) indica elevação do nível de risco avaliado no DT de ${dtCurta}. Recomenda-se reavaliação das medidas de prevenção.`
+      ? `Monitoramento com EEA de ${dataUltimoEeaCurta} indica elevação do nível de risco avaliado no DT de ${dtCurta}. Recomenda-se reavaliação das medidas de prevenção.`
       : comparacaoInsight === "melhor"
-        ? `Monitoramento diário (EEA) indica redução do nível de risco avaliado no DT de ${dtCurta}.`
-        : `Monitoramento diário (EEA) indica manutenção do nível de risco avaliado no DT de ${dtCurta}.`;
+        ? `Monitoramento com EEA de ${dataUltimoEeaCurta} indica redução do nível de risco avaliado no DT de ${dtCurta}.`
+        : `Monitoramento com EEA de ${dataUltimoEeaCurta} indica manutenção do nível de risco avaliado no DT de ${dtCurta}.`;
 
   // Ao trocar de periodo, comeca mostrando os dias mais recentes (extremidade
   // direita), ja que sao os mais relevantes para o gestor.
