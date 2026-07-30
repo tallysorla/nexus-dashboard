@@ -56,13 +56,14 @@ function Router() {
 // mesmo que o item correspondente na Sidebar esteja travado com cadeado,
 // nada impede alguem de digitar a URL direto na barra de enderecos -- este
 // guard fecha essa brecha redirecionando qualquer rota fora da allowlist de
-// volta para /funcionarios. So os testes acessados a partir do historico de
-// um funcionario (nao a lista agregada em /empresas/:cid/testes) ficam
-// liberados, por fazerem parte do proprio fluxo de Funcionarios.
+// volta para /funcionarios. Funcionarios e Testes (lista agregada em
+// /empresas/:cid/testes, liberada pra trabalhar em combinacoes de risco)
+// ficam liberados; o resto do menu continua bloqueado.
 const ROTAS_PERMITIDAS = [
   /^\/funcionarios$/,
   /^\/funcionarios\/[^/]+$/,
   /^\/funcionarios\/[^/]+\/testes\/[^/]+$/,
+  /^\/empresas\/[^/]+\/testes$/,
   /^\/empresas\/[^/]+\/testes\/[^/]+\/[^/]+$/,
 ];
 

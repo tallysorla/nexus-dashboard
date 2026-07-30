@@ -22,12 +22,14 @@ import {
   getEmpresaById,
   getFilialById,
 } from "@/lib/mock-empresas";
+import { useProfile } from "@/contexts/ProfileContext";
 import NotFound from "@/pages/NotFound";
 
 export default function Testes() {
   const { cid } = useParams<{ cid: string }>();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<TipoTeste>("EEA");
+  const { profile } = useProfile();
 
   const empresa = getEmpresaById(cid ?? "");
   const filialId = searchParams.get("filial");
@@ -48,19 +50,21 @@ export default function Testes() {
 
   return (
     <Layout>
-      <Breadcrumb
-        items={[
-          { label: "Empresas", href: "/" },
-          { label: empresa.nome, href: `/empresas/${empresa.id}` },
-          ...(filial
-            ? [
-                { label: "Filiais / NOPs", href: `/empresas/${empresa.id}/filiais` },
-                { label: filial.nome, href: `/empresas/${empresa.id}/filiais/${filial.id}` },
-              ]
-            : []),
-          { label: "Testes" },
-        ]}
-      />
+      {profile.key !== "stakeholder" && (
+        <Breadcrumb
+          items={[
+            { label: "Empresas", href: "/" },
+            { label: empresa.nome, href: `/empresas/${empresa.id}` },
+            ...(filial
+              ? [
+                  { label: "Filiais / NOPs", href: `/empresas/${empresa.id}/filiais` },
+                  { label: filial.nome, href: `/empresas/${empresa.id}/filiais/${filial.id}` },
+                ]
+              : []),
+            { label: "Testes" },
+          ]}
+        />
+      )}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">

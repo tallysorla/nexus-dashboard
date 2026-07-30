@@ -61,16 +61,17 @@ export const PROFILES: Record<ProfileKey, ProfileDef> = {
     nav: ["func", "aplicar"],
     canExit: false,
   },
-  // Visualizacao para compartilhar com stakeholders externos: so Funcionarios
-  // fica liberado, o resto do menu aparece bloqueado (ver Sidebar.tsx) e nao
-  // ha como sair desse escopo (canExit false, sem "Ver como" no Header).
+  // Visualizacao para compartilhar com stakeholders externos: Funcionarios e
+  // Testes ficam liberados (Testes por causa do trabalho em combinacoes de
+  // risco), o resto do menu aparece bloqueado (ver Sidebar.tsx) e nao ha como
+  // sair desse escopo (canExit false, sem "Ver como" no Header).
   stakeholder: {
     key: "stakeholder",
     label: "Visualização stakeholder",
     scopeLabel: "Transportadora Andrade",
     empresaId: ANDRADE_ID,
     filialId: null,
-    nav: ["func"],
+    nav: ["func", "testes"],
     canExit: false,
   },
 };
