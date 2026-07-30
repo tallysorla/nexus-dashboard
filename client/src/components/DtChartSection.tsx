@@ -18,7 +18,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { Bar, BarChart, CartesianGrid, ReferenceArea, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, ReferenceArea, XAxis, YAxis } from "recharts";
 import { Info } from "lucide-react";
 import {
   RISCO_BADGE_CLASS,
@@ -99,6 +99,15 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
             ? "Nenhum teste DT realizado ainda"
             : `Aplicado mensalmente · Média do período: ${Math.round(media)}/750`}
         </p>
+
+        {!semDados && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
+            <span className="flex items-center gap-1.5">
+              <span className="h-0.5 w-4 rounded-full" style={{ backgroundColor: "var(--chart-2)" }} />
+              DT Mensal
+            </span>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
@@ -111,9 +120,20 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
           </div>
         ) : (
         <ChartContainer config={chartConfig} className="aspect-auto h-72 w-full">
-          <BarChart data={visibleData} margin={{ left: 8, right: 20, top: 8, bottom: 8 }}>
+          <LineChart data={visibleData} margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.6} />
-            <XAxis dataKey="date" axisLine={false} tickLine={false} style={{ fontSize: "12px" }} />
+            {/* padding afasta o primeiro/ultimo ponto da borda do eixo --
+                sem isso, o rotulo do primeiro dia (centralizado embaixo do
+                ponto que fica bem em cima do eixo Y) some por baixo do
+                numero "0" do eixo Y, ja que os dois ficam na mesma
+                coordenada horizontal. */}
+            <XAxis
+              dataKey="date"
+              axisLine={false}
+              tickLine={false}
+              padding={{ left: 16, right: 16 }}
+              style={{ fontSize: "12px" }}
+            />
             <YAxis
               domain={[0, 750]}
               ticks={[0, 150, 300, 450, 600, 750]}
@@ -151,16 +171,19 @@ export function DtChartSection({ data, ocultarEscala }: DtChartSectionProps) {
                 />
               }
             />
-            <Bar dataKey="dt" fill="var(--color-dt)" radius={[6, 6, 0, 0]} maxBarSize={48} isAnimationActive={false} />
-            {/* Faixas desenhadas por ultimo (depois das barras) para nunca
-                ficarem escondidas atras de uma barra alta. Sem texto dentro
-                do grafico: qualquer posicao fixa eventualmente coincide com
-                alguma barra alta e fica ilegivel -- a legenda de cor fica no
-                tooltip, fora da area de plotagem. */}
-            <ReferenceArea y1={525} y2={750} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-            <ReferenceArea y1={300} y2={525} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+            <ReferenceArea y1={525} y2={750} fill="#dc2626" fillOpacity={0.1} ifOverflow="visible" />
+            <ReferenceArea y1={300} y2={525} fill="#d97706" fillOpacity={0.08} ifOverflow="visible" />
             <ReferenceArea y1={0} y2={300} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
-          </BarChart>
+            <Line
+              type="monotone"
+              dataKey="dt"
+              stroke="var(--color-dt)"
+              strokeWidth={2.5}
+              dot={{ r: 4, fill: "var(--color-dt)", strokeWidth: 0 }}
+              activeDot={{ r: 6 }}
+              isAnimationActive={false}
+            />
+          </LineChart>
         </ChartContainer>
         )}
       </CardContent>

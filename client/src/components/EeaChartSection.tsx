@@ -109,13 +109,6 @@ type Range = "7" | "30" | "90" | "all";
 const PX_PER_DAY = 42;
 const MIN_CHART_WIDTH = 600;
 
-// Geometria do grafico principal (h-72 = 288px), replicada aqui pra
-// posicionar o overlay HTML dos rotulos de risco (ver mais abaixo) na mesma
-// altura das faixas coloridas do SVG -- os dois usam o mesmo domain [0,100]
-// e as mesmas margens top/bottom, entao o mapeamento e identico.
-const ALTURA_GRAFICO_PX = 288;
-const MARGEM_TOPO_PX = 8;
-
 const chartConfig = {
   eea: {
     label: "EEA",
@@ -145,16 +138,8 @@ export function EeaChartSection({
   const segmentos = linhaNeutra ? segmentarPorRisco(visibleData) : [];
 
   // Altura do XAxis muda com a quantidade de dias (rotulo na diagonal precisa
-  // de mais espaco) -- usada tanto no grafico quanto no calculo de onde os
-  // rotulos de risco do overlay ficam verticalmente.
+  // de mais espaco).
   const xAxisAlturaPx = dias > 14 ? 40 : 24;
-  const alturaPlotPx = ALTURA_GRAFICO_PX - MARGEM_TOPO_PX - (8 + xAxisAlturaPx);
-  const yParaPx = (v: number) => MARGEM_TOPO_PX + ((100 - v) / 100) * alturaPlotPx;
-  const rotuloRiscoTopPx: Record<RiskLevel, number> = {
-    alto: (yParaPx(70) + yParaPx(100)) / 2,
-    medio: (yParaPx(40) + yParaPx(70)) / 2,
-    baixo: (yParaPx(0) + yParaPx(40)) / 2,
-  };
 
   // Marcador vertical do ultimo DT: so aparece quando a propria data do teste
   // cai dentro do periodo visivel no momento -- e um evento pontual na linha
@@ -293,10 +278,6 @@ export function EeaChartSection({
         </p>
 
         {!semDados && !linhaNeutra && (
-          // So as duas series (EEA/DT) na legenda -- o significado das cores
-          // de risco fica dentro do proprio grafico agora (rotulo "Alto/
-          // Medio/Baixo risco" escrito dentro de cada faixa, ver
-          // ReferenceArea abaixo), entao nao precisa repetir isso aqui.
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
             <span className="flex items-center gap-1.5">
               <span className="h-0.5 w-4 rounded-full" style={{ backgroundColor: "var(--chart-1)" }} />
@@ -479,8 +460,8 @@ export function EeaChartSection({
                     />
                   }
                 />
-                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.05} ifOverflow="visible" />
-                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.05} ifOverflow="visible" />
+                <ReferenceArea y1={70} y2={100} fill="#dc2626" fillOpacity={0.1} ifOverflow="visible" />
+                <ReferenceArea y1={40} y2={70} fill="#d97706" fillOpacity={0.08} ifOverflow="visible" />
                 <ReferenceArea y1={0} y2={40} fill="#059669" fillOpacity={0.05} ifOverflow="visible" />
                 {serieDt && serieDt.length > 0 && (
                   <Line
@@ -506,33 +487,6 @@ export function EeaChartSection({
                 />
               </ComposedChart>
             </ChartContainer>
-          </div>
-
-          {/* Overlay HTML fixo na borda direita da area VISIVEL do grafico --
-              diferente do antigo `label` do ReferenceArea (desenhado dentro
-              do SVG, que rola junto com o conteudo e so aparecia quando o
-              scroll chegava na ponta), este div fica fora do container que
-              rola horizontalmente, entao os 3 rotulos ficam sempre visiveis
-              nao importa pra onde o historico for rolado. */}
-          <div className="pointer-events-none absolute right-2 top-0 h-72 w-fit">
-            <span
-              className="absolute right-0 -translate-y-1/2 whitespace-nowrap text-xs font-semibold"
-              style={{ top: rotuloRiscoTopPx.alto, color: "#dc2626" }}
-            >
-              Alto risco
-            </span>
-            <span
-              className="absolute right-0 -translate-y-1/2 whitespace-nowrap text-xs font-semibold"
-              style={{ top: rotuloRiscoTopPx.medio, color: "#d97706" }}
-            >
-              Médio risco
-            </span>
-            <span
-              className="absolute right-0 -translate-y-1/2 whitespace-nowrap text-xs font-semibold"
-              style={{ top: rotuloRiscoTopPx.baixo, color: "#059669" }}
-            >
-              Baixo risco
-            </span>
           </div>
         </div>
 

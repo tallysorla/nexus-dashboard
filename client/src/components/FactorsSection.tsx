@@ -80,16 +80,28 @@ function FatorRow({
               <p className="mt-0.5 text-xs text-muted-foreground">nota {factor.nota}{sufixo}</p>
             )}
           </>
+        ) : ocultarNota ? (
+          // Sem nota pra mostrar, nome e badge dividem a mesma linha (como no
+          // modo compact) -- em duas linhas separadas, o badge sozinho
+          // (empurrado com ml-auto) ficava desalinhado com o numero da
+          // esquerda, sem nada na mesma altura pra ancorar visualmente.
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-medium">{factor.nome}</p>
+            <Badge
+              variant="outline"
+              className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
+            >
+              {RISCO_LABEL[risco]}
+            </Badge>
+          </div>
         ) : (
           <>
             <p className="font-medium">{factor.nome}</p>
             <div className="mt-0.5 flex items-center justify-between gap-3">
-              {!ocultarNota && (
-                <p className="text-xs text-muted-foreground">nota {factor.nota}{sufixo}</p>
-              )}
+              <p className="text-xs text-muted-foreground">nota {factor.nota}{sufixo}</p>
               <Badge
                 variant="outline"
-                className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]} ${ocultarNota ? "ml-auto" : ""}`}
+                className={`shrink-0 rounded-lg px-2 py-0.5 text-xs ${RISCO_BADGE_CLASS[risco]}`}
               >
                 {RISCO_LABEL[risco]}
               </Badge>
