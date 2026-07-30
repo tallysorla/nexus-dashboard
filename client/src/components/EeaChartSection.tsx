@@ -441,7 +441,13 @@ export function EeaChartSection({
                         return (
                           <div className="flex w-full flex-col gap-1">
                             <span className="flex items-center justify-between gap-3">
-                              <span className="text-muted-foreground">{rotulo}</span>
+                              <span className="flex items-center gap-1.5 text-muted-foreground">
+                                <span
+                                  className="size-2 shrink-0 rounded-full"
+                                  style={{ backgroundColor: ehDt ? "var(--chart-2)" : "var(--color-eea)" }}
+                                />
+                                {rotulo}
+                              </span>
                               {!ehDt && (
                                 <span className="font-mono font-medium text-foreground">
                                   {Math.round(valorReal)}/100

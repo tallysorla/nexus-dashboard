@@ -23,6 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Tooltip,
@@ -66,12 +67,18 @@ export function Sidebar() {
   const { profile } = useProfile();
   const cid = useEmpresaScope();
   const empresa = cid ? getEmpresaById(cid) : undefined;
+  const { state, isMobile } = useSidebar();
 
   return (
     <SidebarPrimitive collapsible="icon" className="border-r">
       <SidebarHeader className="items-center p-5 group-data-[collapsible=icon]:p-2">
+        {/* No menu recolhido (so icone) nao ha espaco pra legibilidade do
+            nome por extenso -- por isso troca pra um SVG separado, recortado
+            so no icone (sem a palavra "NEXUS"), em vez de encolher o mesmo
+            lockup completo pra 32px de altura, onde o texto virava um borrao
+            ilegivel. */}
         <img
-          src="/nexus-logo.svg"
+          src={!isMobile && state === "collapsed" ? "/nexus-logo-icon.svg" : "/nexus-logo.svg"}
           alt="Nexus"
           className="h-14 w-auto group-data-[collapsible=icon]:h-8"
         />
