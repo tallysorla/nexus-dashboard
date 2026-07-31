@@ -742,10 +742,10 @@ export function duracaoDoTeste(colaboradorId: string, testeId: string): number {
 // pratica importa.
 export function descricaoRiscoFator(risco: RiskLevel): string {
   if (risco === "alto") {
-    return "Por segurança, não recomendamos que dirija no momento. É fundamental buscar descanso e, se necessário, apoio médico ou psicológico antes de retornar à atividade.";
+    return "Os resultados do teste indicam um risco alto nessa categoria. Por segurança, não recomendamos que dirija no momento. É fundamental buscar descanso e, se necessário, apoio médico ou psicológico antes de retornar à atividade. Sua segurança e a de todos na via dependem disso.";
   }
   if (risco === "medio") {
-    return "Recomendamos cautela adicional e atenção ao bem-estar antes de novas atividades.";
+    return "O teste identificou médio risco nessa categoria. Este motorista não deve ser escalado para dirigir no momento. É fundamental que ele tenha um período de descanso e, se necessário, seja encaminhado para apoio médico ou psicológico antes de retornar às atividades.";
   }
   return "Recomendamos manter os bons hábitos de descanso e atenção ao bem-estar físico e emocional.";
 }

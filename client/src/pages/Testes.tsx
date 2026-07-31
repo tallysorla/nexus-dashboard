@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "wouter";
+import { Link, useLocation, useParams, useSearchParams } from "wouter";
 import { Layout } from "@/components/Layout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ import NotFound from "@/pages/NotFound";
 export default function Testes() {
   const { cid } = useParams<{ cid: string }>();
   const [searchParams] = useSearchParams();
+  const [, navigate] = useLocation();
   const [tab, setTab] = useState<TipoTeste>("EEA");
   const { profile } = useProfile();
 
@@ -108,45 +109,50 @@ export default function Testes() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {linhas.map(({ colaborador, teste }) => (
-                    <TableRow key={`${colaborador.id}-${teste.id}`}>
-                      <TableCell className="px-4 py-4 font-medium">{colaborador.nome}</TableCell>
-                      <TableCell className="px-4 py-4 text-muted-foreground">{colaborador.cpf}</TableCell>
-                      <TableCell className="px-4 py-4 text-muted-foreground">{teste.data}</TableCell>
-                      <TableCell className="px-4 py-4">
-                        {teste.status === "alto" ? (
-                          <span className="text-xs font-medium text-amber-600">Aguardando autorização</span>
-                        ) : (
-                          <span className="text-xs font-medium text-emerald-600">Autorizado</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="px-4 py-4">
-                        <Badge
-                          variant="outline"
-                          className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[teste.status]}`}
-                        >
-                          {RISCO_LABEL[teste.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-4 py-4 text-right">
-                        <Button
-                          asChild
-                          aria-label="Abrir detalhe do teste"
-                          variant="ghost"
-                          size="icon"
-                          className="size-10 rounded-xl text-primary"
-                        >
-                          <Link
-                            href={`/empresas/${empresa.id}/testes/${colaborador.id}/${teste.id}${
-                              filial ? `?filial=${filial.id}` : ""
-                            }`}
+                  {linhas.map(({ colaborador, teste }) => {
+                    const href = `/empresas/${empresa.id}/testes/${colaborador.id}/${teste.id}${
+                      filial ? `?filial=${filial.id}` : ""
+                    }`;
+                    return (
+                      <TableRow
+                        key={`${colaborador.id}-${teste.id}`}
+                        className="cursor-pointer"
+                        onClick={() => navigate(href)}
+                      >
+                        <TableCell className="px-4 py-4 font-medium">{colaborador.nome}</TableCell>
+                        <TableCell className="px-4 py-4 text-muted-foreground">{colaborador.cpf}</TableCell>
+                        <TableCell className="px-4 py-4 text-muted-foreground">{teste.data}</TableCell>
+                        <TableCell className="px-4 py-4">
+                          {teste.status === "alto" ? (
+                            <span className="text-xs font-medium text-amber-600">Aguardando autorização</span>
+                          ) : (
+                            <span className="text-xs font-medium text-emerald-600">Autorizado</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          <Badge
+                            variant="outline"
+                            className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[teste.status]}`}
                           >
-                            <FileText className="size-4" />
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            {RISCO_LABEL[teste.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            asChild
+                            aria-label="Abrir detalhe do teste"
+                            variant="ghost"
+                            size="icon"
+                            className="size-10 rounded-xl text-primary"
+                          >
+                            <Link href={href}>
+                              <FileText className="size-4" />
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

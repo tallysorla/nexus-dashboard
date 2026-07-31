@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Card,
   CardContent,
@@ -59,6 +59,7 @@ export function TestHistoryTable({
   ocultarIndice = false,
   buildTestHref,
 }: TestHistoryTableProps) {
+  const [, navigate] = useLocation();
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<RiskLevel | "todos">("todos");
@@ -159,42 +160,51 @@ export function TestHistoryTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visibleTests.map((test) => (
-                <TableRow key={test.id}>
-                  <TableCell className="px-4 py-4 font-medium">
-                    {test.data}
-                  </TableCell>
-                  {!ocultarIndice && (
-                    <TableCell className="px-4 py-4 font-semibold">
-                      {test.pontuacao}/{test.tipo === "EEA" ? 100 : 750}
+              {visibleTests.map((test) => {
+                const href = buildTestHref
+                  ? buildTestHref(test.id)
+                  : `/empresas/${ANDRADE_ID}/testes/${colaboradorId}/${test.id}`;
+                return (
+                  <TableRow
+                    key={test.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate(href)}
+                  >
+                    <TableCell className="px-4 py-4 font-medium">
+                      {test.data}
                     </TableCell>
-                  )}
-                  <TableCell className="px-4 py-4">
-                    <Badge
-                      variant="outline"
-                      className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[test.status]}`}
-                    >
-                      {test.classificacao}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-4 text-muted-foreground">
-                    {test.status === "baixo" ? "Nenhum fator em atenção" : test.fatores}
-                  </TableCell>
-                  <TableCell className="px-4 py-4 text-right">
-                    <Button
-                      asChild
-                      aria-label="Abrir detalhe do teste"
-                      variant="ghost"
-                      size="icon"
-                      className="size-10 rounded-xl text-primary"
-                    >
-                      <Link href={buildTestHref ? buildTestHref(test.id) : `/empresas/${ANDRADE_ID}/testes/${colaboradorId}/${test.id}`}>
-                        <FileText className="size-4" />
-                      </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    {!ocultarIndice && (
+                      <TableCell className="px-4 py-4 font-semibold">
+                        {test.pontuacao}/{test.tipo === "EEA" ? 100 : 750}
+                      </TableCell>
+                    )}
+                    <TableCell className="px-4 py-4">
+                      <Badge
+                        variant="outline"
+                        className={`rounded-lg px-2.5 py-1 ${RISCO_BADGE_CLASS[test.status]}`}
+                      >
+                        {test.classificacao}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-muted-foreground">
+                      {test.status === "baixo" ? "Nenhum fator em atenção" : test.fatores}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        asChild
+                        aria-label="Abrir detalhe do teste"
+                        variant="ghost"
+                        size="icon"
+                        className="size-10 rounded-xl text-primary"
+                      >
+                        <Link href={href}>
+                          <FileText className="size-4" />
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
               {visibleTests.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={ocultarIndice ? 4 : 5} className="px-4 py-10 text-center text-sm text-muted-foreground">
